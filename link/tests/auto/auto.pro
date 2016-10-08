@@ -5,7 +5,7 @@ CONFIG -= qt
 
 SOURCES += \
     main.cpp \
-    tests_terminal.cpp
+    tests_link.cpp
 
 LIBS += \
     # Путь в рамках shadow build

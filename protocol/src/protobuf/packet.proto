@@ -4,6 +4,6 @@ package alpha.protort.protocol;
 
 message Packet {
 
-    // TODO
+    uint32 foobar = 1;
 
 }

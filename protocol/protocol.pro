@@ -1,7 +1,9 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
+    src \
     tests \
-    examples \
-#    protocol
-    src
+    examples
+
+tests.depends = src
+examples.depends = src

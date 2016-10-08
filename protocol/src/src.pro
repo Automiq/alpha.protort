@@ -8,14 +8,17 @@ CONFIG += console c++11
 CONFIG -= app_bundle
 CONFIG -= qt
 
+DESTDIR = ../lib
+
 # Общие определения (требуется для LIBINFIX)
 include(../../alpha.pri)
 
+# Целевое имя библиотеки
+TARGET = alpha.protort.protocol$$LIBINFIX
+
 LIBS += \
-    # Подключаем директорию со сборками protobuf
-    -L$$(PROTOBUF_PATH)/lib \
-    # Линкуемся с protobuf
-    -llibprotobuf$$LIBINFIX
+    -L$$(PROTOBUF_PATH)/lib \ # Подключаем директорию со сборками protobuf
+    -llibprotobuf$$LIBINFIX # Линкуемся с protobuf
 
 # Файлы описания протокола
 PROTOS += \

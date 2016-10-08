@@ -1,4 +1,4 @@
-message("Generating protocol buffer classes from .proto files.")
+message("Generating protocol buffer classes from .proto files")
 
 INCLUDEPATH += $$PWD $$(PROTOBUF_PATH)/include
 DEPENDPATH  += $$PWD
