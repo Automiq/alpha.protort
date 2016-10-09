@@ -15,13 +15,13 @@ BOOST_AUTO_TEST_SUITE(tests_packet)
 BOOST_AUTO_TEST_CASE(test_serialize_parse)
 {
     const uint32_t id = 1;
-    const Packet::component_kind component = Packet::Generator;
+    const Packet::ComponentKind component = Packet::Generator;
     const std::string str = "afwrger";
     Packet newpacket;
     newpacket.set_id(id);
     BOOST_CHECK_EQUAL(newpacket.id(), id);
-    newpacket.set_component(component);
-    BOOST_CHECK_EQUAL(newpacket.component(), component);
+    newpacket.set_component_kind(component);
+    BOOST_CHECK_EQUAL(newpacket.component_kind(), component);
 
     newpacket.set_payload(str);
 
@@ -32,8 +32,9 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     Packet deserializedPacket;
     deserializedPacket.ParseFromString(serializedPacketAsStr);
     BOOST_CHECK_EQUAL(deserializedPacket.payload(), str);
-    BOOST_CHECK_EQUAL(deserializedPacket.component(), component);
+    BOOST_CHECK_EQUAL(deserializedPacket.component_kind(), component);
     BOOST_CHECK_EQUAL(deserializedPacket.id(), id);
+    google::protobuf::ShutdownProtobufLibrary();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
