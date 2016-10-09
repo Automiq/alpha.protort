@@ -16,6 +16,7 @@ BOOST_AUTO_TEST_SUITE(tests_packet)
 
 BOOST_AUTO_TEST_CASE(test_serialize_parse)
 {
+    //
     const uint32_t id = 1;
     Packet newpacket;
     newpacket.set_id(id);
