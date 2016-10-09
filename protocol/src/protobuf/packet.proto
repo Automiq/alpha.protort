@@ -5,12 +5,12 @@ package alpha.protort.protocol;
 message Packet {
 
     uint32 id = 1;
-    enum component_kind
+    enum ComponentKind
     {
         Generator = 0;
         Retranslator = 1;
         Terminator = 2;
     }
-    component_kind component = 2;
+    ComponentKind component_kind = 2;
     bytes payload = 3;
 }
