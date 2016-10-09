@@ -1,10 +1,8 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
-#include <iostream>
 
 #include "packet.pb.h"
 
-using namespace std;
 using namespace alpha::protort::protocol;
 
 namespace alpha {
