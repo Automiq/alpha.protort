@@ -15,24 +15,24 @@ BOOST_AUTO_TEST_SUITE(tests_packet)
 BOOST_AUTO_TEST_CASE(test_serialize_parse)
 {
     const uint32_t id = 1;
+    const Packet::component_kind component = Packet::Generator;
+    const std::string str = "afwrger";
     Packet newpacket;
     newpacket.set_id(id);
     BOOST_CHECK_EQUAL(newpacket.id(), id);
-    newpacket.set_component(Packet::Generator);
-    BOOST_CHECK_EQUAL(newpacket.component(), Packet::Generator);
+    newpacket.set_component(component);
+    BOOST_CHECK_EQUAL(newpacket.component(), component);
 
-    auto serializedPayloadAsStr = newpacket.SerializeAsString();
+    newpacket.set_payload(str);
 
-    newpacket.set_allocated_payload(&serializedPayloadAsStr);
-
-    BOOST_CHECK_EQUAL(newpacket.payload(), serializedPayloadAsStr);
+    BOOST_CHECK_EQUAL(newpacket.payload(), str);
 
     auto serializedPacketAsStr = newpacket.SerializeAsString();
 
     Packet deserializedPacket;
     deserializedPacket.ParseFromString(serializedPacketAsStr);
-    BOOST_CHECK_EQUAL(deserializedPacket.payload(), serializedPayloadAsStr);
-    BOOST_CHECK_EQUAL(deserializedPacket.component(), Packet::Generator);
+    BOOST_CHECK_EQUAL(deserializedPacket.payload(), str);
+    BOOST_CHECK_EQUAL(deserializedPacket.component(), component);
     BOOST_CHECK_EQUAL(deserializedPacket.id(), id);
 }
 
