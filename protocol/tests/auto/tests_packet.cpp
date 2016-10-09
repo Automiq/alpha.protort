@@ -1,6 +1,5 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
-#include <boost/scope_exit.hpp>
 
 #include "packet.pb.h"
 
