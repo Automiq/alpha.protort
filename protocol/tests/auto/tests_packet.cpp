@@ -36,7 +36,6 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     BOOST_CHECK_EQUAL(deserializedPacket.payload(), serializedPayloadAsStr);
     BOOST_CHECK_EQUAL(deserializedPacket.component(), Packet::Generator);
     BOOST_CHECK_EQUAL(deserializedPacket.id(), id);
-    cin.get();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
