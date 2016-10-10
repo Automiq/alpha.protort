@@ -4,18 +4,13 @@ package alpha.protort.protocol;
 
 message Packet {
 
-    uint32 ID = 1;
-    enum Components
+    uint32 id = 1;
+    enum ComponentKind
     {
-        CalcSin = 0;
-        SendMessage = 1;
-        EncryptMessage = 2;
+        Generator = 0;
+        Retranslator = 1;
+        Terminator = 2;
     }
-    Components component = 4;
-    bytes masbytes = 5;
-}
-
-message text
-{
-    repeated string mes = 1;
+    ComponentKind component = 2;
+    bytes payload = 3;
 }
