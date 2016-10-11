@@ -6,5 +6,9 @@ CONFIG(debug, debug|release) {
     else: LIBINFIX = d
 }
 
+win32 {
+    LIBPREFIX = lib
+}
+
 # Таргеты
 include(automiq.pri)
