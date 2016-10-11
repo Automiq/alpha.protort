@@ -36,5 +36,5 @@ script:
  - protocol/tests/auto/auto.exe
  
 notifications:
- email:
-  on_failure: always
+ slack:
+  on_success: always
