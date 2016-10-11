@@ -3,16 +3,16 @@ language: cpp
 sudo: required
 
 cache: 
-  apt:  true
+ apt:  true
 
 addons:
-  apt:
+ apt:
     packages:
 #   - gcc-4.9
 #   - g++-4.9
-    - libboost-all-dev
+  - libboost-all-dev
 
-dist: trusty
+dist: xenial
 compiler:
  - clang
  - gcc
