@@ -35,9 +35,10 @@ script:
  - make
  - protocol/tests/auto/auto.exe
  
-notifications:
- email:
+ notifications:
+  email:
   recipients:
    - y.s.undergound2@bk.ru
-   on_failure: always
-   
+    on_success: never
+    on_failure: always
+    
