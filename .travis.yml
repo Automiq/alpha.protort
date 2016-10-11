@@ -6,9 +6,7 @@ cache:
  apt:  true
 
 env:
- - BOOST_PATH=/usr
- - BOOST_LIB_PATH=/usr/lib
- - PROTOBUF_PATH=/usr
+ - BOOST_PATH=/usr BOOST_LIB_PATH=/usr/lib PROTOBUF_PATH=/usr
 
 addons:
  apt:
