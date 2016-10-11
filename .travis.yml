@@ -23,7 +23,8 @@ os:
 before_install:
  - sudo add-apt-repository -y ppa:edd/misc
  - sudo apt-get -qq update
- - sudo apt-get install -qq libprotobuf
+ - sudo apt-get install -qq libprotobuf10 protobuf-compiler
+ 
 
 install: true
 
