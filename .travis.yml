@@ -11,8 +11,6 @@ env:
 addons:
  apt:
   packages:
-#   - gcc-4.9
-#   - g++-4.9
    - libboost-all-dev
 
 dist: trusty
@@ -31,12 +29,9 @@ before_install:
  
 install: true
 
-
 script:
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
  - make
  - protocol/tests/auto/auto.exe
-
-deploy:
- skip_cleanup: true
+ 
