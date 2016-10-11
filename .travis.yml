@@ -7,10 +7,10 @@ cache:
 
 addons:
  apt:
-    packages:
+  packages:
 #   - gcc-4.9
 #   - g++-4.9
-  - libboost-all-dev
+   - libboost-all-dev
 
 dist: trusty
 compiler:
@@ -20,14 +20,12 @@ compiler:
 os:
  - linux
 
-
 before_install:
  - sudo add-apt-repository -y ppa:edd/misc
  - sudo apt-get -qq update
  - sudo apt-get install -qq protobuf
 
 install: true
-
 
 script:
  - qmake -v
