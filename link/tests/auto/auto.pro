@@ -16,3 +16,6 @@ include(../../../boost.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../../protocol/protocol.pri)
+
+# Подключаем header-only библиотеку alpha.protort.link
+include(../../src/src.pri)
