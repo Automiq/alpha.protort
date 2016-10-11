@@ -35,3 +35,6 @@ script:
  - make
  - protocol/tests/auto/auto.exe
  
+notifications:
+ email:
+  on_failure: always
