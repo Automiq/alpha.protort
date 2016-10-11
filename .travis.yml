@@ -22,7 +22,7 @@ os:
 
 
 before_install:
- - sudo apt-get-repository -y ppa:maarten-fonville/protobuf
+ - sudo add-apt-repository -y ppa:maarten-fonville/protobuf
  - sudo apt-get -qq update
  - sudo apt-get install -qq protobuf
 
