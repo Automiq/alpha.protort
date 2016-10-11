@@ -1,0 +1,39 @@
+language: cpp
+
+sudo: required
+
+cache: 
+  apt:  true
+
+addons:
+  apt:
+    packages:
+#   - gcc-4.9
+#   - g++-4.9
+    - libboost-all-dev
+
+dist: trusty
+compiler:
+ - clang
+ - gcc
+
+os:
+ - linux
+
+
+before_install:
+ - sudo apt-get-repository -y ppa:maarten-fonville/protobuf
+ - sudo apt-get -qq update
+ - sudo apt-get install -qq protobuf
+
+install: true
+
+
+script:
+ - qmake -v
+ - qmake
+ - make
+ - protocol/tests/auto/auto.exe
+
+deploy:
+ skip_cleanup: true
