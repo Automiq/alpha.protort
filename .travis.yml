@@ -36,5 +36,8 @@ script:
  - protocol/tests/auto/auto.exe
  
 notifications:
- slack:
-  on_success: always
+ email:
+  recipients:
+   - y.s.undergound2@bk.ru
+   on_failure: always
+   
