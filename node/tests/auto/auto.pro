@@ -7,6 +7,10 @@ SOURCES += \
     main.cpp \
     tests_node.cpp
 
+DESTDIR = ../bin
+
+TARGET = alpha.protort.node.autotests
+
 LIBS += \
     # Путь в рамках shadow build
     -L$$OUT_PWD/../../../protocol/lib
