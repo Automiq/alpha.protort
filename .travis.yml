@@ -39,6 +39,7 @@ notifications:
  email:
   recipients:
   - y.s.undergound2@bk.ru
+  - estel-7388@yandex.ru
   on_success: never
   on_failure: always
   
