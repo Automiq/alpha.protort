@@ -18,7 +18,7 @@ TARGET = alpha.protort.protocol$$LIBINFIX
 
 LIBS += \
     -L$$(PROTOBUF_PATH)/lib \ # Подключаем директорию со сборками protobuf
-    -llibprotobuf$$LIBINFIX # Линкуемся с protobuf
+    -l$$(LIBPREFIX)protobuf$$LIBINFIX # Линкуемся с protobuf
 
 # Файлы описания протокола
 PROTOS += \
