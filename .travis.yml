@@ -42,4 +42,5 @@ notifications:
   - estel-7388@yandex.ru
   on_success: never
   on_failure: always
+
   
