@@ -1,9 +1,12 @@
-#include <iostream>
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#include "node_settings.h"
 
-using namespace std;
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
-    cout << "Hello World!" << endl;
+    alpha::protort::node::node_settings node_settings;
+    node_settings.parse(argc, argv);
+
+
     return 0;
 }
