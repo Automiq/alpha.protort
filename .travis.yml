@@ -38,7 +38,7 @@ script:
 notifications:
  email:
   recipients:
-   - y.s.undergound2@bk.ru
+  - y.s.undergound2@bk.ru
   on_success: never
   on_failure: always
   
