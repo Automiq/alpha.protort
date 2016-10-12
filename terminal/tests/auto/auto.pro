@@ -9,7 +9,10 @@ SOURCES += \
 
 DESTDIR = ../../bin
 
-TARGET = alpha.protort.terminal.autotests
+# Общие определения (требуется для LIBINFIX)
+include(../../../alpha.pri)
+
+TARGET = alpha.protort.terminal.autotests$$LIBINFIX
 
 LIBS += \
     # Путь в рамках shadow build

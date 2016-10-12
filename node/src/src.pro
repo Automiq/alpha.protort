@@ -7,4 +7,7 @@ SOURCES += main.cpp
 
 DESTDIR = ../bin
 
-TARGET = alpha.protort.node
+# Общие определения (требуется для LIBINFIX)
+include(../../alpha.pri)
+
+TARGET = alpha.protort.node$$LIBINFIX
