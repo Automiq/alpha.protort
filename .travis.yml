@@ -3,7 +3,7 @@ language: cpp
 sudo: required
 
 cache: 
- apt:  true
+ apt: true
 
 env:
  - BOOST_PATH=/usr BOOST_LIB_PATH=/usr/lib PROTOBUF_PATH=/usr
@@ -33,5 +33,7 @@ script:
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
  - make
- - protocol/tests/auto/auto.exe
- 
+ - protocol/tests/auto/auto
+ - link/tests/auto/auto
+ - node/tests/auto/auto
+ - terminal/tests/auto/auto
