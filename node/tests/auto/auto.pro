@@ -5,7 +5,10 @@ CONFIG -= qt
 
 SOURCES += \
     main.cpp \
-    tests_node.cpp
+    tests_node.cpp \
+    tests_node_settings.cpp
+
+INCLUDEPATH += $$PWD/../../src
 
 DESTDIR = ../../bin
 
