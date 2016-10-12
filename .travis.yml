@@ -38,12 +38,12 @@ script:
 notifications:
  email:
   recipients:
-   - y.s.undergound2@bk.ru
-   - discografiya@gmail.com
-   - kimolegan@gmail.com
-   - d.walker.aug@yandex.ru
-   - Vomewarp@gmail.com
-   - morogin.sergey@automiq.ru
+  - y.s.undergound2@bk.ru
+  - discografiya@gmail.com
+  - kimolegan@gmail.com
+  - d.walker.aug@yandex.ru
+  - Vomewarp@gmail.com
+  - morogin.sergey@automiq.ru
   on_success: never
   on_failure: always
   
