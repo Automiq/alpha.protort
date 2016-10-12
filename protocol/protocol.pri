@@ -11,6 +11,6 @@ LIBS += \
     # Путь к папке с библиотекой в рамках обычного билда
     -L$$PWD/lib \
     # Линкуем protobuf
-    -l$$(LIBPREFIX)protobuf$$LIBINFIX \
+    -l$${LIBPREFIX}protobuf$$LIBINFIX \
     # Линкуем библиотеку бинарного протокола
     -lalpha.protort.protocol$$LIBINFIX
