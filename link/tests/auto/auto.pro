@@ -7,7 +7,7 @@ SOURCES += \
     main.cpp \
     tests_link.cpp
 
-DESTDIR = ../bin
+DESTDIR = ../../bin
 
 TARGET = alpha.protort.link.autotests
 

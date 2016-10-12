@@ -7,7 +7,7 @@ SOURCES += \
     main.cpp \
     tests_packet.cpp
 
-DESTDIR = ../bin
+DESTDIR = ../../bin
 
 TARGET = alpha.protort.protocol.autotests
 
