@@ -3,4 +3,4 @@ Alpha.ProtoRt
 
 [![Build Status](https://travis-ci.org/Automiq/alpha.protort.svg?branch=master)](https://travis-ci.org/Automiq/alpha.protort)
 
-Alpha.ProtoRt - прототип распределённой событийно-ориентированной вычислительной среды
+Alpha.ProtoRt - РїСЂРѕС‚РѕС‚РёРї СЂР°СЃРїСЂРµРґРµР»С‘РЅРЅРѕР№ СЃРѕР±С‹С‚РёР№РЅРѕ-РѕСЂРёРµРЅС‚РёСЂРѕРІР°РЅРЅРѕР№ РІС‹С‡РёСЃР»РёС‚РµР»СЊРЅРѕР№ СЃСЂРµРґС‹
