@@ -7,12 +7,11 @@
 #include <iostream>
 #include "packet.pb.h"
 
-
 namespace alpha {
 namespace protort {
 namespace node {
 
-void split_ip_port(const std::string& s, std::string& ip, int& port)
+void split_ip_port(const std::string& s, std::string& ip, short& port)
 {
     std::string port_str;
     std::string::const_iterator iter;
@@ -36,14 +35,11 @@ struct node_settings
             std::string source_ip_port_str;
             std::string destination_ip_port_str;
             std::string node_kind;
-            std::string source_ip; int source_port;
-            std::string destination_ip; int destination_port;
-
 
             boost::program_options::options_description desc{ "Node Setup Options" };
             desc.add_options()
                     ("help,h", "Help screen")
-                    ("source,s", boost::program_options::value<std::string>(&source_ip_port_str)->default_value("0.0.0.0:888"), "Source ip:port")
+                    ("source,s", boost::program_options::value<std::string>(&source_ip_port_str)->default_value("0.0.0.0:31337"), "Source ip:port")
                     ("destination,d", boost::program_options::value<std::string>(&destination_ip_port_str), "Destination host:port")
                     ("node-kind,n", boost::program_options::value<std::string>(&node_kind), "node-kind generator|retranslator|terminator");
 
@@ -51,17 +47,19 @@ struct node_settings
             boost::program_options::store(parse_command_line(argc, argv, desc), vm);
             boost::program_options::notify(vm);
 
-            //write chosen options into cout
+            //write help into cout if chosen
             if (vm.count("help"))
                 std::cout << desc << '\n';
 
-
-
             if (source_ip_port_str.size()) {
+                std::string source_ip;
+                short source_port;
                 split_ip_port(source_ip_port_str, source_ip, source_port);
                 source = boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(source_ip), source_port);
             }
             if (destination_ip_port_str.size()){
+                std::string destination_ip;
+                short destination_port;
                 split_ip_port(destination_ip_port_str, destination_ip, destination_port);
                 destination = boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(destination_ip), destination_port);
             }
@@ -82,8 +80,6 @@ struct node_settings
         }
     }
 };
-
-
 
 } // namespace node
 } // namespace protort
