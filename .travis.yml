@@ -6,7 +6,7 @@ cache:
  apt:  true
 
 env:
- - BOOST_PATH=/usr BOOST_LIB_PATH=/usr/lib PROTOBUF_PATH=/usr/local
+ - BOOST_PATH=/usr BOOST_LIB_PATH=/usr/lib PROTOBUF_PATH=/usr
 
 addons:
  apt:
@@ -43,7 +43,6 @@ notifications:
   - kimolegan@gmail.com
   - d.walker.aug@yandex.ru
   - Vomewarp@gmail.com
-  - morogin.sergey@automiq.ru
   on_success: never
   on_failure: always
   
