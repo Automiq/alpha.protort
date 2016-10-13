@@ -13,10 +13,8 @@ BOOST_AUTO_TEST_SUITE(tests_node_settings)
 BOOST_AUTO_TEST_CASE(test_node_setiings_parse)
 {
     alpha::protort::node::node_settings ns;
-    const char p1[] = {'-', '-', 's', '\0'};
-    const char p2[] = {'1', '9', '2', '.', '1', '6', '8', '.', '1', '.', '1', ':', '9', '9', '9', '\0'};
-    const  char * pp[] = {p1, p2};
-    BOOST_CHECK(ns.parse(3, pp));
+    const char *argv[] = { "--s", "192.168.1.1:999" };
+    BOOST_CHECK(ns.parse(2, argv));
 
 }
 

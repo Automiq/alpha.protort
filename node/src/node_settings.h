@@ -54,21 +54,17 @@ struct node_settings
             //write chosen options into cout
             if (vm.count("help"))
                 std::cout << desc << '\n';
-            if (vm.count("source"))
-                std::cout << "Source ip:port: " << source_ip_port_str << '\n';
-            if (vm.count("destination"))
-                std::cout << "Destination host:port: " << destination_ip_port_str << '\n';
-            if (vm.count("node-kind"))
-                std::cout << "node-kind: " << node_kind << '\n';
 
 
-            if (source_ip_port_str.size())
+
+            if (source_ip_port_str.size()) {
                 split_ip_port(source_ip_port_str, source_ip, source_port);
-            if (destination_ip_port_str.size())
+                source = boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(source_ip), source_port);
+            }
+            if (destination_ip_port_str.size()){
                 split_ip_port(destination_ip_port_str, destination_ip, destination_port);
-            //initialize source, destination and component kind
-            source =  boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(source_ip), source_port);
-            destination =  boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(destination_ip), destination_port);
+                destination = boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(destination_ip), destination_port);
+            }
 
             if (node_kind == "generator")
                 component_kind = alpha::protort::protocol::Packet::Generator;
@@ -79,12 +75,12 @@ struct node_settings
 
             return true;
         }
-       catch (const boost::program_options::error &ex)
+        catch (const boost::program_options::error &ex)
         {
             std::cerr << ex.what() << '\n';
             return false;
         }
-    }    
+    }
 };
 
 
