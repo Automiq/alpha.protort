@@ -25,7 +25,6 @@ struct node_settings
 {
     boost::asio::ip::tcp::endpoint source;
     boost::asio::ip::tcp::endpoint destination;
-
     alpha::protort::protocol::Packet::ComponentKind component_kind;
 
     bool parse(int argc, const char **argv)
