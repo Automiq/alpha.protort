@@ -15,7 +15,6 @@ BOOST_AUTO_TEST_CASE(test_node_setiings_parse)
     alpha::protort::node::node_settings ns;
     const char *argv[] = { "--s", "192.168.1.1:999" };
     BOOST_CHECK(ns.parse(2, argv));
-
 }
 
 BOOST_AUTO_TEST_SUITE_END()
