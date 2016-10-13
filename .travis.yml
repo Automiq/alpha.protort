@@ -3,7 +3,7 @@ language: cpp
 sudo: required
 
 cache: 
- apt: true
+ apt:  true
 
 env:
  - BOOST_PATH=/usr BOOST_LIB_PATH=/usr/lib PROTOBUF_PATH=/usr
@@ -33,7 +33,15 @@ script:
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
  - make
- - protocol/bin/alpha.protort.protocol.autotests
- - link/bin/alpha.protort.link.autotests
- - node/bin/alpha.protort.node.autotests
- - terminal/bin/alpha.protort.terminal.autotests
+ - protocol/tests/auto/auto.exe
+ 
+notifications:
+ email:
+  recipients:
+  - y.s.undergound2@bk.ru
+  - discografiya@gmail.com
+  - kimolegan@gmail.com
+  - d.walker.aug@yandex.ru
+  - Vomewarp@gmail.com
+  on_success: never
+  on_failure: always
