@@ -37,3 +37,15 @@ script:
  - link/bin/alpha.protort.link.autotests
  - node/bin/alpha.protort.node.autotests
  - terminal/bin/alpha.protort.terminal.autotests
+ 
+notifications:
+ email:
+  recipients:
+  - y.s.undergound2@bk.ru
+  - discografiya@gmail.com
+  - kimolegan@gmail.com
+  - d.walker.aug@yandex.ru
+  - Vomewarp@gmail.com
+  on_success: never
+  on_failure: always
+  
