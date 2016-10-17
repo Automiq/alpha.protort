@@ -21,6 +21,13 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
     port = std::stoi(port_str);
 }
 
+/*!
+ *
+ * Настройки Node - подробное описание: бла бла бла
+ *
+ * \brief коротко о настройках Node
+ *
+ * */
 struct node_settings
 {
     boost::asio::ip::tcp::endpoint source;

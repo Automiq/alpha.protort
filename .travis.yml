@@ -26,10 +26,12 @@ before_install:
  - sudo apt-get -qq update
  - sudo apt-get install -qq libprotobuf10 protobuf-compiler
  - sudo apt-get install -qq qt5-default
+ - sudo apt-get install --yes doxygen graphviz
  
 install: true
 
 script:
+ - doxygen alpha.protort.doxygen
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
  - make
