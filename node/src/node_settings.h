@@ -21,12 +21,34 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
     port = std::stoi(port_str);
 }
 
+/**
+ * \brief Настройки endpoint для сервера и клиента, а так же Component Kind пакета,  вводимые через командную строку
+ **/
+
 struct node_settings
 {
+    ///эндпоинт, который будет прослушиваться сервером
     boost::asio::ip::tcp::endpoint source;
+    ///эндпоинт, используемый клиентом для подключения к серверу
     boost::asio::ip::tcp::endpoint destination;
+    ///тип компонента, который будет передаваться в пакете
     alpha::protort::protocol::Packet::ComponentKind component_kind;
 
+
+ /** Метод parse() преобразует переданный ему массив строк в значения настроек.
+ * Необходимо в main(int argc, const char *argv[]) создать экземпляр node_settings и вызвать его метод node_settings::parse(argc, argv), например:
+ * \code
+ * int main(int argc, const char *argv[])
+ *{
+ *   alpha::protort::node::node_settings node_settings;
+ *   node_settings.parse(argc, argv);
+ *  ...
+ * \endcode
+ * Введенные настройки хранятся и доступны как атрибуты node_settings
+ * \param argc Количество строк, переданных функции
+ * \param argv Массив строк, переданных функции
+ * \return true, если не было ошибки при выполнении функции, иначе false
+ * */
     bool parse(int argc, const char **argv)
     {
         try
