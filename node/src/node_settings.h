@@ -21,34 +21,68 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
     port = std::stoi(port_str);
 }
 
-/**
- * \brief Настройки endpoint для сервера и клиента, а так же Component Kind пакета,  вводимые через командную строку
- **/
-
+/*!
+ * \brief Класс настроек узла
+ *
+ * Данный класс предназначен для хранения настроек узла.
+ */
 struct node_settings
 {
-    ///эндпоинт, который будет прослушиваться сервером
+    /*!
+     * \brief Адрес для входящих подключений
+     *
+     * Узел, работающий в режиме сервера (ретранслятор или терминатор), должен
+     * использовать этот адрес для прослушивания входящих подключений.
+     */
     boost::asio::ip::tcp::endpoint source;
-    ///эндпоинт, используемый клиентом для подключения к серверу
+
+    /*!
+     * \brief Адрес для исходящих подключений
+     *
+     * Узел, работающий в режиме клиента (генератор или ретранслятор), должен
+     * использовать этот адрес для исходящего подключения.
+     */
     boost::asio::ip::tcp::endpoint destination;
-    ///тип компонента, который будет передаваться в пакете
+
+    /*!
+     * \brief Тип компонента
+     *
+     * Определяет тип компонента, который работает на узле. То есть режимы, в
+     * которых работает узел.
+     */
     alpha::protort::protocol::Packet::ComponentKind component_kind;
 
-
- /** Метод parse() преобразует переданный ему массив строк в значения настроек.
- * Необходимо в main(int argc, const char *argv[]) создать экземпляр node_settings и вызвать его метод node_settings::parse(argc, argv), например:
- * \code
- * int main(int argc, const char *argv[])
- *{
- *   alpha::protort::node::node_settings node_settings;
- *   node_settings.parse(argc, argv);
- *  ...
- * \endcode
- * Введенные настройки хранятся и доступны как атрибуты node_settings
- * \param argc Количество строк, переданных функции
- * \param argv Массив строк, переданных функции
- * \return true, если не было ошибки при выполнении функции, иначе false
- * */
+    /*!
+     * \brief Парсит настройки узла из массива строк
+     *
+     * \param argc Количество строк в массиве
+     * \param argv Указатель на массив строк
+     * \return true в случае успеха, иначе false
+     *
+     * Данный метод предназначен для разбора массива строковых аргументов,
+     * обычно подаваемых через командную строку, и получения удобной для
+     * дальнейшего использования структуры с настройками узла.
+     * В случае успешного разбора аргументов, метод загружает настройки в
+     * экемпляр класса и возвращает true. В случае ошибки возвращается false и
+     * выводится ошибка стандартный поток вывода ошибок.
+     *
+     * Пример использования:
+     * \code
+     *  int main(int argc, const char *argv[])
+     *  {
+     *      alpha::protort::node::node_settings settings;
+     *
+     *      if (!settings.parse(argc, argv));
+     *          // ошибка разбора
+     *          return 1;
+     *
+     *      // успех
+     *      // дальнейшая работа с распарсенными настройками
+     *      ...
+     *      return 0;
+     *  }
+     * \endcode
+     */
     bool parse(int argc, const char **argv)
     {
         try
@@ -57,7 +91,7 @@ struct node_settings
             std::string destination_ip_port_str;
             std::string node_kind;
 
-            boost::program_options::options_description desc{ "Node Setup Options" };
+            boost::program_options::options_description desc{ "Node Options" };
             desc.add_options()
                     ("help,h", "Help screen")
                     ("source,s", boost::program_options::value<std::string>(&source_ip_port_str)->default_value("0.0.0.0:31337"), "Source ip:port")
