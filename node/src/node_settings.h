@@ -22,10 +22,20 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
 }
 
 /*!
+ *\brief Настройки endpoint для сервера и клиента, а так же Component Kind пакета,  вводимые через командную строку
  *
- * Настройки Node - подробное описание: бла бла бла
+ * Настройки Node - подробное описание: для создания настроек доступны следующие опции, вводимые через командную строку при запуске программы:
+ * -h [ --help ]                        Вывод доступных команд
+ * -s [ --source ] arg ( по умолчанию присваивается 0.0.0.0:31337) Source ip:port
+ * -d [ --destination ] arg             Destination host:port
+ * -n [ --node-kind ] arg               node-kind generator|retranslator|terminator
  *
- * \brief коротко о настройках Node
+ * Для работы необходимо в main(int argc, const char **argv) создать экземпляр node_settings и вызвать его метод node_settings::parse(argc, argv)
+ *
+ * Введенные настройки хранятся и доступны как атрибуты node_settings::"attribute_name":
+ * boost::asio::ip::tcp::endpoint source;
+ * boost::asio::ip::tcp::endpoint destination;
+ * alpha::protort::protocol::Packet::ComponentKind component_kind;
  *
  * */
 struct node_settings
