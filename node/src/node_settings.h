@@ -21,29 +21,39 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
     port = std::stoi(port_str);
 }
 
-/*!
- *\brief Настройки endpoint для сервера и клиента, а так же Component Kind пакета,  вводимые через командную строку
+/**
+ * \brief Настройки endpoint для сервера и клиента, а так же Component Kind пакета,  вводимые через командную строку
  *
- * Настройки Node - подробное описание: для создания настроек доступны следующие опции, вводимые через командную строку при запуске программы:
- * -h [ --help ]                        Вывод доступных команд
- * -s [ --source ] arg ( по умолчанию присваивается 0.0.0.0:31337) Source ip:port
- * -d [ --destination ] arg             Destination host:port
- * -n [ --node-kind ] arg               node-kind generator|retranslator|terminator
- *
- * Для работы необходимо в main(int argc, const char **argv) создать экземпляр node_settings и вызвать его метод node_settings::parse(argc, argv)
- *
- * Введенные настройки хранятся и доступны как атрибуты node_settings::"attribute_name":
- * boost::asio::ip::tcp::endpoint source;
- * boost::asio::ip::tcp::endpoint destination;
- * alpha::protort::protocol::Packet::ComponentKind component_kind;
- *
+ * Настройки Node. Для создания настроек доступны следующие опции, вводимые через командную строку при запуске программы:
+ * \n -h [ --help ]                                        Вывод доступных команд
+ * \n -s [ --source ] arg ( по умолчанию  0.0.0.0:31337)   Source ip:port
+ * \n -d [ --destination ] arg                             Destination host:port
+ * \n -n [ --node-kind ] arg                               node-kind generator|retranslator|terminator
  * */
+
 struct node_settings
 {
-    boost::asio::ip::tcp::endpoint source;
-    boost::asio::ip::tcp::endpoint destination;
-    alpha::protort::protocol::Packet::ComponentKind component_kind;
+    boost::asio::ip::tcp::endpoint source;                              ///< эндпоинт, который будет прослушиваться сервером
+    boost::asio::ip::tcp::endpoint destination;                         ///< эндпоинт, используемый клиентом для подключения к серверу
+    alpha::protort::protocol::Packet::ComponentKind component_kind;     ///< тип компонента, который будет передаваться в пакете
 
+
+    /** Для работы необходимо в main(int argc, const char **argv) создать экземпляр node_settings и вызвать его метод node_settings::parse(argc, argv), например:
+ * \code
+ * int main(int argc, const char *argv[])
+ *{
+ *   alpha::protort::node::node_settings node_settings;
+ *   node_settings.parse(argc, argv);
+ *  ...
+ * \endcode
+ * Введенные настройки хранятся и доступны как атрибуты node_settings::"attribute_name":
+ * \n boost::asio::ip::tcp::endpoint source;
+ * \n boost::asio::ip::tcp::endpoint destination;
+ * \n alpha::protort::protocol::Packet::ComponentKind component_kind;
+ * \param argc Количество аргументов, переданных функции main()
+ * \param argv Массив строк, переданных функции main()
+ * \return True, если не было ошибки при выполнении функции, иначе False
+ * */
     bool parse(int argc, const char **argv)
     {
         try
