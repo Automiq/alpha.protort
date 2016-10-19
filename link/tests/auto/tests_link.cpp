@@ -1,9 +1,11 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 #include <iostream>
-#include "link_server.h"
-#include "link_client.h"
+
+#include "server.h"
+#include "client.h"
 
 namespace alpha {
 namespace protort {
@@ -12,27 +14,43 @@ namespace tests {
 
 using namespace boost::asio;
 
-const std::string str = "123456789";
+const std::string str = "hello_world";
+const std::string str1 = "Bis_bald_world";
 
-struct LinkClientCallbackTest
+struct node
 {
-    LinkClientCallbackTest(){}
-    void on_connected(link_client<LinkClientCallbackTest>* client)
+    client<node> m_client;
+    server<node> m_server;
+
+    node(io_service& service)
+        :m_client(*this,service),
+         m_server(*this,service)
     {
-        std::cout << "Connected\n";
-        client->send_async(str);
+        std::cout << "node ctor" << std::endl;
     }
-};
-struct LinkServerCallbackTest
-{
-    LinkServerCallbackTest(){}
-    void on_new_connection()
+
+    void on_connected()
     {
-        std::cout << "New client has been connected\n";
+        m_client.async_send(str);
+        m_client.async_send(str1);
+#ifdef _DEBUG
+        std::cout << "on_connected" << std::endl;
+#endif
     }
+
     void on_new_packet(char const *buffer, size_t nbytes)
     {
+#ifdef _DEBUG
+        std::cout << std::string(buffer,nbytes) << std::endl;
         std::cout << "on_new_packet\n";
+#endif
+    }
+
+    void on_new_connection()
+    {
+#ifdef _DEBUG
+        std::cout << "New client has been connected" << std::endl;
+#endif
     }
 };
 
@@ -42,14 +60,13 @@ BOOST_AUTO_TEST_CASE(test_link)
 {
     io_service service;
     ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 100);
-    LinkClientCallbackTest callbackclient;
-    LinkServerCallbackTest callbackserver;
-    link_client<LinkClientCallbackTest> linkclient(callbackclient, service);
-    link_server<LinkServerCallbackTest> linkserver(callbackserver,service);
+    node node_(service);
 
-    linkserver.listen();
-    linkclient.connect_async(ep);
-    //linkclient.send_async(str);
+    node_.m_server.listen(ep);
+
+    boost::this_thread::sleep(boost::posix_time::millisec(500));
+    node_.m_client.async_connect(ep);
+
     service.run();
     std::cin.get();
 }

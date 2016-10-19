@@ -18,15 +18,13 @@ LIBS += \
     # Путь в рамках shadow build
     -L$$OUT_PWD/../../../protocol/lib
 
+# Подключим нужные хедеры
+INCLUDEPATH += $$PWD/../../src
+
 # Линкуемся с boost
 include(../../../boost.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../../protocol/protocol.pri)
 
-
-HEADERS += \
-    src/link_server.h \
-    src/link_client.h
-
-
+include(../../src/src.pri)
