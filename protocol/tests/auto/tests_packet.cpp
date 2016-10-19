@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
 {
     // Исходные данные
     const uint32_t id = 1;
-    const std::string payload = "hello_worm";
+    const std::string payload = "payload";
 
     ComponentEndpoint sourceEndpoint;
     sourceEndpoint.set_component_kind(ComponentKind::Generator);
