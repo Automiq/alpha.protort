@@ -2,7 +2,6 @@
 #include <boost/test/unit_test_suite.hpp>
 
 #include "packet.pb.h"
-#include "iostream"
 
 namespace alpha {
 namespace protort {
@@ -25,14 +24,14 @@ BOOST_FIXTURE_TEST_SUITE(tests_packet, fixture)
 
 BOOST_AUTO_TEST_CASE(test_serialize_parse)
 {
-	// Исходные данные
-	const uint32_t id = 1;
+    // Исходные данные
+    const uint32_t id = 1;
     const std::string payload = "hello_worm";
 
     ComponentEndpoint sourceEndpoint;
     sourceEndpoint.set_component_kind(ComponentKind::Generator);
     sourceEndpoint.set_port(2);
-	
+
     ComponentEndpoint destEndpoint;
     destEndpoint.set_component_kind(ComponentKind::Retranslator);
     destEndpoint.set_port(2);
