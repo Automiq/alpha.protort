@@ -29,27 +29,27 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
 	const uint32_t id = 1;
     const std::string payload = "hello_worm";
 
-    ComponentEndpoint sourceComponent;
-    sourceComponent.set_component_kind(ComponentKind::Generator);
-    sourceComponent.set_port(2);
+    ComponentEndpoint sourceEndpoint;
+    sourceEndpoint.set_component_kind(ComponentKind::Generator);
+    sourceEndpoint.set_port(2);
 	
-    ComponentEndpoint destComponent;
-    destComponent.set_component_kind(ComponentKind::Retranslator);
-    destComponent.set_port(2);
+    ComponentEndpoint destEndpoint;
+    destEndpoint.set_component_kind(ComponentKind::Retranslator);
+    destEndpoint.set_port(2);
 
     // Формируем пакет
     Packet packet;
     packet.set_id(1);
     packet.set_payload(payload);
-    packet.mutable_source()->CopyFrom(sourceComponent);
-    packet.mutable_destination()->CopyFrom(destComponent);
+    packet.mutable_source()->CopyFrom(sourceEndpoint);
+    packet.mutable_destination()->CopyFrom(destEndpoint);
 
     // Проверяем корректность сформированного пакета
     BOOST_CHECK_EQUAL(packet.id(), id);
-    BOOST_CHECK_EQUAL(packet.source().component_kind(), sourceComponent.component_kind());
-    BOOST_CHECK_EQUAL(packet.source().port(), sourceComponent.port());
-    BOOST_CHECK_EQUAL(packet.destination().component_kind(), destComponent.component_kind());
-    BOOST_CHECK_EQUAL(packet.destination().port(), destComponent.port());
+    BOOST_CHECK_EQUAL(packet.source().component_kind(), sourceEndpoint.component_kind());
+    BOOST_CHECK_EQUAL(packet.source().port(), sourceEndpoint.port());
+    BOOST_CHECK_EQUAL(packet.destination().component_kind(), destEndpoint.component_kind());
+    BOOST_CHECK_EQUAL(packet.destination().port(), destEndpoint.port());
     BOOST_CHECK_EQUAL(packet.payload(), payload);
 
     // Сериализуем пакет в строку
@@ -61,10 +61,10 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
 
     // Проверяем корректность десериализованного пакета
     BOOST_CHECK_EQUAL(deserializedPacket.id(), id);
-    BOOST_CHECK_EQUAL(deserializedPacket.source().component_kind(), sourceComponent.component_kind());
-    BOOST_CHECK_EQUAL(deserializedPacket.source().port(), sourceComponent.port());
-    BOOST_CHECK_EQUAL(deserializedPacket.destination().component_kind(), destComponent.component_kind());
-    BOOST_CHECK_EQUAL(deserializedPacket.destination().port(), destComponent.port());
+    BOOST_CHECK_EQUAL(deserializedPacket.source().component_kind(), sourceEndpoint.component_kind());
+    BOOST_CHECK_EQUAL(deserializedPacket.source().port(), sourceEndpoint.port());
+    BOOST_CHECK_EQUAL(deserializedPacket.destination().component_kind(), destEndpoint.component_kind());
+    BOOST_CHECK_EQUAL(deserializedPacket.destination().port(), destEndpoint.port());
     BOOST_CHECK_EQUAL(deserializedPacket.payload(), payload);
 }
 
