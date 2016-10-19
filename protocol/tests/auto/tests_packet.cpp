@@ -41,9 +41,8 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     Packet packet;
     packet.set_id(1);
     packet.set_payload(payload);
-
-    packet.mutable_source()->set_component_kind(sourceComponent);
-    packet.set_allocated_destination(&destComponent);
+    packet.mutable_source()->CopyFrom(sourceComponent);
+    packet.mutable_destination()->CopyFrom(destComponent);
 
     // Проверяем корректность сформированного пакета
     BOOST_CHECK_EQUAL(packet.id(), id);
@@ -66,7 +65,6 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     BOOST_CHECK_EQUAL(deserializedPacket.source().port(), sourceComponent.port());
     BOOST_CHECK_EQUAL(deserializedPacket.destination().component_kind(), destComponent.component_kind());
     BOOST_CHECK_EQUAL(deserializedPacket.destination().port(), destComponent.port());
-    std::cout<<payload;
     BOOST_CHECK_EQUAL(deserializedPacket.payload(), payload);
 }
 
