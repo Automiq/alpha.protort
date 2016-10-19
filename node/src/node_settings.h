@@ -50,7 +50,7 @@ struct node_settings
      * Определяет тип компонента, который работает на узле. То есть режимы, в
      * которых работает узел.
      */
-    alpha::protort::protocol::Packet::ComponentKind component_kind;
+    alpha::protort::protocol::ComponentKind component_kind;
 
     /*!
      * \brief Парсит настройки узла из массива строк
