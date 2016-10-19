@@ -2,15 +2,23 @@ syntax = 'proto3';
 
 package alpha.protort.protocol;
 
-message Packet {
+enum ComponentKind
+{
+    Generator = 0;
+    Retranslator = 1;
+    Terminator = 2;
+}
 
+message ComponentEndpoint
+{
+    ComponentKind component_kind = 1;
+    uint32 port = 2;
+}
+
+message Packet 
+{
     uint32 id = 1;
-    enum ComponentKind
-    {
-        Generator = 0;
-        Retranslator = 1;
-        Terminator = 2;
-    }
-    ComponentKind component_kind = 2;
-    bytes payload = 3;
+    ComponentEndpoint source = 2;
+    ComponentEndpoint destination = 3;
+    bytes payload = 4;
 }
