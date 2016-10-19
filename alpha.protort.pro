@@ -5,7 +5,8 @@ SUBDIRS += \
     link \
     node \
     terminal \
-    designer
+    designer \
+    parser
 
 link.depends = protocol
 node.depends = link
