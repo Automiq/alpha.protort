@@ -66,8 +66,6 @@ BOOST_AUTO_TEST_CASE(test_link)
     node node_(service);
 
     node_.m_server.listen(ep);
-
-    //boost::this_thread::sleep(boost::posix_time::millisec(500));
     node_.m_client.async_connect(ep);
 
     service.run();
