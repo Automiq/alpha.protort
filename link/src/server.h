@@ -42,7 +42,7 @@ public:
      * \param ep Объект endpoint
      */
     server (Callback& callback,io_service& service,ip::tcp::endpoint ep):
-        acceptor_(serveice),
+        acceptor_(service),
         callback_(callback)
     {
         listen(ep);

@@ -120,7 +120,7 @@ private:
                 sock_,
                 boost::asio::buffer(read_buffer_),
                 boost::asio::transfer_exactly(packet_size),
-                boost::bind(&connection::ready_for_new_packet, shared_from_this(),_1,_2));
+                boost::bind(&connection::ready_for_new_packet, this->shared_from_this(),_1,_2));
         }
     }
 
@@ -136,7 +136,7 @@ private:
             sock_,
             boost::asio::buffer(read_buffer_),
             boost::asio::transfer_exactly(header_size),
-            boost::bind(&connection::read_packet, shared_from_this(),_1,_2));
+            boost::bind(&connection::read_packet, this->shared_from_this(),_1,_2));
     }
 
     ip::tcp::socket sock_;
