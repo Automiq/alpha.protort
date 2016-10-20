@@ -26,7 +26,9 @@ struct node
         :m_client(*this,service),
          m_server(*this,service)
     {
+#ifdef _DEBUG
         std::cout << "node ctor" << std::endl;
+#endif
     }
 
     void on_connected()
@@ -41,8 +43,9 @@ struct node
     void on_new_packet(char const *buffer, size_t nbytes)
     {
 #ifdef _DEBUG
-        std::cout << std::string(buffer,nbytes) << std::endl;
+        std::cout << std::string(buffer,nbytes) << "\n";
         std::cout << "on_new_packet\n";
+        std::cout.flush();
 #endif
     }
 
@@ -64,11 +67,10 @@ BOOST_AUTO_TEST_CASE(test_link)
 
     node_.m_server.listen(ep);
 
-    boost::this_thread::sleep(boost::posix_time::millisec(500));
+    //boost::this_thread::sleep(boost::posix_time::millisec(500));
     node_.m_client.async_connect(ep);
 
     service.run();
-    std::cin.get();
 }
 
 BOOST_AUTO_TEST_SUITE_END()

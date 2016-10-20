@@ -11,9 +11,8 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-/*
- *Шаблонный класс клиента
- *
+/*!
+ * Шаблонный класс клиента
  */
 template<class Callback> class client
 {
@@ -21,7 +20,11 @@ template<class Callback> class client
 
 public:
 
-    //Конструктор класса, в котором происходит инициализация сокета и колбека
+    /*!
+     * \brief client Конструктор класса, в котором происходит инициализация сокета и колбека
+     * \param callback Ссылка на объект, реализующий концепцию Callback
+     * \param service Ссылка на io_service
+     */
     client(Callback &callback, boost::asio::io_service& service)
         :sock_(service),
          callback_(callback)
@@ -29,8 +32,13 @@ public:
 
     }
 
-    //Конструктор класса, в котором происходит инициализация сокета и колбека,
-    //а также вызывается метод для асинхронного подключения
+    /*!
+     * \brief client Конструктор класса, в котором происходит инициализация сокета и колбека,
+     * а также вызывается метод для асинхронного подключения
+     * \param callback Ссылка на объект, реализующий концепцию Callback
+     * \param service Ссылка на объект, реализующий концепцию Callback
+     * \param ep Объект класса endpoint
+     */
     client(Callback &callback, boost::asio::io_service& service, ip::tcp::endpoint ep)
         :sock_(service),
          callback_(callback)
@@ -38,22 +46,26 @@ public:
         async_connect(ep);
     }
 
-    //Метод для асинхронного подключения
+    /*!
+     * \brief async_connect Метод для асинхронного подключения
+     * \param ep Объект класса endpoint
+     */
     void async_connect(ip::tcp::endpoint ep)
     {
         sock_.async_connect(ep, boost::bind(&client::on_connect, this, boost::asio::placeholders::error));
     }
 
-    //Метод для отправки пакета данных
+    /*!
+     * \brief async_send Метод для отправки пакета данных
+     * \param msg Строка для отправки
+     */
     void async_send(std::string const& msg)
     {
         do_write(msg);
     }
 
-    //Деструктор, в котором закрывается соединение
     ~client()
     {
-        std::cout << "dctor client" << std::endl;
         stop();
     }
 
@@ -64,17 +76,24 @@ private:
     char write_buffer_[buffer_size];
     Callback& callback_;
 
-    //Метод, для проверки подключения и вызова колбека
+    /*!
+     * \brief on_connect Метод, для проверки подключения и вызова колбека
+     * \param err Отлавливание ошибки
+     */
     void on_connect(const error_code & err)
     {
+#ifdef _DEBUG
         std::cout << "on_connect " << err << std::endl;
+#endif
         if (!err)
             callback_.on_connected();
         else
             stop();
     }
 
-    //Метод для закрытия соединения
+    /*!
+     * \brief stop Метод для закрытия соединения
+     */
     void stop()
     {
 #ifdef _DEBUG
@@ -83,7 +102,11 @@ private:
         sock_.close();
     }
 
-    //Метод для отлавливания ошибок отправки пакета
+    /*!
+     * \brief on_write Метод для отлавливания ошибок отправки пакета
+     * \param err Отлавливание ошибки
+     * \param bytes Размер посланного пакета в байтах
+     */
     void on_write(const error_code & err, size_t bytes)
     {
 #ifdef _DEBUG
@@ -91,7 +114,10 @@ private:
 #endif
     }
 
-    //Метод для отправки сообщения
+    /*!
+     * \brief do_write Метод для отправки сообщения
+     * \param msg Строка для отправки
+     */
     void do_write(const std::string& msg)
     {
 #ifdef _DEBUG
