@@ -1,0 +1,7 @@
+<app>
+ <instance name="A" kind="generator"/>
+ <instance name="B" kind="retranslator"/>
+ <instance name="C" kind="terminator"/>
+ <connection source="A" source_out="1" dest="B" dest_in="1"/>
+ <connection source="B" source_out="2" dest="C" dest_in="1"/>
+</app>

@@ -13,7 +13,7 @@ DESTDIR = ../bin
 # Общие определения (требуется для LIBINFIX)
 include(../../alpha.pri)
 
-TARGET = alpha.protort.node$$LIBINFIX
+TARGET = alpha.protort.parser$$LIBINFIX
 
 LIBS += \
     # Путь в рамках shadow build
