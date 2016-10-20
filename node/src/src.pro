@@ -5,7 +5,8 @@ CONFIG -= qt
 
 SOURCES += main.cpp
 HEADERS += \
-    node_settings.h
+    node_settings.h\
+    node_class.h
 
 DESTDIR = ../bin
 
@@ -23,3 +24,5 @@ include(../../boost.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
+
+include(../../link/src/src.pri)

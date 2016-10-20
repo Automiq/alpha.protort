@@ -27,7 +27,8 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service)
         :sock_(service),
-         callback_(callback)
+         callback_(callback),
+         write_buffer_(new char[max_packet_size + header_size])
     {
 
     }
@@ -41,7 +42,8 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service, ip::tcp::endpoint ep)
         :sock_(service),
-         callback_(callback)
+         callback_(callback),
+         write_buffer_(new char[max_packet_size + header_size])
     {
         async_connect(ep);
     }
@@ -71,9 +73,8 @@ public:
 
 private:
 
-    ip::tcp::socket sock_;
-    char header_buffer_[header_size];
-    char write_buffer_[buffer_size];
+    ip::tcp::socket sock_;    
+    std::unique_ptr<char> write_buffer_;
     Callback& callback_;
 
     /*!
@@ -123,12 +124,13 @@ private:
 #ifdef _DEBUG
         std::cout << "Sended from client: " << msg << "\n";
 #endif
-        auto header = reinterpret_cast<packet_header *>(write_buffer_);
+        auto header = reinterpret_cast<packet_header *>(write_buffer_.get());
         header->packet_size = msg.size();
-        copy(msg.begin(), msg.end(), write_buffer_ + header_size);
+        copy(msg.begin(), msg.end(), write_buffer_.get() + header_size);
         sock_.async_write_some(
-            buffer(write_buffer_, msg.size() + header_size),
+            buffer(write_buffer_.get(), msg.size() + header_size),
             boost::bind(&client::on_write,this,_1,_2));
+
     }
 };
 

@@ -3,7 +3,7 @@
 
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
-#include "common_header.h"
+
 #include "connection.h"
 
 namespace alpha {

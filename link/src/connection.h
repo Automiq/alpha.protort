@@ -6,6 +6,8 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 
+#include "common_header.h"
+
 namespace alpha {
 namespace protort {
 namespace link {
@@ -80,7 +82,8 @@ private:
      */
     connection(Callback& callback,io_service& service):
         sock_(service),
-        callback_(callback)
+        callback_(callback),
+        read_buffer_(new char[max_packet_size])
     {
 #ifdef _DEBUG
         std::cout << "server constructor" << "\n";
@@ -95,7 +98,7 @@ private:
      */
     void ready_for_new_packet(const error_code & err, size_t bytes)
     {
-        callback_.on_new_packet(read_buffer_, bytes);
+        callback_.on_new_packet(read_buffer_.get(), bytes);
         read_header();
     }
 
@@ -111,14 +114,14 @@ private:
 #endif
         if (!err)
         {
-            auto header = reinterpret_cast<packet_header *>(read_buffer_);
+            auto header = reinterpret_cast<packet_header *>(read_buffer_.get());
 #ifdef _DEBUG
             std::cout << " size: " << header->packet_size << "\n";
 #endif
             auto packet_size = header->packet_size;
             async_read(
                 sock_,
-                boost::asio::buffer(read_buffer_),
+                boost::asio::buffer(read_buffer_.get(), packet_size),
                 boost::asio::transfer_exactly(packet_size),
                 boost::bind(&connection::ready_for_new_packet, this->shared_from_this(),_1,_2));
         }
@@ -134,13 +137,13 @@ private:
 #endif
         async_read(
             sock_,
-            boost::asio::buffer(read_buffer_),
+            boost::asio::buffer(read_buffer_.get(), header_size),
             boost::asio::transfer_exactly(header_size),
             boost::bind(&connection::read_packet, this->shared_from_this(),_1,_2));
     }
 
     ip::tcp::socket sock_;
-    char read_buffer_[buffer_size];
+    std::unique_ptr<char> read_buffer_;
     Callback& callback_;
 };
 
