@@ -42,7 +42,7 @@ public:
     {
         return component_to_node[comp_name];
     }
-    comp_name_port& get_dest_and_port(comp_name_port& source_name_port)
+    comp_name_port get_dest_and_port(comp_name_port source_name_port)
     {
         return connections[source_name_port];
     }

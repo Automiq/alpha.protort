@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     component comp = ds.get_component(inst_name);
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.type, inst_kind);
-    std::pair<std::string, short> dest_name_port = ds.get_dest_and_port(std::make_pair(con_src, src_out));
+    std::pair<std::string, short> dest_name_port = ds.get_dest_and_port(std::pair<std::string, short>(con_src, src_out));
     BOOST_CHECK_EQUAL(dest_name_port.first, dest);
     BOOST_CHECK_EQUAL(dest_name_port.second, dest_in);
 }
