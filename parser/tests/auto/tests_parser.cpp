@@ -19,7 +19,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string dest = "B";
     short dest_in = 1;
 
-
+    //сравнение исходных данных и распарсенных
     Deploy_scheme ds;
     ds.parse_app("app.xml");
     ds.parse_deploy("deploy.xml");
