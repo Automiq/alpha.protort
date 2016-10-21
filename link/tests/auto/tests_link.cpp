@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
+#include <boost/bind.hpp>
 #include <iostream>
 
 #include "server.h"

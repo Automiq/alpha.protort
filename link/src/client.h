@@ -1,8 +1,10 @@
-#ifndef LINK_CLIENT_H
-#define LINK_CLIENT_H
+#ifndef CLIENT_H
+#define CLIENT_H
 
-#include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <iostream>
+
 #include "common_header.h"
 
 using namespace boost::asio;
@@ -43,7 +45,7 @@ public:
     client(Callback &callback, boost::asio::io_service& service, ip::tcp::endpoint ep)
         :sock_(service),
          callback_(callback),
-         write_buffer_(new char[max_packet_size + header_size])
+         write_buffer_(new char[header_size + max_packet_size])
     {
         async_connect(ep);
     }
@@ -72,10 +74,6 @@ public:
     }
 
 private:
-
-    ip::tcp::socket sock_;    
-    std::unique_ptr<char> write_buffer_;
-    Callback& callback_;
 
     /*!
      * \brief on_connect Метод, для проверки подключения и вызова колбека
@@ -111,7 +109,7 @@ private:
     void on_write(const error_code & err, size_t bytes)
     {
 #ifdef _DEBUG
-        std::cout << "on_write " << err << " and " << bytes << "\n";
+        //std::cout << "on_write " << err << " and " << bytes << "\n";
 #endif
     }
 
@@ -122,7 +120,7 @@ private:
     void do_write(const std::string& msg)
     {
 #ifdef _DEBUG
-        std::cout << "Sended from client: " << msg << "\n";
+        //std::cout << "Sended from client: " << msg << "\n";
 #endif
         auto header = reinterpret_cast<packet_header *>(write_buffer_.get());
         header->packet_size = msg.size();
@@ -130,12 +128,15 @@ private:
         sock_.async_write_some(
             buffer(write_buffer_.get(), msg.size() + header_size),
             boost::bind(&client::on_write,this,_1,_2));
-
     }
+
+    ip::tcp::socket sock_;
+    std::unique_ptr<char> write_buffer_;
+    Callback& callback_;
 };
 
 } // namespace link
 } // namespace protort
 } // namespace alpha
 
-#endif // LINK_CLIENT_H
+#endif // CLIENT_H

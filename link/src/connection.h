@@ -1,10 +1,11 @@
-#ifndef LINK_CONNECTION_H
-#define LINK_CONNECTION_H
+#ifndef CONNECTION_H
+#define CONNECTION_H
 
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <iostream>
 
 #include "common_header.h"
 
@@ -110,13 +111,13 @@ private:
     void read_packet(const error_code & err, size_t bytes)
     {
 #ifdef _DEBUG
-        std::cout << "server on_read " << err << "\n";
+        //std::cout << "server on_read " << err << "\n";
 #endif
         if (!err)
         {
             auto header = reinterpret_cast<packet_header *>(read_buffer_.get());
 #ifdef _DEBUG
-            std::cout << " size: " << header->packet_size << "\n";
+            //std::cout << " size: " << header->packet_size << "\n";
 #endif
             auto packet_size = header->packet_size;
             async_read(
@@ -133,7 +134,7 @@ private:
     void read_header()
     {
 #ifdef _DEBUG
-        std::cout << "server do_read" << "\n";
+        //std::cout << "server do_read" << "\n";
 #endif
         async_read(
             sock_,
@@ -151,4 +152,4 @@ private:
 } //namespace protort
 } //namespace alpha
 
-#endif // LINK_CONNECTION_H
+#endif // CONNECTION_H

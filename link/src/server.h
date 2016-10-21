@@ -1,8 +1,8 @@
-#ifndef LINK_SERVER_H
-#define LINK_SERVER_H
-
-#include <boost/bind.hpp>
+#ifndef SERVER_H
+#define SERVER_H
 #include <boost/asio.hpp>
+#include <boost/bind.hpp>
+#include <iostream>
 
 #include "connection.h"
 
@@ -31,7 +31,9 @@ public:
         acceptor_(service),
         callback_(callback)
     {
+#ifdef _DEBUG
         std::cout << "ctr" << std::endl;
+#endif
     }
 
     /*!
@@ -89,4 +91,4 @@ private:
 } //namespace protort
 } //namespace alpha
 
-#endif // LINK_SERVER_H
+#endif // SERVER_H
