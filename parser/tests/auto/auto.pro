@@ -9,8 +9,6 @@ SOURCES += \
 
 INCLUDEPATH += $$PWD/../../src
 
-DESTDIR = ../../bin
-
 # Общие определения (требуется для LIBINFIX)
 include(../../../alpha.pri)
 
@@ -20,9 +18,9 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 include(../../../boost.pri)
 
 win32 {
-    copydata.commands = $(COPY_DIR) \"$$PWD/xmls\" \"$$OUT_PWD/../../bin\"
+    copydata.commands = $(COPY_DIR) \"$$PWD/testdata\" \"$$OUT_PWD/testdata\"
 } else {
-    copydata.commands = $(COPY_DIR) $$PWD/xmls $$OUT_PWD/../../bin
+    copydata.commands = $(COPY_DIR) $$PWD/testdata $$OUT_PWD/testdata
 }
 
 first.depends = $(first) copydata
