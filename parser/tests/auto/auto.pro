@@ -18,3 +18,15 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 
 # Линкуемся с boost
 include(../../../boost.pri)
+
+OTHER_FILES += \
+        app.xml \
+        deploy.xml
+
+copydata.commands = $(COPY_DIR) \"$$PWD\xmls\" \"$$OUT_PWD\..\..\bin\"
+first.depends = $(first) copydata
+export(first.depends)
+export(copydata.commands)
+QMAKE_EXTRA_TARGETS += first copydata
+
+

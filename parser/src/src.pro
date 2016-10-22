@@ -1,26 +1,38 @@
-TEMPLATE = app
+# Собираем статическую библиотеку
+TEMPLATE = lib
+CONFIG += staticlib
+
 CONFIG += console c++11
+
+# Qt тут не нужен
 CONFIG -= app_bundle
 CONFIG -= qt
-
-SOURCES += main.cpp
 
 HEADERS += \
     parser.h
 
-DESTDIR = ../bin
+DESTDIR = ../lib
 
 # Общие определения (требуется для LIBINFIX)
 include(../../alpha.pri)
 
+# Целевое имя библиотеки
 TARGET = alpha.protort.parser$$LIBINFIX
-
-LIBS += \
-    # Путь в рамках shadow build
-    -L$$OUT_PWD/../../protocol/lib
 
 # Линкуемся с boost
 include(../../boost.pri)
 
-# Линкуемся с библиотекой бинарного протокола
-include(../../protocol/protocol.pri)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
