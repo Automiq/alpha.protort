@@ -20,9 +20,9 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 include(../../../boost.pri)
 
 win32 {
-    copydata.commands = $(COPY_DIR) \"$$PWD/testdata\" \"$$OUT_PWD/testdata\"
+    copydata.commands = $(COPY_DIR) \"$$PWD/testdata\" \"$$OUT_PWD\"
 } else {
-    copydata.commands = $(COPY_DIR) $$PWD/testdata $$OUT_PWD/testdata
+    copydata.commands = $(COPY_DIR) $$PWD/testdata $$OUT_PWD
 }
 
 first.depends = $(first) copydata
