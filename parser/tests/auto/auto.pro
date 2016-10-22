@@ -23,7 +23,7 @@ OTHER_FILES += \
         app.xml \
         deploy.xml
 
-copydata.commands = $(COPY_DIR) \"$$PWD\xmls\" \"$$OUT_PWD\..\..\bin\"
+copydata.commands = $(COPY_DIR) \"$$PWD/xmls\" \"$$OUT_PWD/../../bin\"
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
