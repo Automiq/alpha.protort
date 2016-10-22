@@ -19,11 +19,12 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 # Линкуемся с boost
 include(../../../boost.pri)
 
-OTHER_FILES += \
-        app.xml \
-        deploy.xml
+win32 {
+    copydata.commands = $(COPY_DIR) \"$$PWD/xmls\" \"$$OUT_PWD/../../bin\"
+} else {
+    copydata.commands = $(COPY_DIR) $$PWD/xmls $$OUT_PWD/../../bin
+}
 
-copydata.commands = $(COPY_DIR) \"$$PWD/xmls\" \"$$OUT_PWD/../../bin\"
 first.depends = $(first) copydata
 export(first.depends)
 export(copydata.commands)
