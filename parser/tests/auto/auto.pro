@@ -20,9 +20,9 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 include(../../../boost.pri)
 !equals(PWD, $${OUT_PWD}) {
     win32 {
-        copyapp.commands = $(COPY_FILE) \"$$PWD\testdata\\*\" \"$$OUT_PWD\"
+        copyapp.commands = $(COPY_FILE) \"$$PWD\testdata\\*\" \"$$OUT_PWD\testdata\"
     } else {
-        copydata.commands = $(COPY_FILE) $$PWD/testdata/* $$OUT_PWD/*
+        copydata.commands = $(COPY_FILE) $$PWD/testdata/* $$OUT_PWD/tesdata
     }
 }
 
