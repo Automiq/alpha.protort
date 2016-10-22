@@ -24,7 +24,7 @@ win32 {
 } else {
     copydata.commands = $(COPY_FILE) $$PWD/testdata/* $$OUT_PWD/*
 }
-
+message ($$OUT_PWD)
 first.depends = $(first) copyapp
 export(first.depends)
 export(copyapp.commands)
