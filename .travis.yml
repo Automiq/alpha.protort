@@ -35,6 +35,7 @@ script:
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
  - make
+ - ls -la /home/travis/build/Automiq/alpha.protort/parser/tests/auto
  - protocol/bin/alpha.protort.protocol.autotests
  - link/bin/alpha.protort.link.autotests
  - node/bin/alpha.protort.node.autotests
