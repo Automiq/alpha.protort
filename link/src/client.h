@@ -124,7 +124,7 @@ private:
 #endif
         auto header = reinterpret_cast<packet_header *>(write_buffer_.get());
         header->packet_size = msg.size();
-        copy(msg.begin(), msg.end(), write_buffer_.get() + header_size);
+        //copy(msg.begin(), msg.end(), write_buffer_.get() + header_size);
         sock_.async_write_some(
             buffer(write_buffer_.get(), msg.size() + header_size),
             boost::bind(&client::on_write,this,_1,_2));

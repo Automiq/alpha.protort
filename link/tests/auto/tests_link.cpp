@@ -3,7 +3,6 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <iostream>
-
 #include "server.h"
 #include "client.h"
 

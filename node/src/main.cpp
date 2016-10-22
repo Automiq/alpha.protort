@@ -8,10 +8,8 @@ int main(int argc, const char *argv[])
     if (!node_settings_.parse(argc, argv))
         return 1;
 
-    auto ep = node_settings_.component_kind == alpha::protort::protocol::Packet::Generator ?
-              node_settings_.destination : node_settings_.source;
 
-    node n(ep, node_settings_.component_kind);
+    node n(node_settings_);
     n.start();
 
     return 0;

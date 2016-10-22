@@ -43,6 +43,8 @@ struct node_settings
      * использовать этот адрес для исходящего подключения.
      */
     boost::asio::ip::tcp::endpoint destination;
+    uint32_t packet_size = 0;
+    uint32_t npackets = 0;
 
     /*!
      * \brief Тип компонента
@@ -96,7 +98,10 @@ struct node_settings
                     ("help,h", "Help screen")
                     ("source,s", boost::program_options::value<std::string>(&source_ip_port_str)->default_value("0.0.0.0:31337"), "Source ip:port")
                     ("destination,d", boost::program_options::value<std::string>(&destination_ip_port_str), "Destination host:port")
-                    ("node-kind,n", boost::program_options::value<std::string>(&node_kind), "node-kind generator|retranslator|terminator");
+                    ("node-kind,n", boost::program_options::value<std::string>(&node_kind), "node-kind generator|retranslator|terminator")
+                    ("packet-size", boost::program_options::value<uint32_t>(&packet_size), "packet size")
+                    ("npackets", boost::program_options::value<uint32_t>(&npackets), "number of packet");
+
 
             boost::program_options::variables_map vm;
             boost::program_options::store(parse_command_line(argc, argv, desc), vm);
