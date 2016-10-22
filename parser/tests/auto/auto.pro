@@ -7,6 +7,8 @@ SOURCES += \
     main.cpp \
     tests_parser.cpp
 
+DESTDIR = ./bin
+
 INCLUDEPATH += $$PWD/../../src
 
 # Общие определения (требуется для LIBINFIX)
