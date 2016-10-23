@@ -21,8 +21,8 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
 
     //сравнение исходных данных и распарсенных
     Deploy_scheme ds;
-    ds.parse_app("../testdata/app.xml");
-    ds.parse_deploy("../testdata/deploy.xml");
+    ds.parse_app("./../testdata/app.xml");
+    ds.parse_deploy("./../testdata/deploy.xml");
     component comp = ds.get_component(inst_name);
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.type, inst_kind);
