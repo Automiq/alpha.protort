@@ -1,7 +1,35 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
-
+#include <string>
+#include <boost/predef/os.h>
 #include "parser.h"
+
+#if (BOOST_OS_WINDOWS)
+#include <windows.h>
+std::wstring Location()
+{
+    wchar_t buff[MAX_PATH+10]={0};
+
+    GetModuleFileNameW(NULL, buff, MAX_PATH);
+
+    std::wstring fulllocation(buff);
+
+    int last_slash = fulllocation.find_last_of(L"\\");
+    fulllocation = fulllocation.substr(0, last_slash);
+
+    return fulllocation;
+}
+
+#elif (BOOST_OS_LINUX)
+#include <limits.h>
+#include <unistd.h>
+char result[ PATH_MAX ];
+ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
+std::string path( result, (count > 0) ? count : 0 );
+
+#endif
+
+
 namespace alpha {
 namespace protort {
 namespace parser {
@@ -19,10 +47,23 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string dest = "B";
     short dest_in = 1;
 
+#if (BOOST_OS_WINDOWS)
+    std::wstring path = Location();
+    std::wstring app_path_w = path + L"\\..\\testdata\\app.xml";
+    std::string app_path( app_path_w.begin(), app_path_w.end() );
+    std::wstring deploy_path_w = path + L"\\..\\testdata\\deploy.xml";
+    std::string deploy_path( deploy_path_w.begin(), deploy_path_w.end() );
+
+#elif (BOOST_OS_LINUX)
+    int last_slash = path.find_last_of("\\");
+    path = path.substr(0, last_slash);
+    std::string app_path = path + "\\..\\testdata\\app.xml";
+    std::string deploy_path = path + "\\..\\testdata\\app.xml";
+#endif
     //сравнение исходных данных и распарсенных
     Deploy_scheme ds;
-    ds.parse_app("parser/tests/auto/testdata/app.xml");
-    ds.parse_deploy("./parser/tests/auto/testdata/deploy.xml");
+    ds.parse_app(app_path);
+    ds.parse_deploy(deploy_path);
     component comp = ds.get_component(inst_name);
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.type, inst_kind);
