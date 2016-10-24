@@ -14,7 +14,8 @@
 
 namespace alpha {
 namespace protort {
-namespace node {
+namespace link {
+namespace benchmarks {
 
 using namespace alpha::protort::link;
 
@@ -91,7 +92,8 @@ private:
     const std::string msg_;
 };
 
-} // namespace node
+} // namespace benchmarks
+} // namespace link
 } // namespace protort
 } // namespace alpha
 

@@ -9,7 +9,8 @@
 
 namespace alpha {
 namespace protort {
-namespace node {
+namespace link {
+namespace benchmarks {
 
 void split_ip_port(const std::string& s, std::string& ip, short& port)
 {
@@ -68,11 +69,11 @@ struct node_settings
             }
 
             if (node_kind == "generator")
-                component_kind = alpha::protort::protocol::Packet::Generator;
+                component_kind = alpha::protort::protocol::Generator;
             else if (node_kind == "retranslator")
-                component_kind = alpha::protort::protocol::Packet::Retranslator;
+                component_kind = alpha::protort::protocol::Retranslator;
             else if (node_kind == "terminator")
-                component_kind = alpha::protort::protocol::Packet::Terminator;
+                component_kind = alpha::protort::protocol::Terminator;
 
             return true;
         }
@@ -84,7 +85,8 @@ struct node_settings
     }
 };
 
-} // namespace node
+} // namespace benchmarks
+} // namespace link
 } // namespace protort
 } // namespace alpha
 

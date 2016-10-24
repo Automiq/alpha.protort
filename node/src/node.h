@@ -42,7 +42,7 @@ public:
                 server_.listen(settings_.source);
                 break;
             }
-            case alpha::protort::protocol::Packet::Generator:
+            case alpha::protort::protocol::Generator:
             {
                 client_.async_connect(settings_.destination);
                 break;
