@@ -40,7 +40,7 @@ script:
  - node/bin/alpha.protort.node.autotests
  - terminal/bin/alpha.protort.terminal.autotests
  - cd parser/tests/auto/bin
- - parser/tests/auto/bin/alpha.protort.parser.autotests
+ - alpha.protort.parser.autotests
  
 notifications:
  email:
