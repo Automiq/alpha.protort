@@ -1,5 +1,5 @@
 TEMPLATE = subdirs
 
 SUBDIRS += \
-    src \
     tests
+HEADERS += $PWD/src/parser.h

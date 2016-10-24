@@ -18,6 +18,11 @@ TARGET = alpha.protort.parser.autotests$$LIBINFIX
 
 # Линкуемся с boost
 include(../../../boost.pri)
+
+# Линкуемся с парсером xml
+include(../../parser.pri)
+
+# Копируем файлы в зависимости от наличия shadow build
 !equals(PWD, $${OUT_PWD}) {
     win32 {
         copyapp.commands = $(COPY_DIR) \"$$PWD\testdata\\*\" \"$$OUT_PWD\testdata\"
