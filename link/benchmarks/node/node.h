@@ -69,13 +69,13 @@ public:
         std::cout << "Speed: " << (8*double(settings_.packet_size) * settings_.npackets / (1024*1024*1024*duration_.count())) << " GBit/s" << std::endl;
     }
 
-    void on_packet_sent(const boost::system::error_code& ec, size_t bytes)
+    void on_packet_sent(const boost::system::error_code& err, size_t bytes)
     {
         if(++packet_counter_client < settings_.npackets)
             client_.async_send(msg_);
     }
 
-    void on_connected(const boost::system::error_code& ec)
+    void on_connected(const boost::system::error_code& err)
     {
         client_.async_send(msg_);
     }
@@ -86,7 +86,7 @@ public:
             std::cout << "All packets have been received." << std::endl;
     }
 
-    void on_new_connection(const boost::system::error_code& ec)
+    void on_new_connection(const boost::system::error_code& err)
     {
     }
 

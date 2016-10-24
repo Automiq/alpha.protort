@@ -130,10 +130,10 @@ private:
      * \param err Ошибка (если есть)
      * \param bytes Прочитанный размер полученного заголовка пакета в байтах
      */
-    void on_header_read(const error_code& ec, size_t bytes)
+    void on_header_read(const error_code& err, size_t bytes)
     {
         // TODO: handle disconnect
-        if (ec)
+        if (err)
             return;
 
         do_read_packet();
@@ -144,10 +144,10 @@ private:
      * \param err Ошибка (если есть)
      * \param bytes Прочитанный размер полученного пакета в байтах
      */
-    void on_packet_read(const error_code& ec, size_t bytes)
+    void on_packet_read(const error_code& err, size_t bytes)
     {
         // TODO: handle disconnect
-        if (ec)
+        if (err)
             return;
 
         // Уведомляем о новом пакете

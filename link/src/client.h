@@ -138,9 +138,9 @@ private:
      * \param err Ошибка отправки (если есть)
      * \param bytes Размер отправленного пакета в байтах
      */
-    void on_packet_sent(const error_code& ec, size_t bytes)
+    void on_packet_sent(const error_code& err, size_t bytes)
     {
-        callback_.on_packet_sent(ec, bytes);
+        callback_.on_packet_sent(err, bytes);
     }
 
     //! Сокет
