@@ -1,9 +1,9 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <string>
-//#include <boost/predef.h>
 #include "parser.h"
 
+/*  костыли для получения пути к исполняемому файлу ----------
 #ifdef WIN32
 #include <windows.h>
 std::wstring Location()
@@ -27,13 +27,7 @@ ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
 std::string path( result, (count > 0) ? count : 0 );
 
 #endif
-
-//#if (BOOST_OS_WINDOWS)
-
-//#elif (BOOST_OS_LINUX)
-
-//#endif
-
+---------------------------------------------------------------*/
 
 namespace alpha {
 namespace protort {
@@ -52,6 +46,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string dest = "B";
     short dest_in = 1;
 
+/*  костыли для получения пути к исполняемому файлу ------------
 #ifdef WIN32 //#if (BOOST_OS_WINDOWS)
     std::wstring path = Location();
     std::wstring app_path_w = path + L"\\..\\testdata\\app.xml";
@@ -65,10 +60,12 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string app_path = path + "/../testdata/app.xml";
     std::string deploy_path = path + "/../testdata/deploy.xml";
 #endif
-    //сравнение исходных данных и распарсенных
+----------------------------------------------------------------*/
+
+    std::string
     Deploy_scheme ds;
-    ds.parse_app(app_path);
-    ds.parse_deploy(deploy_path);
+    ds.parse_app("../testdata/app.xml");
+    ds.parse_deploy("../testdata/deploy.xml");
     component comp = ds.get_component(inst_name);
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.type, inst_kind);

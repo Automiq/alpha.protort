@@ -34,12 +34,12 @@ script:
  - doxygen alpha.protort.doxygen
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
- - make
- - ls -la /home/travis/build/Automiq/alpha.protort/parser/tests/auto
+ - make 
  - protocol/bin/alpha.protort.protocol.autotests
  - link/bin/alpha.protort.link.autotests
  - node/bin/alpha.protort.node.autotests
  - terminal/bin/alpha.protort.terminal.autotests
+ - cd parser/tests/auto/bin
  - parser/tests/auto/bin/alpha.protort.parser.autotests
  
 notifications:
