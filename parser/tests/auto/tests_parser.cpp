@@ -60,10 +60,10 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string deploy_path( deploy_path_w.begin(), deploy_path_w.end() );
 
 #else //#elif (BOOST_OS_LINUX)
-    int last_slash = path.find_last_of("\\");
+    int last_slash = path.find_last_of("/");
     path = path.substr(0, last_slash);
-    std::string app_path = path + "\\..\\testdata\\app.xml";
-    std::string deploy_path = path + "\\..\\testdata\\app.xml";
+    std::string app_path = path + "/../testdata/app.xml";
+    std::string deploy_path = path + "/../testdata/deploy.xml";
 #endif
     //сравнение исходных данных и распарсенных
     Deploy_scheme ds;
