@@ -10,8 +10,6 @@
 #include "client.h"
 #include "node_settings.h"
 
-
-
 namespace alpha {
 namespace protort {
 namespace link {
@@ -19,37 +17,48 @@ namespace benchmarks {
 
 using namespace alpha::protort::link;
 
-class node
+/*!
+ * \brief Тестовый сетевой узел
+ *
+ * На данном бенчмарке производились первые замеры KPI сетевого стека по
+ * схеме generator -> terminator.
+ * В тестах использовалось одно ядро процессора, отправлялись пакеты размером
+ * 200 KiB в количестве 10k штук.
+ * Полученные результаты:
+ *  - Intel Core i7-2600, loopback, Windows 10, 3.83 секунды => 3.5-4 GBit/s
+ *  - Intel Core i7-2600, loopback, Ubuntu Xenial Xerus 16.04, => ~12 GBit/s
+ *    (не ясно откуда такой разброс по сравнению с Windows)
+ *  - Intel Celeron CPU B830 @ 1.80 GHz, loopback, Windows 10, 6.71 секунды =>
+ *    ~2.22 GBit/s
+ */
+class test_node
 {
-
 public:
-
-    node(const node_settings &settings)
-        :client_(*this,service),
-         server_(*this,service),
-         settings_(settings),
-         signals_(service,SIGINT,SIGTERM),
-         msg_(settings_.packet_size,'#')
+    test_node(const node_settings &settings)
+        : client_(*this, service),
+          server_(*this, service),
+          settings_(settings),
+          signals_(service, SIGINT, SIGTERM),
+          msg_(settings_.packet_size, '#')
     {
-
     }
 
     void start()
     {
         auto start_time = boost::chrono::steady_clock::now();
+
         switch (settings_.component_kind)
         {
-            case alpha::protort::protocol::Terminator:
-            {
-                signals_.async_wait(boost::bind(&io_service::stop,&service));
-                server_.listen(settings_.source);
-                break;
-            }
-            case alpha::protort::protocol::Generator:
-            {
-                client_.async_connect(settings_.destination);
-                break;
-            }
+        case alpha::protort::protocol::Terminator:
+            signals_.async_wait(boost::bind(&io_service::stop,&service));
+            server_.listen(settings_.source);
+            break;
+        case alpha::protort::protocol::Generator:
+            client_.async_connect(settings_.destination);
+            break;
+        default:
+            assert(false);
+            break;
         }
 
         std::cout << "npacket:" << settings_.npackets << std::endl << "size of packet: " << settings_.packet_size << std::endl;
@@ -83,8 +92,8 @@ public:
 
 private:
     io_service service;
-    server<node> server_;
-    client<node> client_;
+    server<test_node> server_;
+    client<test_node> client_;
     node_settings settings_;
     signal_set signals_;
     int packet_counter_server = 0;
