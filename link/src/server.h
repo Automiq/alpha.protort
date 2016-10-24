@@ -76,7 +76,7 @@ private:
     void handle_accept(connection_ptr client, const boost::system::error_code & err)
     {
         client->start();
-        callback_.on_new_connection();
+        callback_.on_new_connection(err);
         connection_ptr new_client = connection<Callback>::new_(callback_,acceptor_.get_io_service());
         acceptor_.async_accept(
             new_client->sock(),

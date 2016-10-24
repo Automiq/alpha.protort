@@ -5,7 +5,7 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-static const uint32_t max_packet_size = 1024*1024*64;
+static const uint32_t max_packet_size = 1024*1024;
 
 struct packet_header
 {

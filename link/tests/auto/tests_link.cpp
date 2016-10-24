@@ -20,6 +20,7 @@ struct node
 {
     client<node> m_client;
     server<node> m_server;
+    int counter_ = 0;
 
     node(io_service& service)
         :m_client(*this,service),
@@ -30,13 +31,18 @@ struct node
 #endif
     }
 
-    void on_connected()
+    void on_connected(const boost::system::error_code & err)
     {
         m_client.async_send(str);
-        m_client.async_send(str1);
 #ifdef _DEBUG
         std::cout << "on_connected" << std::endl;
 #endif
+    }
+
+    void on_packet_sent(const boost::system::error_code & err, size_t nbytes)
+    {
+        if(++counter_ < 2)
+            m_client.async_send(str1);
     }
 
     void on_new_packet(char const *buffer, size_t nbytes)
@@ -48,7 +54,7 @@ struct node
 #endif
     }
 
-    void on_new_connection()
+    void on_new_connection(const boost::system::error_code & err)
     {
 #ifdef _DEBUG
         std::cout << "New client has been connected" << std::endl;

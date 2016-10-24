@@ -2,4 +2,5 @@ TEMPLATE = subdirs
 
 SUBDIRS += \
     tests \
-    examples
+    examples \
+    benchmarks
