@@ -141,13 +141,10 @@ private:
     uint32_t packets_sent_;
     uint32_t packets_received_;
 
-
-    //static const uint32_t npackets = 10000;
-
 };
 
-} //namespace node
-} //namespace protort
-} //namespace alpha
+} // namespace node
+} // namespace protort
+} // namespace alpha
 
 #endif // NODE_H

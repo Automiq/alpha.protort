@@ -29,8 +29,8 @@ static const uint32_t header_size = sizeof(packet_header);
 //! Максимально допустимый размер пакета
 static const uint32_t max_packet_size = 1024*1024;
 
-} //namespace link
-} //namespace protort
-} //namespace alpha
+} // namespace link
+} // namespace protort
+} // namespace alpha
 
 #endif // PACKET_HEADER_H

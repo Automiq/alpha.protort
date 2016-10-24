@@ -154,8 +154,8 @@ private:
     Callback& callback_;
 };
 
-} //namespace link
-} //namespace protort
-} //namespace alpha
+} // namespace link
+} // namespace protort
+} // namespace alpha
 
 #endif // CONNECTION_H

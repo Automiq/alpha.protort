@@ -24,7 +24,7 @@ INCLUDEPATH += $$PWD/../../src
 # Линкуемся с boost
 include(../../../boost.pri)
 
+include(../../link.pri)
+
 # Линкуемся с библиотекой бинарного протокола
 include(../../../protocol/protocol.pri)
-
-include(../../src/src.pri)

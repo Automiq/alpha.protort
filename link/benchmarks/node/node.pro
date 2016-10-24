@@ -22,6 +22,6 @@ LIBS += \
 # Линкуемся с boost
 include(../../../boost.pri)
 
-include(../../src/src.pri)
+include(../../link.pri)
 
 include(../../../protocol/protocol.pri)
