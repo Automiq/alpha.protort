@@ -1,0 +1,8 @@
+<deploy>
+ <node name="node1" address="192.168.1.1" port="8080"/>
+ <node name="node2" address="192.168.1.2" port="31337"/>
+ <node name="node3" address="192.168.1.3" port="31338"/>
+ <map instance="A" node="node1"/>
+ <map instance="B" node="node2"/>
+ <map instance="C" node="node3"/>
+</deploy>
