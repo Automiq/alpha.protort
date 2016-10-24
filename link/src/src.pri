@@ -10,6 +10,7 @@ LIBS += \
 HEADERS += \
     server.h \
     client.h \
-    common_header.h\
-    connection.h
+    connection.h \
+    packet_header.h
+
 

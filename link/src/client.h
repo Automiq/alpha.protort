@@ -5,7 +5,7 @@
 #include <boost/bind.hpp>
 #include <iostream>
 
-#include "common_header.h"
+#include "packet_header.h"
 
 using namespace boost::asio;
 
@@ -128,7 +128,9 @@ private:
         copy(msg.begin(), msg.end(), write_buffer_.get() + header_size);
         sock_.async_write_some(
             buffer(write_buffer_.get(), msg.size() + header_size),
-            boost::bind(&client::on_write,this,_1,_2));
+            boost::bind(&client::on_write, this,
+                        boost::asio::placeholders::error,
+                        boost::asio::placeholders::bytes_transferred));
     }
 
     ip::tcp::socket sock_;

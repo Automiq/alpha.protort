@@ -7,7 +7,7 @@
 #include <boost/bind.hpp>
 #include <iostream>
 
-#include "common_header.h"
+#include "packet_header.h"
 
 namespace alpha {
 namespace protort {
@@ -124,7 +124,10 @@ private:
                 sock_,
                 boost::asio::buffer(read_buffer_.get(), packet_size),
                 boost::asio::transfer_exactly(packet_size),
-                boost::bind(&connection::ready_for_new_packet, this->shared_from_this(),_1,_2));
+                boost::bind(&connection::ready_for_new_packet,
+                            this->shared_from_this(),
+                            boost::asio::placeholders::error,
+                            boost::asio::placeholders::bytes_transferred));
         }
     }
 
@@ -140,7 +143,10 @@ private:
             sock_,
             boost::asio::buffer(read_buffer_.get(), header_size),
             boost::asio::transfer_exactly(header_size),
-            boost::bind(&connection::read_packet, this->shared_from_this(),_1,_2));
+            boost::bind(&connection::read_packet,
+                        this->shared_from_this(),
+                        boost::asio::placeholders::error,
+                        boost::asio::placeholders::bytes_transferred));
     }
 
     ip::tcp::socket sock_;
