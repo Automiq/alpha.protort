@@ -1,10 +1,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <string>
-#include <boost/predef.h>
+//#include <boost/predef.h>
 #include "parser.h"
 
-#if (BOOST_OS_WINDOWS)
+#ifdef WIN32
 #include <windows.h>
 std::wstring Location()
 {
@@ -19,8 +19,7 @@ std::wstring Location()
 
     return fulllocation;
 }
-
-#elif (BOOST_OS_LINUX)
+#else
 #include <limits.h>
 #include <unistd.h>
 char result[ PATH_MAX ];
@@ -28,6 +27,12 @@ ssize_t count = readlink( "/proc/self/exe", result, PATH_MAX );
 std::string path( result, (count > 0) ? count : 0 );
 
 #endif
+
+//#if (BOOST_OS_WINDOWS)
+
+//#elif (BOOST_OS_LINUX)
+
+//#endif
 
 
 namespace alpha {
@@ -47,14 +52,14 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string dest = "B";
     short dest_in = 1;
 
-#if (BOOST_OS_WINDOWS)
+#ifdef WIN32 //#if (BOOST_OS_WINDOWS)
     std::wstring path = Location();
     std::wstring app_path_w = path + L"\\..\\testdata\\app.xml";
     std::string app_path( app_path_w.begin(), app_path_w.end() );
     std::wstring deploy_path_w = path + L"\\..\\testdata\\deploy.xml";
     std::string deploy_path( deploy_path_w.begin(), deploy_path_w.end() );
 
-#elif (BOOST_OS_LINUX)
+#else //#elif (BOOST_OS_LINUX)
     int last_slash = path.find_last_of("\\");
     path = path.substr(0, last_slash);
     std::string app_path = path + "\\..\\testdata\\app.xml";
