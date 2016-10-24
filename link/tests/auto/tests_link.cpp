@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_SUITE(tests_link)
 BOOST_AUTO_TEST_CASE(test_link)
 {
     io_service service;
-    ip::tcp::endpoint ep(ip::address::from_string("127.0.0.1"), 31337);
+    ip::tcp::endpoint ep(ip::address::from_string("0.0.0.0"), 31337);
     node node_(service);
 
     node_.m_server.listen(ep);
