@@ -16,7 +16,9 @@ namespace link {
 using namespace boost::asio;
 
 /*!
- * Шаблонный класс соединения
+ * \brief Класс входящего соединения
+ *
+ * \tparam Callback
  */
 template<class Callback> class connection :
         public boost::enable_shared_from_this<connection<Callback>>,
@@ -27,48 +29,46 @@ public:
     using ptr = boost::shared_ptr<connection<Callback>>;
 
     /*!
-     * \brief start Метод для старта чтения пакета
+     * \brief Создать новое соединение
+     *
+     * \param callback Ссылка на объект, реализующий концепцию Callback
+     * \param service Ссылка на I/O сервис
+     * \return Новый объект класса соединение
+     */
+    static ptr new_(Callback& callback, io_service& service)
+    {
+        return ptr(new connection(callback, service));
+    }
+
+    /*!
+     * \brief Запуск соединения
      */
     void start()
     {
-#ifdef _DEBUG
-        std::cout << "start" << "\n";
-#endif
-        read_header();
+        // Начинаем прием пакетов с чтения заголовка первого пакета
+        do_read_header();
     }
 
     /*!
-     * \brief new_  Статическая функция возвращает объект класса connection
-     * \param callback Ссылка на объект, реализующий концепцию Callback
-     * \param service Ссылка на io_service
-     * \return Новый объект класса connection
-     */
-    static ptr new_(Callback& callback,io_service& service)
-    {
-        ptr new_(new connection(callback,service));
-        return new_;
-    }
-
-    /*!
-     * \brief stop Метод для закрытия соединения
+     * \brief Останов соединения
      */
     void stop()
     {
-#ifdef _DEBUG
-        std::cout << "server connection has been stopped\n";
-#endif
-        sock_.close();
+        // Закрываем сокет
+        socket_.close();
     }
 
     /*!
-     * \brief sock Метод возвращает объект сокета
-     * \return Объекта класса socket
+     * \brief Получить ссылку на сокет
      */
-    ip::tcp::socket & sock()
+    ip::tcp::socket& sock()
     {
-        return sock_;
+        return socket_;
     }
 
+    /*!
+     * \brief Деструктор
+     */
     ~connection()
     {
         stop();
@@ -77,14 +77,14 @@ public:
 private:
 
     /*!
-     * \brief connection Конструктор, инициализация объектов сокета и колбека
+     * \brief Конструктор
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    connection(Callback& callback,io_service& service):
-        sock_(service),
-        callback_(callback),
-        read_buffer_(new char[max_packet_size])
+    connection(Callback& callback, io_service& service)
+        : socket_(service),
+          callback_(callback),
+          read_buffer_(new char[max_packet_size])
     {
 #ifdef _DEBUG
         std::cout << "server constructor" << "\n";
@@ -92,65 +92,81 @@ private:
     }
 
     /*!
-     * \brief ready_for_new_packet Метод для вызовал callback функции
-     *  и начала чтения нового пакета
-     * \param err Отлавливание ошибки
-     * \param bytes Размер пришедшего пакета в байтах
+     * \brief Асинхронный метод чтения хедера очередного пакета
      */
-    void ready_for_new_packet(const error_code & err, size_t bytes)
+    void do_read_header()
     {
-        callback_.on_new_packet(read_buffer_.get(), bytes);
-        read_header();
-    }
-
-    /*!
-     * \brief read_packet Метод для чтения тела пакета
-     * \param err Отлавливание ошибки
-     * \param bytes Размер заголовка в байтах
-     */
-    void read_packet(const error_code & err, size_t bytes)
-    {
-#ifdef _DEBUG
-        //std::cout << "server on_read " << err << "\n";
-#endif
-        if (!err)
-        {
-            auto header = reinterpret_cast<packet_header *>(read_buffer_.get());
-#ifdef _DEBUG
-            //std::cout << " size: " << header->packet_size << "\n";
-#endif
-            auto packet_size = header->packet_size;
-            async_read(
-                sock_,
-                boost::asio::buffer(read_buffer_.get(), packet_size),
-                boost::asio::transfer_exactly(packet_size),
-                boost::bind(&connection::ready_for_new_packet,
-                            this->shared_from_this(),
-                            boost::asio::placeholders::error,
-                            boost::asio::placeholders::bytes_transferred));
-        }
-    }
-
-    /*!
-     * \brief read_header Метод для чтения хедера пакета
-     */
-    void read_header()
-    {
-#ifdef _DEBUG
-        //std::cout << "server do_read" << "\n";
-#endif
         async_read(
-            sock_,
-            boost::asio::buffer(read_buffer_.get(), header_size),
+            socket_,
+            boost::asio::buffer(&packet_header_, header_size),
             boost::asio::transfer_exactly(header_size),
-            boost::bind(&connection::read_packet,
+            boost::bind(&connection::on_header_read,
                         this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
 
-    ip::tcp::socket sock_;
+    /*!
+     * \brief Асинхронный метод чтения пакета
+     */
+    void do_read_packet()
+    {
+        // Размер пакета согласно заголовку
+        auto packet_size = packet_header_.packet_size;
+
+        // Добавим асинхронный таск чтения пакета заданного размера
+        async_read(
+            socket_,
+            boost::asio::buffer(read_buffer_.get(), packet_size),
+            boost::asio::transfer_exactly(packet_size),
+            boost::bind(&connection::on_packet_read,
+                        this->shared_from_this(),
+                        boost::asio::placeholders::error,
+                        boost::asio::placeholders::bytes_transferred));
+    }
+
+    /*!
+     * \brief Колбек, вызываемый по окончании чтения заголовка
+     * \param err Ошибка (если есть)
+     * \param bytes Прочитанный размер полученного заголовка пакета в байтах
+     */
+    void on_header_read(const error_code& ec, size_t bytes)
+    {
+        // TODO: handle disconnect
+        if (ec)
+            return;
+
+        do_read_packet();
+    }
+
+    /*!
+     * \brief Колбек, вызываемый по окончании чтения пакета
+     * \param err Ошибка (если есть)
+     * \param bytes Прочитанный размер полученного пакета в байтах
+     */
+    void on_packet_read(const error_code& ec, size_t bytes)
+    {
+        // TODO: handle disconnect
+        if (ec)
+            return;
+
+        // Уведомляем о новом пакете
+        callback_.on_new_packet(read_buffer_.get(), bytes);
+
+        // Начинаем прием следующего пакета с чтения заголовка
+        do_read_header();
+    }
+
+    //! Сокет
+    ip::tcp::socket socket_;
+
+    //! Заголовок текущего пакета
+    packet_header packet_header_;
+
+    //! Буфер для текущего пакета
     std::unique_ptr<char> read_buffer_;
+
+    //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
 };
 

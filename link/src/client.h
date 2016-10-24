@@ -1,13 +1,12 @@
 #ifndef CLIENT_H
 #define CLIENT_H
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
 #include <iostream>
 
-#include "packet_header.h"
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
-using namespace boost::asio;
+#include "packet_header.h"
 
 namespace alpha {
 namespace protort {
@@ -16,7 +15,8 @@ namespace link {
 /*!
  * Шаблонный класс клиента
  */
-template<class Callback> class client
+template<class Callback>
+class client
 {
     using error_code = boost::system::error_code;
 
@@ -28,11 +28,10 @@ public:
      * \param service Ссылка на io_service
      */
     client(Callback &callback, boost::asio::io_service& service)
-        :sock_(service),
-         callback_(callback),
-         write_buffer_(new char[max_packet_size + header_size])
+        : socket_(service),
+          callback_(callback),
+          write_buffer_(new char[max_packet_size + header_size])
     {
-
     }
 
     /*!
@@ -43,51 +42,19 @@ public:
      * \param ep Объект класса endpoint
      */
     client(Callback &callback, boost::asio::io_service& service, ip::tcp::endpoint ep)
-        :sock_(service),
-         callback_(callback),
-         write_buffer_(new char[header_size + max_packet_size])
+        : socket_(service),
+          callback_(callback),
+          write_buffer_(new char[header_size + max_packet_size])
     {
         async_connect(ep);
     }
 
     /*!
-     * \brief async_connect Метод для асинхронного подключения
-     * \param ep Объект класса endpoint
+     * \brief Деструктор
      */
-    void async_connect(ip::tcp::endpoint ep)
-    {
-        sock_.async_connect(ep, boost::bind(&client::on_connect, this, boost::asio::placeholders::error));
-    }
-
-    /*!
-     * \brief async_send Метод для отправки пакета данных
-     * \param msg Строка для отправки
-     */
-    void async_send(std::string const& msg)
-    {
-        do_write(msg);
-    }
-
     ~client()
     {
         stop();
-    }
-
-private:
-
-    /*!
-     * \brief on_connect Метод, для проверки подключения и вызова колбека
-     * \param err Отлавливание ошибки
-     */
-    void on_connect(const error_code & err)
-    {
-#ifdef _DEBUG
-        std::cout << "on_connect " << err << std::endl;
-#endif
-        if (!err)
-            callback_.on_connected(err);
-        else
-            stop();
     }
 
     /*!
@@ -95,46 +62,94 @@ private:
      */
     void stop()
     {
-#ifdef _DEBUG
-        std::cout << "client connection has been stopped\n";
-#endif
-        sock_.close();
+        socket_.close();
     }
 
     /*!
-     * \brief on_write Метод для отлавливания ошибок отправки пакета
-     * \param err Отлавливание ошибки
-     * \param bytes Размер посланного пакета в байтах
+     * \brief Метод для асинхронного подключения
+     * \param ep Объект класса endpoint
      */
-    void on_write(const error_code & err, size_t bytes)
+    void async_connect(ip::tcp::endpoint ep)
     {
-#ifdef _DEBUG
-        //std::cout << "on_write " << err << " and " << bytes << "\n";
-#endif
-        callback_.on_packet_sent(err,bytes);
+        do_connect(ep);
     }
 
     /*!
-     * \brief do_write Метод для отправки сообщения
+     * \brief Метод для отправки пакета данных
      * \param msg Строка для отправки
      */
-    void do_write(const std::string& msg)
+    void async_send(std::string const& msg)
     {
-#ifdef _DEBUG
-        //std::cout << "Sended from client: " << msg << "\n";
-#endif
+        do_send_packet(msg);
+    }
+
+private:
+
+    /*!
+     * \brief Выполнить подключение
+     */
+    void do_connect(ip::tcp::endpoint ep)
+    {
+        socket_.async_connect(
+            ep, boost::bind(&client::on_connect, this,
+                            boost::asio::placeholders::error));
+    }
+
+    /*!
+     * \brief Послать пакет
+     * \param msg Содержимое пакета
+     */
+    void do_send_packet(const std::string& packet)
+    {
+        // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(write_buffer_.get());
-        header->packet_size = msg.size();
-        copy(msg.begin(), msg.end(), write_buffer_.get() + header_size);
-        sock_.async_write_some(
-            buffer(write_buffer_.get(), msg.size() + header_size),
-            boost::bind(&client::on_write, this,
+        header->packet_size = packet.size();
+
+        // Копируем отправляемую строку в буффер
+        copy(packet.begin(), packet.end(), write_buffer_.get() + header_size);
+
+        // Добавляем асинхронный таск на отправку
+        socket_.async_write_some(
+            buffer(write_buffer_.get(), header_size + packet.size()),
+            boost::bind(&client::on_packet_sent, this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
 
-    ip::tcp::socket sock_;
+    /*!
+     * \brief Колбек, вызываемый по окончании попытки соединения
+     *
+     * \param err Ошибка соединения (если есть)
+     */
+    void on_connect(const error_code& err)
+    {
+        if (err)
+        {
+            stop();
+            return;
+        }
+
+        callback_.on_connected(err);
+    }
+
+    /*!
+     * \brief Колбек, вызываемый по окончании отправка пакета
+     *
+     * \param err Ошибка отправки (если есть)
+     * \param bytes Размер отправленного пакета в байтах
+     */
+    void on_packet_sent(const error_code& ec, size_t bytes)
+    {
+        callback_.on_packet_sent(ec, bytes);
+    }
+
+    //! Сокет
+    ip::tcp::socket socket_;
+
+    //! Буфер для отправки пакета
     std::unique_ptr<char> write_buffer_;
+
+    //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
 };
 

@@ -22,6 +22,8 @@ LIBS += \
 # Линкуемся с boost
 include(../../../boost.pri)
 
+# Библиотека alpha.protort.link
 include(../../link.pri)
 
+# Протокол alpha.protort.protocol
 include(../../../protocol/protocol.pri)

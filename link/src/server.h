@@ -1,8 +1,10 @@
 #ifndef SERVER_H
 #define SERVER_H
+
+#include <iostream>
+
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
-#include <iostream>
 
 #include "connection.h"
 
@@ -10,80 +12,101 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-using namespace boost::asio;
-
 /*!
  * \brief Класс сервера
  * \tparam Callback
  * Концепция описывающая набор колбеков для приема событий от сервера
  */
-template<class Callback> class server
+template<class Callback>
+class server
 {
-    using connection_ptr = boost::shared_ptr<connection<Callback>>;
 public:
-
     /*!
-     * \brief server Конструктор, в котором происходит инициализация аксептора и колбека
+     * \brief Конструктор
      * \param callback Ссылка на объект, реализующий концепцию Callback
-     * \param service Ссылка на io_service
+     * \param service Ссылка на I/O сервис
      */
-    server (Callback& callback,io_service& service):
+    server(Callback& callback,io_service& service):
         acceptor_(service),
         callback_(callback)
     {
-#ifdef _DEBUG
-        std::cout << "ctr" << std::endl;
-#endif
     }
 
     /*!
-     * \brief server Конструктор, в котором происходит инициализация аксептора и колбека
-     * а также вызывается метод listen для старта прослушивания
+     * \brief Конструктор
      * \param callback Ссылка на объект, реализующий концепцию Callback
-     * \param service Ссылка на io_service
-     * \param ep Объект endpoint
+     * \param service Ссылка на I/O сервис
+     * \param ep Адрес для прослушивания входящих подключений
      */
-    server (Callback& callback,io_service& service,ip::tcp::endpoint ep):
-        acceptor_(service),
-        callback_(callback)
+    server(Callback& callback,io_service& service,ip::tcp::endpoint ep)
+        : acceptor_(service),
+          callback_(callback)
     {
         listen(ep);
     }
 
     /*!
-     * \brief listen Метод для старта прослушивания
-     * \param ep Объект endpoint
+     * \brief Начать пролушивание
+     * \param ep Адрес для прослушивания входящих подключений
      */
     void listen(ip::tcp::endpoint ep)
     {
+        // Настраиваем акцептор
         acceptor_.open(ep.protocol());
         acceptor_.set_option(ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(ep);
         acceptor_.listen();
-        connection_ptr client = connection<Callback>::new_(callback_,acceptor_.get_io_service());
-        acceptor_.async_accept(
-            client->sock(),
-            boost::bind(&server::handle_accept,this,client,boost::asio::placeholders::error));
+
+        // Принимаем новое подключение
+        do_accept_connection();
     }
 
 private:
 
+    //! Тип указателя для входящего соединения
+    using connection_ptr = boost::shared_ptr<connection<Callback>>;
+
     /*!
-     * \brief handle_accept Метод, в котором стартует чтение пакета и начинается ожидание нового подключения
-     * \param client Объект класса connection
-     * \param err Отлавливание ошибки
+     * \brief Асинхронно принять новое входящее подключение
      */
-    void handle_accept(connection_ptr client, const boost::system::error_code & err)
+    void do_accept_connection()
     {
-        client->start();
-        callback_.on_new_connection(err);
-        connection_ptr new_client = connection<Callback>::new_(callback_,acceptor_.get_io_service());
+        // Создаем объект будущего подключения
+        connection_ptr client = connection<Callback>::new_(
+            callback_, acceptor_.get_io_service());
+
+        // Принимаем подключение
         acceptor_.async_accept(
-            new_client->sock(),
-            boost::bind(&server::handle_accept,this,new_client,boost::asio::placeholders::error));
+            client->sock(),
+            boost::bind(&server::on_connection_accepted, this, client,
+                        boost::asio::placeholders::error));
     }
 
+    /*!
+     * \brief Колбек, вызываемый при новом принятом входящем соединении
+     * \param client Принятое входящее соединение
+     * \param err Ошибка приема (если есть)
+     */
+    void on_connection_accepted(connection_ptr client, const boost::system::error_code& err)
+    {
+        // TODO: handle error
+        if (err)
+            return;
+
+        // Запускаем соединение
+        client->start();
+
+        // Уведомляем о новом подключении
+        callback_.on_new_connection(err);
+
+        // Принимаем следующее подключение
+        do_accept_connection();
+    }
+
+    //! Акцептор входящих подключений
     ip::tcp::acceptor acceptor_;
+
+    //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
 };
 
