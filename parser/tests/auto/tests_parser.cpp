@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include <string>
-#include <boost/predef/os.h>
+#include <boost/predef.h>
 #include "parser.h"
 
 #if (BOOST_OS_WINDOWS)
