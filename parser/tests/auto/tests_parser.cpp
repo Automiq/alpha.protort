@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
 #endif
 ----------------------------------------------------------------*/
 
-    Deploy_scheme ds;
+    configuration ds;
     ds.parse_app("../testdata/app.xml");
     ds.parse_deploy("../testdata/deploy.xml");
     component comp = ds.get_component(inst_name);

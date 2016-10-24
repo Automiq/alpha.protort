@@ -30,8 +30,6 @@ include(../../parser.pri)
         copydata.commands = $(COPY_DIR) $$PWD/testdata/* $$OUT_PWD/tesdata
     }
 }
-
-message ($$OUT_PWD)
 first.depends = $(first) copyapp
 export(first.depends)
 export(copyapp.commands)

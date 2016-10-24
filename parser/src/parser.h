@@ -9,6 +9,11 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+
+namespace alpha {
+namespace protort {
+namespace parser {
+
 /*!
  * \brief Класс компонент
  *
@@ -40,7 +45,7 @@ struct node
  * Данный класс получает и хранит информацию путем парсинга xml файлов схемы приложения
  * и схемы развертывания.
  */
-class Deploy_scheme
+class configuration
 {
 public:
     typedef std::pair<std::string, short> comp_name_port;
@@ -115,7 +120,7 @@ private:
     std::map<std::string, std::string> component_to_node;
 };
 
-bool Deploy_scheme::parse_app(const std::string &filename)
+bool configuration::parse_app(const std::string &filename)
 {
     try
     {
@@ -152,7 +157,7 @@ bool Deploy_scheme::parse_app(const std::string &filename)
         return false;
     }    
 }
-bool Deploy_scheme::parse_deploy(const std::string &filename)
+bool configuration::parse_deploy(const std::string &filename)
 {
     try
     {
@@ -193,4 +198,7 @@ bool operator <(std::pair<std::string, short>& left, std::pair<std::string, shor
     return left.first < right.first;
 }
 
+} // namespace parser
+} // namespace protort
+} // namespace alpha
 #endif // PARSER_H
