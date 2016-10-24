@@ -34,7 +34,7 @@ script:
  - doxygen alpha.protort.doxygen
  - qmake -qt=qt5 -v
  - qmake -qt=qt5
- - make 
+ - make
  - protocol/bin/alpha.protort.protocol.autotests
  - link/bin/alpha.protort.link.autotests
  - node/bin/alpha.protort.node.autotests
