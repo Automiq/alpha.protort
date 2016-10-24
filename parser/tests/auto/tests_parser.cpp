@@ -46,7 +46,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     std::string dest = "B";
     short dest_in = 1;
 
-/*  костыли для получения пути к исполняемому файлу ------------
+    /*  костыли для получения пути к исполняемому файлу ------------
 #ifdef WIN32 //#if (BOOST_OS_WINDOWS)
     std::wstring path = Location();
     std::wstring app_path_w = path + L"\\..\\testdata\\app.xml";
@@ -62,7 +62,6 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
 #endif
 ----------------------------------------------------------------*/
 
-    std::string
     Deploy_scheme ds;
     ds.parse_app("../testdata/app.xml");
     ds.parse_deploy("../testdata/deploy.xml");

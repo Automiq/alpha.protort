@@ -53,7 +53,7 @@ public:
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    void parse_app(const std::string &filename);
+    bool parse_app(const std::string &filename);
     /*!
      * \brief Парсит схему развертывания
      * \param путь к файлу схемы развертыания
@@ -62,7 +62,7 @@ public:
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    void parse_deploy(const std::string &filename);
+    bool parse_deploy(const std::string &filename);
     /*!
      * \brief Находит компонент по его имени
      * \param Имя компонента
@@ -115,7 +115,7 @@ private:
     std::map<std::string, std::string> component_to_node;
 };
 
-void Deploy_scheme::parse_app(const std::string &filename)
+bool Deploy_scheme::parse_app(const std::string &filename)
 {
     try
     {
@@ -126,7 +126,6 @@ void Deploy_scheme::parse_app(const std::string &filename)
         // Load the XML file into the property tree. If reading fails
         // (cannot open file, parse error), an exception is thrown.
         read_xml(filename, pt);
-
 
         BOOST_FOREACH( ptree::value_type const& v, pt.get_child("app") ) {
             if( v.first == "instance" ) {
@@ -136,7 +135,6 @@ void Deploy_scheme::parse_app(const std::string &filename)
                 id_to_component.insert(std::pair<std::string, component>(comp.name, comp));
             }
             else if( v.first == "connection" ) {
-
                 std::string source_name = v.second.get<std::string>("<xmlattr>.source");
                 short source_out = v.second.get<short>("<xmlattr>.source_out");
                 std::string dest_name = v.second.get<std::string>("<xmlattr>.dest");
@@ -146,19 +144,18 @@ void Deploy_scheme::parse_app(const std::string &filename)
             else
                 std::cout << "Unknown tag in the file" << std::endl;
         }
+        return true;
     }
     catch(std::exception &e)
     {
         std::cout << "Error: " << e.what() << std::endl;
-    }
-
-
+        return false;
+    }    
 }
-void Deploy_scheme::parse_deploy(const std::string &filename)
+bool Deploy_scheme::parse_deploy(const std::string &filename)
 {
     try
     {
-
         // Create an empty property tree object
         using boost::property_tree::ptree;
         boost::property_tree::ptree pt;
@@ -166,7 +163,6 @@ void Deploy_scheme::parse_deploy(const std::string &filename)
         // Load the XML file into the property tree. If reading fails
         // (cannot open file, parse error), an exception is thrown.
         read_xml(filename, pt);
-
 
         BOOST_FOREACH( ptree::value_type const& v, pt.get_child("deploy") ) {
             if( v.first == "node" ) {
@@ -177,7 +173,6 @@ void Deploy_scheme::parse_deploy(const std::string &filename)
                 id_to_node.insert(std::pair<std::string, node>(n.id, n));
             }
             else if( v.first == "map" ) {
-
                 std::string comp_name = v.second.get<std::string>("<xmlattr>.instance");
                 std::string node_name = v.second.get<std::string>("<xmlattr>.node");
                 component_to_node.insert(std::make_pair(comp_name, node_name));
@@ -185,13 +180,13 @@ void Deploy_scheme::parse_deploy(const std::string &filename)
             else
                 std::cout << "Unknown tag in the file" << std::endl;
         }
-
-
+        return true;
     }
     catch(std::exception &e)
     {
         std::cout << "Error: " << e.what() << std::endl;
-    }
+        return false;
+    }    
 }
 bool operator <(std::pair<std::string, short>& left, std::pair<std::string, short>& right)
 {
