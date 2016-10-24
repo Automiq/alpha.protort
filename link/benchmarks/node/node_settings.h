@@ -9,7 +9,8 @@
 
 namespace alpha {
 namespace protort {
-namespace node {
+namespace link {
+namespace benchmarks {
 
 void split_ip_port(const std::string& s, std::string& ip, short& port)
 {
@@ -21,70 +22,14 @@ void split_ip_port(const std::string& s, std::string& ip, short& port)
     port = std::stoi(port_str);
 }
 
-/*!
- * \brief Класс настроек узла
- *
- * Данный класс предназначен для хранения настроек узла.
- */
 struct node_settings
 {
-    /*!
-     * \brief Адрес для входящих подключений
-     *
-     * Узел, работающий в режиме сервера (ретранслятор или терминатор), должен
-     * использовать этот адрес для прослушивания входящих подключений.
-     */
     boost::asio::ip::tcp::endpoint source;
-
-    /*!
-     * \brief Адрес для исходящих подключений
-     *
-     * Узел, работающий в режиме клиента (генератор или ретранслятор), должен
-     * использовать этот адрес для исходящего подключения.
-     */
     boost::asio::ip::tcp::endpoint destination;
+    alpha::protort::protocol::ComponentKind component_kind;
     uint32_t packet_size = 0;
     uint32_t npackets = 0;
 
-    /*!
-     * \brief Тип компонента
-     *
-     * Определяет тип компонента, который работает на узле. То есть режимы, в
-     * которых работает узел.
-     */
-    alpha::protort::protocol::ComponentKind component_kind;
-
-    /*!
-     * \brief Парсит настройки узла из массива строк
-     *
-     * \param argc Количество строк в массиве
-     * \param argv Указатель на массив строк
-     * \return true в случае успеха, иначе false
-     *
-     * Данный метод предназначен для разбора массива строковых аргументов,
-     * обычно подаваемых через командную строку, и получения удобной для
-     * дальнейшего использования структуры с настройками узла.
-     * В случае успешного разбора аргументов, метод загружает настройки в
-     * экемпляр класса и возвращает true. В случае ошибки возвращается false и
-     * выводится ошибка стандартный поток вывода ошибок.
-     *
-     * Пример использования:
-     * \code
-     *  int main(int argc, const char *argv[])
-     *  {
-     *      alpha::protort::node::node_settings settings;
-     *
-     *      if (!settings.parse(argc, argv));
-     *          // ошибка разбора
-     *          return 1;
-     *
-     *      // успех
-     *      // дальнейшая работа с распарсенными настройками
-     *      ...
-     *      return 0;
-     *  }
-     * \endcode
-     */
     bool parse(int argc, const char **argv)
     {
         try
@@ -93,7 +38,7 @@ struct node_settings
             std::string destination_ip_port_str;
             std::string node_kind;
 
-            boost::program_options::options_description desc{ "Node Options" };
+            boost::program_options::options_description desc{ "Node Setup Options" };
             desc.add_options()
                     ("help,h", "Help screen")
                     ("source,s", boost::program_options::value<std::string>(&source_ip_port_str)->default_value("0.0.0.0:31337"), "Source ip:port")
@@ -140,7 +85,8 @@ struct node_settings
     }
 };
 
-} // namespace node
+} // namespace benchmarks
+} // namespace link
 } // namespace protort
 } // namespace alpha
 
