@@ -12,3 +12,9 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_action_3_triggered()
+{
+    QFileDialog *filedlg;
+    filedlg->getOpenFileName(this);
+}
