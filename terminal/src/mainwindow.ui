@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>515</width>
-    <height>300</height>
+    <width>503</width>
+    <height>319</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -48,14 +48,17 @@
      </item>
     </layout>
    </widget>
+   <zorder>verticalLayoutWidget</zorder>
+   <zorder>verticalLayoutWidget_2</zorder>
+   <zorder>textEdit</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>515</width>
-     <height>18</height>
+     <width>503</width>
+     <height>28</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -65,8 +68,8 @@
     <addaction name="action"/>
     <addaction name="action_5"/>
     <addaction name="separator"/>
-    <addaction name="action_6"/>
-    <addaction name="action_3"/>
+    <addaction name="load_scheme"/>
+    <addaction name="load_descripton"/>
     <addaction name="separator"/>
     <addaction name="action_8"/>
    </widget>
@@ -86,7 +89,7 @@
     <string>Создать описание</string>
    </property>
   </action>
-  <action name="action_3">
+  <action name="load_descripton">
    <property name="checkable">
     <bool>false</bool>
    </property>
@@ -99,7 +102,7 @@
     <string>Создать схему</string>
    </property>
   </action>
-  <action name="action_6">
+  <action name="load_scheme">
    <property name="text">
     <string>Загрузить схему</string>
    </property>
