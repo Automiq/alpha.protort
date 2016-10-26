@@ -136,6 +136,16 @@ private:
         if (err)
             return;
 
+        // Закрываем соединение при размере пакета превышающем максимально допустимое
+        if (packet_header_.packet_size > max_packet_size)
+        {
+#ifdef _DEBUG
+            std::cout << "connection has been terminated" << "\n";
+#endif
+            socket_.close();
+            return;
+        }
+
         do_read_packet();
     }
 
