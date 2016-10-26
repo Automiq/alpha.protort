@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += main.cpp
 HEADERS += \
     node_settings.h\
-    node.h
+    node.h \
+    node_router.h
 
 DESTDIR = ../bin
 
