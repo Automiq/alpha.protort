@@ -45,7 +45,7 @@ private:
 
         for(short i = 0;i < result_.size();i++)
             for(short j = 0;j < result_[i].ports.size();j++)
-                do_futher_component_process(outport->map_[result_[i].ports[j]],result_[i].payload);
+                do_component_process(outport->map_[result_[i].ports[j]],result_[i].payload);
     }
 };
 
