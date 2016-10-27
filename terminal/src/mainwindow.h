@@ -1,8 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QSyntaxHighlighter>
 #include <QMainWindow>
+#include <QSyntaxHighlighter>
 
 namespace Ui {
 class MainWindow;
@@ -18,7 +18,9 @@ public:
 
 private slots:
 
-    void on_load_description_triggered();
+    void on_load_scheme_triggered();
+
+    void on_load_descripton_triggered();
 
 private:
     Ui::MainWindow *ui;
