@@ -1,4 +1,4 @@
 INCLUDEPATH += $$PWD/src
 
-HEADERS += src/parser.h
+HEADERS += $$PWD/src/parser.h
 
