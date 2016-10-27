@@ -7,7 +7,6 @@ namespace alpha {
 namespace protort {
 namespace components {
 
-
 class retranslator : public i_component
 {
 public:
