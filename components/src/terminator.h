@@ -7,7 +7,6 @@ namespace alpha {
 namespace protort {
 namespace components {
 
-
 class terminator : public i_component
 {
 public:
