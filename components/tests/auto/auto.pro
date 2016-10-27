@@ -18,3 +18,6 @@ TARGET = alpha.protort.components.autotests$$LIBINFIX
 
 # Линкуемся с boost
 include(../../../boost.pri)
+
+# Линкуемся с components
+include(../../components.pri)

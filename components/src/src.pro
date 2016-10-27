@@ -6,8 +6,8 @@ CONFIG -= qt
 SOURCES += main.cpp
 
 HEADERS += \
-    retranslator.h \
     i_component.h \
+    retranslator.h \    
     generator.h \
     terminator.h
 
