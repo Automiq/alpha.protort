@@ -45,9 +45,9 @@ void MainWindow::on_open_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
         QFile file(file_name);
-        if (file.open(QIODevice::ReadWrite))
+        if (file.open(QIODevice::ReadOnly))
         {
-            ui->current_file->setText(file_name);
+            ui->current_file_label->setText(file_name);
             QByteArray file_text = file.readAll();
             ui->textEdit->setText(file_text);
             file.close();
@@ -56,7 +56,7 @@ void MainWindow::on_open_file_triggered()
 
 void MainWindow::on_save_file_triggered()
 {
-    QFile file("app2.xml");
+    QFile file(ui->current_file_label->text());
     if (file.open(QIODevice::WriteOnly))
     {
         file.write(ui->textEdit->toPlainText().toUtf8());

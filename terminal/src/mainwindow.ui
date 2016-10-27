@@ -44,7 +44,7 @@
          <widget class="QTextEdit" name="textEdit"/>
         </item>
         <item>
-         <widget class="QLabel" name="current_file">
+         <widget class="QLabel" name="current_file_label">
           <property name="text">
            <string>Открытый файл</string>
           </property>
