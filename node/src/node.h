@@ -6,11 +6,13 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono.hpp>
+#include <map>
 
 #include "packet.pb.h"
 #include "server.h"
 #include "client.h"
 #include "node_settings.h"
+#include "node_router.h"
 
 namespace alpha {
 namespace protort {
@@ -42,11 +44,11 @@ public:
                 server_.listen(settings_.source);
                 break;
             }
-            case alpha::protort::protocol::Generator:
-            {
-                client_.async_connect(settings_.destination);
-                break;
-            }
+//            case alpha::protort::protocol::Generator:
+//            {
+//                client_.async_connect(settings_.destination);
+//                break;
+//            }
         }
         service_.run();
     }
@@ -89,6 +91,7 @@ public:
         // TODO
     }
 
+
 private:
     //! I/O сервис
     io_service service_;
@@ -97,13 +100,16 @@ private:
     link::server<node> server_;
 
     //! Клиент
-    link::client<node> client_;
+    std::map<int,link::client<node>> clients_;
 
     //! Настройки узла
     node_settings settings_;
 
     //! Подписанные сигналы
     signal_set signals_;
+
+    //! Класс node_router - дружественный
+    friend class node_router;
 };
 
 } // namespace node

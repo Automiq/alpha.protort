@@ -12,7 +12,8 @@ enum ComponentKind
 message ComponentEndpoint
 {
     ComponentKind component_kind = 1;
-    uint32 port = 2;
+    uint32 port = 2; // Идентификатор входа или выхода
+    string name = 3; // Имя компонента
 }
 
 message Packet 
