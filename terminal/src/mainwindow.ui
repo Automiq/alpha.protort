@@ -6,59 +6,61 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>503</width>
-    <height>319</height>
+    <width>611</width>
+    <height>395</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QWidget" name="verticalLayoutWidget">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>20</y>
-      <width>341</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <item>
-      <widget class="QTextEdit" name="textEdit"/>
-     </item>
-    </layout>
-   </widget>
-   <widget class="QWidget" name="verticalLayoutWidget_2">
-    <property name="geometry">
-     <rect>
-      <x>370</x>
-      <y>20</y>
-      <width>121</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <layout class="QVBoxLayout" name="verticalLayout_2">
-     <item>
-      <widget class="QPushButton" name="pushButton">
-       <property name="text">
-        <string>PushButton</string>
-       </property>
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="tab">
+       <attribute name="title">
+        <string>Tab 1</string>
+       </attribute>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QTextEdit" name="textEdit"/>
+        </item>
+       </layout>
       </widget>
-     </item>
-    </layout>
-   </widget>
-   <zorder>verticalLayoutWidget</zorder>
-   <zorder>verticalLayoutWidget_2</zorder>
-   <zorder>textEdit</zorder>
+      <widget class="QWidget" name="tab_2">
+       <attribute name="title">
+        <string>Tab 2</string>
+       </attribute>
+      </widget>
+     </widget>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>503</width>
-     <height>28</height>
+     <width>611</width>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -66,12 +68,15 @@
      <string>Файл</string>
     </property>
     <addaction name="action"/>
-    <addaction name="action_5"/>
     <addaction name="separator"/>
-    <addaction name="load_scheme"/>
-    <addaction name="load_descripton"/>
+    <addaction name="open_file"/>
     <addaction name="separator"/>
-    <addaction name="action_8"/>
+    <addaction name="save_file"/>
+    <addaction name="save_as"/>
+    <addaction name="separator"/>
+    <addaction name="close_file"/>
+    <addaction name="separator"/>
+    <addaction name="exit"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -82,11 +87,13 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action"/>
+   <addaction name="open_file"/>
+   <addaction name="save_file"/>
   </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="action">
    <property name="text">
-    <string>Создать описание</string>
+    <string>Создать</string>
    </property>
   </action>
   <action name="load_descripton">
@@ -102,14 +109,29 @@
     <string>Создать схему</string>
    </property>
   </action>
-  <action name="load_scheme">
+  <action name="open_file">
    <property name="text">
-    <string>Загрузить схему</string>
+    <string>Открыть</string>
    </property>
   </action>
-  <action name="action_8">
+  <action name="save_file">
    <property name="text">
     <string>Сохранить</string>
+   </property>
+  </action>
+  <action name="close_file">
+   <property name="text">
+    <string>Зкарыть файл</string>
+   </property>
+  </action>
+  <action name="exit">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+  </action>
+  <action name="save_as">
+   <property name="text">
+    <string>Сохранить как...</string>
    </property>
   </action>
  </widget>
