@@ -15,32 +15,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-//void MainWindow::on_load_scheme_triggered()
-//{
-//    QFile app("app.xml");
-//    if (app.open(QIODevice::ReadWrite))
-//    {
-//        QByteArray app_text = app.readAll();
-//        ui->textEdit->setText(app_text);
-//        app.close();
-//    }
-//    else
-//        ui->textEdit->setText("ERROR! Cannot open app.xml");
-//}
-
-//void MainWindow::on_load_descripton_triggered()
-//{
-//    QFile app("app.xml");
-//    if (app.open(QIODevice::ReadWrite))
-//    {
-//        QByteArray app_text = app.readAll();
-//        ui->textEdit->setText(app_text);
-//        app.close();
-//    }
-//    else
-//        ui->textEdit->setText("ERROR! Cannot open app.xml");
-//}
-
 void MainWindow::on_open_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
@@ -66,7 +40,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_as_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml)"));
     QFile file(file_name);
     if (file.open(QIODevice::WriteOnly))
     {

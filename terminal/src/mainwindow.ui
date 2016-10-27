@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -46,7 +46,7 @@
         <item>
          <widget class="QLabel" name="current_file_label">
           <property name="text">
-           <string>Открытый файл</string>
+           <string>./tmp.xml</string>
           </property>
          </widget>
         </item>
@@ -94,7 +94,6 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="action"/>
    <addaction name="open_file"/>
    <addaction name="save_file"/>
   </widget>
