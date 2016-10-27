@@ -47,6 +47,7 @@ void MainWindow::on_open_file_triggered()
         QFile file(file_name);
         if (file.open(QIODevice::ReadWrite))
         {
+            ui->current_file->setText(file_name);
             QByteArray file_text = file.readAll();
             ui->textEdit->setText(file_text);
             file.close();
@@ -65,15 +66,16 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_as_triggered()
 {
-//    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
-//    QFile app(file_name);
-//    if (app.open(QIODevice::WriteOnly))
-//    {
-//        app.flush();
-//    }
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write(ui->textEdit->toPlainText().toUtf8());
+        file.close();
+    }
 }
 
 void MainWindow::on_exit_triggered()
 {
-    exit(0); //добавить остановку приложения
+    close(); //добавить остановку приложения
 }

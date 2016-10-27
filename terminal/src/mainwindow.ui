@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>611</width>
-    <height>395</height>
+    <height>406</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
        <attribute name="title">
         <string>Tab 1</string>
        </attribute>
-       <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout">
         <property name="spacing">
          <number>1</number>
         </property>
@@ -42,6 +42,13 @@
         </property>
         <item>
          <widget class="QTextEdit" name="textEdit"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="current_file">
+          <property name="text">
+           <string>Открытый файл</string>
+          </property>
+         </widget>
         </item>
        </layout>
       </widget>
