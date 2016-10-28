@@ -44,7 +44,7 @@ template<class node>
 class remote_input
 {
 public:
-    short port;
+    unsigned short port;
     std::string name;
     link::client<node> * client_;
 };
