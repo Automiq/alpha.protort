@@ -91,11 +91,14 @@ public:
     }
     */
 
-    std::list<std::string> get_components_id_by_node_id(std::string& node_id){
+    //возвращает id всех компонентов, работающих на данной ноде
+    std::list<std::string> get_components_id_by_node_id(std::string& node_id)
+    {
         auto iterators = node_to_component_id.equal_range(node_id);
         std::list<std::string> components_id;
-        for(auto begin=iterators.first; begin!=iterators.second; begin++)
+        for(auto begin = iterators.first; begin != iterators.second; begin++)
             components_id.push_back(begin->second);
+        return components_id;
     }
 
     /*!
