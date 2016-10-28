@@ -15,22 +15,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_open_file_triggered()
-{
-    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
-        QFile file(file_name);
-        if (file.open(QIODevice::ReadOnly))
-        {
-            ui->current_file_label->setText(file_name);
-            QByteArray file_text = file.readAll();
-            ui->textEdit->setText(file_text);
-            file.close();
-        }
-}
-
 void MainWindow::on_save_file_triggered()
 {
-    QFile file(ui->current_file_label->text());
+    QFile file(ui->current_scheme_label->text());
     if (file.open(QIODevice::WriteOnly))
     {
         file.write(ui->textEdit->toPlainText().toUtf8());
@@ -40,7 +27,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_as_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml)"));
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml);; all (*.*)"));
     QFile file(file_name);
     if (file.open(QIODevice::WriteOnly))
     {
@@ -52,4 +39,30 @@ void MainWindow::on_save_as_triggered()
 void MainWindow::on_exit_triggered()
 {
     close(); //добавить остановку приложения
+}
+
+void MainWindow::on_load_scheme_triggered()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        ui->current_scheme_label->setText(file_name);
+        QByteArray file_text = file.readAll();
+        ui->textEdit->setText(file_text);
+        file.close();
+    }
+}
+
+void MainWindow::on_load_descripton_triggered()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        ui->current_descr_label->setText(file_name);
+        QByteArray file_text = file.readAll();
+        ui->textEdit->setText(file_text);
+        file.close();
+    }
 }

@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab">
        <attribute name="title">
@@ -44,9 +44,9 @@
          <widget class="QTextEdit" name="textEdit"/>
         </item>
         <item>
-         <widget class="QLabel" name="current_file_label">
+         <widget class="QLabel" name="current_scheme_label">
           <property name="text">
-           <string>./tmp.xml</string>
+           <string/>
           </property>
          </widget>
         </item>
@@ -56,6 +56,26 @@
        <attribute name="title">
         <string>Tab 2</string>
        </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <property name="spacing">
+         <number>1</number>
+        </property>
+        <property name="leftMargin">
+         <number>3</number>
+        </property>
+        <property name="topMargin">
+         <number>3</number>
+        </property>
+        <property name="rightMargin">
+         <number>3</number>
+        </property>
+        <property name="bottomMargin">
+         <number>3</number>
+        </property>
+        <item>
+         <widget class="QTextEdit" name="current_descr_label"/>
+        </item>
+       </layout>
       </widget>
      </widget>
     </item>
@@ -74,18 +94,52 @@
     <property name="title">
      <string>Файл</string>
     </property>
-    <addaction name="action"/>
+    <widget class="QMenu" name="menu_3">
+     <property name="title">
+      <string>Открыть</string>
+     </property>
+     <addaction name="load_descripton"/>
+     <addaction name="load_scheme"/>
+    </widget>
+    <widget class="QMenu" name="menuType_Here">
+     <property name="title">
+      <string>Type Here</string>
+     </property>
+    </widget>
+    <widget class="QMenu" name="menu_4">
+     <property name="title">
+      <string>Создать</string>
+     </property>
+     <addaction name="action_8"/>
+     <addaction name="action_7"/>
+    </widget>
+    <widget class="QMenu" name="menu_5">
+     <property name="title">
+      <string>Сохранить</string>
+     </property>
+     <addaction name="action_10"/>
+     <addaction name="action_11"/>
+     <addaction name="actionAll"/>
+    </widget>
+    <addaction name="menu_4"/>
     <addaction name="separator"/>
-    <addaction name="open_file"/>
+    <addaction name="menu_3"/>
     <addaction name="separator"/>
-    <addaction name="save_file"/>
+    <addaction name="menu_5"/>
     <addaction name="save_as"/>
     <addaction name="separator"/>
-    <addaction name="close_file"/>
-    <addaction name="separator"/>
     <addaction name="exit"/>
+    <addaction name="menuType_Here"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Приложение</string>
+    </property>
+    <addaction name="action_2"/>
+    <addaction name="action_3"/>
    </widget>
    <addaction name="menu"/>
+   <addaction name="menu_2"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
@@ -94,20 +148,13 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="open_file"/>
-   <addaction name="save_file"/>
   </widget>
-  <action name="action">
-   <property name="text">
-    <string>Создать</string>
-   </property>
-  </action>
   <action name="load_descripton">
    <property name="checkable">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Загрузить описание</string>
+    <string>Описание</string>
    </property>
   </action>
   <action name="action_5">
@@ -115,14 +162,9 @@
     <string>Создать схему</string>
    </property>
   </action>
-  <action name="open_file">
+  <action name="load_scheme">
    <property name="text">
-    <string>Открыть</string>
-   </property>
-  </action>
-  <action name="save_file">
-   <property name="text">
-    <string>Сохранить</string>
+    <string>Схему развёртывания</string>
    </property>
   </action>
   <action name="close_file">
@@ -138,6 +180,51 @@
   <action name="save_as">
    <property name="text">
     <string>Сохранить как...</string>
+   </property>
+  </action>
+  <action name="action_2">
+   <property name="text">
+    <string>Развернуть</string>
+   </property>
+  </action>
+  <action name="action_3">
+   <property name="text">
+    <string>Остановить</string>
+   </property>
+  </action>
+  <action name="action_4">
+   <property name="text">
+    <string>Описание приложения</string>
+   </property>
+  </action>
+  <action name="action_7">
+   <property name="text">
+    <string>Схему развёртывания</string>
+   </property>
+  </action>
+  <action name="action_8">
+   <property name="text">
+    <string>Описание приложения</string>
+   </property>
+  </action>
+  <action name="action_9">
+   <property name="text">
+    <string>Остановить узел</string>
+   </property>
+  </action>
+  <action name="action_10">
+   <property name="text">
+    <string>Описание приложения</string>
+   </property>
+  </action>
+  <action name="action_11">
+   <property name="text">
+    <string>Схему развёртывания</string>
+   </property>
+  </action>
+  <action name="actionAll">
+   <property name="text">
+    <string>Всё</string>
    </property>
   </action>
  </widget>
