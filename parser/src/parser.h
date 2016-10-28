@@ -9,6 +9,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include <list>
 
 namespace alpha {
 namespace protort {
@@ -82,10 +83,21 @@ public:
      * \param Имя узла
      * \return Узел
      */
-    std::string& get_node(std::string comp_name)
+
+    /*
+    std::string& get_node(std::string comp_name
     {
         return component_to_node[comp_name];
     }
+    */
+
+    std::list<std::string> get_components_id_by_node_id(std::string& node_id){
+        auto iterators = node_to_component_id.equal_range(node_id);
+        std::list<std::string> components_id;
+        for(auto begin=iterators.first; begin!=iterators.second; begin++)
+            components_id.push_back(begin->second);
+    }
+
     /*!
      * \brief Находит имя  принимающего компонента и номер входа по имени отправителя и номера выхода
      * \param Пара <Имя компонента, номер выхода>
@@ -117,7 +129,15 @@ private:
      * Ассоциативный контейнер, где ключом является имя компонента,
      * а значением является имя узла, на котором этот компонент будет работать
      */
-    std::map<std::string, std::string> component_to_node;
+    //изменение: ключ - имя ноды, а занение - имя компонента
+    //std::map<std::string, std::string> component_to_node;
+    std::map<std::string, std::string> node_to_component_id;
+
+    //вектор идентификаторов всех нод
+    std::vector<std::string> node_id_vec;
+
+    //вектор идентификаторов всех компонентов
+    std::vector<std::string> comp_id_vec;
 };
 
 bool configuration::parse_app(const std::string &filename)
@@ -138,6 +158,7 @@ bool configuration::parse_app(const std::string &filename)
                 comp.name = v.second.get<std::string>("<xmlattr>.name");
                 comp.type = v.second.get<std::string>("<xmlattr>.kind");
                 id_to_component.insert(std::pair<std::string, component>(comp.name, comp));
+                comp_id_vec.push_back(comp.name);
             }
             else if( v.first == "connection" ) {
                 std::string source_name = v.second.get<std::string>("<xmlattr>.source");
@@ -176,11 +197,12 @@ bool configuration::parse_deploy(const std::string &filename)
                 n.ip = v.second.get<std::string>("<xmlattr>.address");
                 n.port = v.second.get<unsigned short>("<xmlattr>.port");
                 id_to_node.insert(std::pair<std::string, node>(n.id, n));
+                node_id_vec.push_back(n.id);
             }
             else if( v.first == "map" ) {
                 std::string comp_name = v.second.get<std::string>("<xmlattr>.instance");
                 std::string node_name = v.second.get<std::string>("<xmlattr>.node");
-                component_to_node.insert(std::make_pair(comp_name, node_name));
+                node_to_component_id.insert(std::make_pair(node_name, comp_name));
             }
             else
                 std::cout << "Unknown tag in the file" << std::endl;
