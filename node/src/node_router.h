@@ -25,6 +25,10 @@ struct output
 
 class outport_connections;
 
+/*!
+ * \brief The local_input class содержит входной порт и указатель на outport_connections для соединения.
+ *  Используется для локального компонента.
+ */
 class local_input
 {
 public:
@@ -32,6 +36,10 @@ public:
     outport_connections * connection;
 };
 
+/*!
+ * \brief The remote_input class содержит входной порт, имя компонента и указатель на клиента.
+ *  Используется для удаленного компонента.
+ */
 template<class node>
 class remote_input
 {
@@ -41,6 +49,10 @@ public:
     link::client<node> * client_;
 };
 
+/*!
+ * \brief The connections class содержит списки локальных у удаленных соединений
+ *  для одного выходного порта.
+ */
 class connections
 {
 public:
@@ -48,20 +60,25 @@ public:
     std::vector<remote_input> remote_components;
 };
 
+/*!
+ * \brief The outport_connections class содержит указатель на компонент, имя компонента и
+ *  map всех выходных портов с его соединениями.
+ */
 class outport_connections
 {
 public:
     component_ptr component_;
     std::string name;
-    std::map<unsigned short,connections> map_;
+    std::map<unsigned short,connections> map_all_connections;
 };
 
-template<class node>
+/*!
+ * \brief The node_router class используется для роутинга.
+ */
 class node_router
 {
 public:
-    node_router(node* n)
-        :node_(n)
+    node_router()
     {
 
     }
@@ -75,48 +92,46 @@ public:
     std::map<std::string, outport_connections> component_list;
 
 private:
-    void do_component_process(outport_connections* outport,unsigned short port,const std::string& payload)
+    void do_component_process(outport_connections* this_component,unsigned short port,const std::string& payload)
     {
-        std::vector<output> output_result = outport->component_->process(payload,port);
+        std::vector<output> output_result = this_component->component_->process(payload,port);
 
-        for(auto iter1 = output_result.begin();iter1 != output_result.end();iter1++)
+        for (auto &iter_payload : output_result)
         {
-            for(auto iter2 = iter1->ports.begin();iter2 != iter1->ports.end();iter2++)
+            for (auto &iter_output_port : iter_payload.ports)
             {
-                connections& loc_con_port = outport->map_[(*iter2)];
+                connections& port_connections = this_component->map_all_connections[iter_output_port];
 
-                for(auto iter3 = loc_con_port.local_components.begin();k < iter3 = loc_con_port.local_components.end();iter3++)
+                for (auto &iter_local_component : port_connections.local_components)
                     do_component_process(
-                        iter3->connection,
-                        iter3->port,
-                        iter1->payload);
+                        iter_local_component.connection,
+                        iter_local_component.port,
+                        iter_payload.payload);
 
-                for(auto iter3 = loc_con_port.remote_components.begin();k < iter3 = loc_con_port.remote_components.end();iter3++)
+                for (auto &iter_remote_component : port_connections.remote_components)
                 {
-                    alpha::protort::protocol::Packet p;
+                    alpha::protort::protocol::Packet packet_;
                     alpha::protort::protocol::ComponentEndpoint out_ep;
                     alpha::protort::protocol::ComponentEndpoint in_ep;
 
                     // out endpoint
-                    out_ep.set_port(static_cast<uint32_t>(*iter2));
-                    out_ep.set_name(outport->name);
-                    p.set_allocated_source(out_ep);
+                    out_ep.set_port(static_cast<uint32_t>(iter_output_port));
+                    out_ep.set_name(this_component->name);
+                    packet_.set_allocated_source(out_ep);
 
                     // in endpoint
-                    in_ep.set_port(static_cast<uint32_t>(iter3->port));
-                    in_ep.set_name(iter3->name);
-                    p.set_allocated_source(in_ep);
+                    in_ep.set_port(static_cast<uint32_t>(iter_remote_component.port));
+                    in_ep.set_name(iter_remote_component.name);
+                    packet_.set_allocated_source(in_ep);
 
                     // payload
-                    p.set_payload(iter1->payload);
+                    packet_.set_payload(iter_payload.payload);
 
-                    iter3->client_->async_send(p.SerializeAsString());
+                    iter_remote_component.client_->async_send(packet_.SerializeAsString());
                 }
             }
         }
     }
-
-    node* node_;
 };
 
 } // namespae node
