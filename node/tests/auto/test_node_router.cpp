@@ -15,6 +15,7 @@ BOOST_AUTO_TEST_SUITE(tests_node_router)
 
 BOOST_AUTO_TEST_CASE(test_node_router)
 {
+    /*
     const int component_amount = 7;
     int retranslator_count = 0;
     int terminator_count = 0;
@@ -63,7 +64,7 @@ BOOST_AUTO_TEST_CASE(test_node_router)
     node_router::connections mas_output_ports[6];
 
     // Создаем объекты local_input, где указываем входной порт другого компонента и указатель на другой компонент
-
+    */
 }
 
 BOOST_AUTO_TEST_SUITE_END()

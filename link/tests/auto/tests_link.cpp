@@ -22,7 +22,7 @@ struct node
     server<node> m_server;
     int counter_ = 0;
 
-    node(io_service& service)
+    node(boost::asio::io_service& service)
         :m_client(*this,service),
          m_server(*this,service)
     {
@@ -67,12 +67,12 @@ BOOST_AUTO_TEST_SUITE(tests_link)
 BOOST_AUTO_TEST_CASE(test_link)
 {
     /*
-    io_service service;
-    ip::tcp::endpoint ep(ip::address::from_string("0.0.0.0"), 31337);
+    boost::asio::io_service service;
+    boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string("0.0.0.0"), 31337);
     node node_(service);
 
     node_.m_server.listen(ep);
-    node_.m_client.async_connect(ip::tcp::endpoint(ip::address::from_string("127.0.0.1"), 31337));
+    node_.m_client.async_connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string("127.0.0.1"), 31337));
 
     service.run();
     */

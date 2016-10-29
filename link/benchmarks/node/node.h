@@ -50,7 +50,7 @@ public:
         switch (settings_.component_kind)
         {
         case alpha::protort::protocol::Terminator:
-            signals_.async_wait(boost::bind(&io_service::stop,&service));
+            signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service));
             server_.listen(settings_.source);
             break;
         case alpha::protort::protocol::Generator:
@@ -91,11 +91,11 @@ public:
     }
 
 private:
-    io_service service;
+    boost::asio::io_service service;
     server<test_node> server_;
     client<test_node> client_;
     node_settings settings_;
-    signal_set signals_;
+    boost::asio::signal_set signals_;
     int packet_counter_server = 0;
     int packet_counter_client = 0;
     const std::string msg_;

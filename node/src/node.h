@@ -40,7 +40,7 @@ public:
         {
             case alpha::protort::protocol::Terminator:
             {
-                signals_.async_wait(boost::bind(&io_service::stop,&service_));
+                signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service_));
                 server_.listen(settings_.source);
                 break;
             }
@@ -94,7 +94,7 @@ public:
 
 private:
     //! I/O сервис
-    io_service service_;
+    boost::asio::io_service service_;
 
     //! Сервер
     link::server<node> server_;
@@ -106,7 +106,7 @@ private:
     node_settings settings_;
 
     //! Подписанные сигналы
-    signal_set signals_;
+    boost::asio::signal_set signals_;
 };
 
 } // namespace node
