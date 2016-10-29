@@ -45,6 +45,8 @@ struct node_settings
     boost::asio::ip::tcp::endpoint destination;
     uint32_t packet_size = 0;
     uint32_t npackets = 0;
+    std::string path_app;
+    std::string path_deploy;
 
     /*!
      * \brief Тип компонента
@@ -100,7 +102,9 @@ struct node_settings
                     ("destination,d", boost::program_options::value<std::string>(&destination_ip_port_str), "Destination host:port")
                     ("node-kind,n", boost::program_options::value<std::string>(&node_kind), "node-kind generator|retranslator|terminator")
                     ("packet-size", boost::program_options::value<uint32_t>(&packet_size), "packet size")
-                    ("npackets", boost::program_options::value<uint32_t>(&npackets), "number of packet");
+                    ("npackets", boost::program_options::value<uint32_t>(&npackets), "number of packet")
+                    ("app", boost::program_options::value<std::string>(&path_app)->default_value("./app.xml"), "path to app.xml")
+                    ("deploy", boost::program_options::value<std::string>(&path_deploy)->default_value("./deploy.xml"), "path to deploy.xml");
 
 
             boost::program_options::variables_map vm;

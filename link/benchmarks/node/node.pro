@@ -11,7 +11,7 @@ HEADERS += \
 DESTDIR = ../../bin
 
 # Общие определения (требуется для LIBINFIX)
-include(../../alpha.pri)
+include(../../../alpha.pri)
 
 TARGET = alpha.protort.link.nodebenchmark$$LIBINFIX
 
