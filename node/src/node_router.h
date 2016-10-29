@@ -17,58 +17,6 @@ using component = alpha::protort::components::i_component;
 using component_ptr = component *;
 using port_id = unsigned short;
 
-//template<class node> class outport_connections;
-
-///*!
-// * \brief The local_input class содержит входной порт и указатель на outport_connections для соединения.
-// *  Используется для локального компонента.
-// */
-//template<class node>
-//class local_input
-//{
-//public:
-//    port_id port;
-//    outport_connections<node> * connection;
-//};
-
-///*!
-// * \brief The remote_input class содержит входной порт, имя компонента и указатель на клиента.
-// *  Используется для удаленного компонента.
-// */
-//template<class node>
-//class remote_input
-//{
-//public:
-//    port_id port;
-//    std::string name;
-//    link::client<node> * client_;
-//};
-
-///*!
-// * \brief The connections class содержит списки локальных у удаленных соединений
-// *  для одного выходного порта.
-// */
-//template<class node>
-//class connections
-//{
-//public:
-//    std::vector<local_input> local_components;
-//    std::vector<remote_input<node>> remote_components;
-//};
-
-///*!
-// * \brief The outport_connections class содержит указатель на компонент, имя компонента и
-// *  map всех выходных портов с его соединениями.
-// */
-//template<class node>
-//class outport_connections
-//{
-//public:
-//    component_ptr component_;
-//    std::string name;
-//    std::map<port_id,connections<node>> map_all_connections;
-//};
-
 /*!
  * \brief The node_router class используется для роутинга.
  */
