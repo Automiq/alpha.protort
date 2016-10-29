@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += \
     main.cpp \
     tests_node.cpp \
-    tests_node_settings.cpp
+    tests_node_settings.cpp \
+    test_node_router.cpp
 
 INCLUDEPATH += $$PWD/../../src
 
@@ -26,3 +27,6 @@ include(../../../boost.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.components
+include(../../../components/components.pri)

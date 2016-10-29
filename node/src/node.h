@@ -100,16 +100,13 @@ private:
     link::server<node> server_;
 
     //! Клиент
-    std::map<int,link::client<node>> clients_;
+    link::client<node> client_;
 
     //! Настройки узла
     node_settings settings_;
 
     //! Подписанные сигналы
     signal_set signals_;
-
-    //! Класс node_router - дружественный
-    friend class node_router;
 };
 
 } // namespace node

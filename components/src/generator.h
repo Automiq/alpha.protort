@@ -15,8 +15,8 @@ public:
         std::string rand_str("Random_string");
         return {{rand_str,{0,1}}};
     }
-    port_id in_ports() const final override { return 0; }
-    port_id out_ports() const final override { return 2; }
+    port_id input_port_count() const final override { return 0; }
+    port_id output_port_count() const final override { return 2; }
 };
 
 } // namespace components

@@ -5,94 +5,140 @@
 #include <map>
 #include <vector>
 
-#include "client.h"
-#include "i_component"
 #include "packet.pb.h"
+#include "client.h"
+#include "i_component.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
-using component_ptr = component *;
 using component = alpha::protort::components::i_component;
+using component_ptr = component *;
+using port_id = unsigned short;
 
-//Эта структура здесь только для наглядности, потом уберу
-struct output
-{
-    std::string payload;
-    std::vector<unsigned short> ports;
-};
+//template<class node> class outport_connections;
 
-class outport_connections;
+///*!
+// * \brief The local_input class содержит входной порт и указатель на outport_connections для соединения.
+// *  Используется для локального компонента.
+// */
+//template<class node>
+//class local_input
+//{
+//public:
+//    port_id port;
+//    outport_connections<node> * connection;
+//};
 
-/*!
- * \brief The local_input class содержит входной порт и указатель на outport_connections для соединения.
- *  Используется для локального компонента.
- */
-class local_input
-{
-public:
-    unsigned short port;
-    outport_connections * connection;
-};
+///*!
+// * \brief The remote_input class содержит входной порт, имя компонента и указатель на клиента.
+// *  Используется для удаленного компонента.
+// */
+//template<class node>
+//class remote_input
+//{
+//public:
+//    port_id port;
+//    std::string name;
+//    link::client<node> * client_;
+//};
 
-/*!
- * \brief The remote_input class содержит входной порт, имя компонента и указатель на клиента.
- *  Используется для удаленного компонента.
- */
-template<class node>
-class remote_input
-{
-public:
-    unsigned short port;
-    std::string name;
-    link::client<node> * client_;
-};
+///*!
+// * \brief The connections class содержит списки локальных у удаленных соединений
+// *  для одного выходного порта.
+// */
+//template<class node>
+//class connections
+//{
+//public:
+//    std::vector<local_input> local_components;
+//    std::vector<remote_input<node>> remote_components;
+//};
 
-/*!
- * \brief The connections class содержит списки локальных у удаленных соединений
- *  для одного выходного порта.
- */
-class connections
-{
-public:
-    std::vector<local_input> local_components;
-    std::vector<remote_input> remote_components;
-};
-
-/*!
- * \brief The outport_connections class содержит указатель на компонент, имя компонента и
- *  map всех выходных портов с его соединениями.
- */
-class outport_connections
-{
-public:
-    component_ptr component_;
-    std::string name;
-    std::map<unsigned short,connections> map_all_connections;
-};
+///*!
+// * \brief The outport_connections class содержит указатель на компонент, имя компонента и
+// *  map всех выходных портов с его соединениями.
+// */
+//template<class node>
+//class outport_connections
+//{
+//public:
+//    component_ptr component_;
+//    std::string name;
+//    std::map<port_id,connections<node>> map_all_connections;
+//};
 
 /*!
  * \brief The node_router class используется для роутинга.
  */
+template<class node>
 class node_router
 {
+    class outport_connections;
+
+    /*!
+     * \brief The local_input class содержит входной порт и указатель на outport_connections для соединения.
+     *  Используется для локального компонента.
+     */
+    class local_input
+    {
+    public:
+        port_id port;
+        outport_connections * connection;
+    };
+
+    /*!
+     * \brief The remote_input class содержит входной порт, имя компонента и указатель на клиента.
+     *  Используется для удаленного компонента.
+     */
+    class remote_input
+    {
+    public:
+        port_id port;
+        std::string name;
+        link::client<node> * client_;
+    };
+
+    /*!
+     * \brief The connections class содержит списки локальных у удаленных соединений
+     *  для одного выходного порта.
+     */
+    class connections
+    {
+    public:
+        std::vector<local_input> local_components;
+        std::vector<remote_input> remote_components;
+    };
+
+    /*!
+     * \brief The outport_connections class содержит указатель на компонент, имя компонента и
+     *  map всех выходных портов с его соединениями.
+     */
+    class outport_connections
+    {
+    public:
+        component_ptr component_;
+        std::string name;
+        std::map<port_id,connections> map_all_connections;
+    };
+
 public:
     node_router()
     {
 
     }
 
-    void do_process(const std::string& component_name,unsigned short port,const std::string& payload)
+    void do_process(const std::string& component_name,port_id port,const std::string& payload)
     {
-        outport_connections comp_outportconnect = component_list[name];
+        outport_connections<node> comp_outportconnect = component_list[name];
         do_component_process(&comp_outportconnect,port,payload);
     }
 
     std::map<std::string, outport_connections> component_list;
 
 private:
-    void do_component_process(outport_connections* this_component,unsigned short port,const std::string& payload)
+    void do_component_process(outport_connections* this_component,port_id port,const std::string& payload)
     {
         std::vector<output> output_result = this_component->component_->process(payload,port);
 

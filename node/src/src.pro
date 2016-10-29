@@ -28,3 +28,6 @@ include(../../link/link.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.components
+include(../../components/components.pri)
