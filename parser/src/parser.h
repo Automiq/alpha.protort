@@ -81,7 +81,7 @@ struct configuration
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    bool configuration::parse_app(const std::string &filename)
+    bool parse_app(const std::string &filename)
     {
         try
         {
@@ -125,7 +125,7 @@ struct configuration
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    bool configuration::parse_deploy(const std::string &filename)
+    bool parse_deploy(const std::string &filename)
     {
         try
         {
