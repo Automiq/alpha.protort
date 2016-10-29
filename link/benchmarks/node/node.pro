@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += main.cpp
 HEADERS += \
     node_settings.h\
-    node.h
+    node.h \
+    node_deploy.h
 
 DESTDIR = ../../bin
 
@@ -27,3 +28,6 @@ include(../../link.pri)
 
 # Протокол alpha.protort.protocol
 include(../../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.parser
+include(../../../parser/parser.pri)
