@@ -20,7 +20,7 @@ namespace parser {
 struct component
 {
     std::string name;
-    std::string type;
+    std::string kind;
 };
 
 /*!
@@ -93,7 +93,7 @@ struct configuration
                 if( v.first == "instance" ) {
                     component comp;
                     comp.name = v.second.get<std::string>("<xmlattr>.name");
-                    comp.type = v.second.get<std::string>("<xmlattr>.kind");
+                    comp.kind = v.second.get<std::string>("<xmlattr>.kind");
                     components.push_back(comp);
                 }
                 else if( v.first == "connection" ) {
