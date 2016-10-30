@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE(test_node_router)
         router_.component_list.insert(std::make_pair(component_connections.name,component_connections));
     }
 
-    // Определяем для каждого компонента входные порты и соединения для них
+    // Определяем для каждого компонента выходные порты и соединения для них
 
     // g1
     router_.component_list["g1"].map_all_connections.insert(std::make_pair(0,mas_output_ports[0]));
