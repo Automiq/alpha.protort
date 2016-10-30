@@ -12,6 +12,7 @@ class terminator : public i_component
 public:
     output_list process(port_id input_port, std::string const & payload) final override
     {
+        std::cout << "terminator string: " << payload << std::endl;
         return {};
     }
     port_id input_port_count() const final override { return 2; }
