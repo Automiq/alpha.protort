@@ -11,16 +11,6 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-void split_ip_port(const std::string& s, std::string& ip, short& port)
-{
-    std::string port_str;
-    std::string::const_iterator iter;
-    iter = std::find(s.begin(), s.end(), ':');
-    ip = std::string(s.begin(), iter);
-    port_str = std::string(iter + 1, s.end());
-    port = std::stoi(port_str);
-}
-
 /*!
  * \brief Класс настроек узла
  *
@@ -141,6 +131,18 @@ struct node_settings
             std::cerr << ex.what() << '\n';
             return false;
         }
+    }
+
+private:
+
+    void split_ip_port(const std::string& s, std::string& ip, short& port)
+    {
+        std::string port_str;
+        std::string::const_iterator iter;
+        iter = std::find(s.begin(), s.end(), ':');
+        ip = std::string(s.begin(), iter);
+        port_str = std::string(iter + 1, s.end());
+        port = std::stoi(port_str);
     }
 };
 

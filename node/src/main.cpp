@@ -10,8 +10,8 @@ int main(int argc, const char *argv[])
         return 1;
 
 
-    node::node n(node_settings_);
-    n.start();
+//    node n(node_settings_);
+//    n.start();
 
     return 0;
 }
