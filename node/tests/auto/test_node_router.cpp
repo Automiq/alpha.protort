@@ -3,8 +3,11 @@
 #include <vector>
 
 #include "node.h"
+#define private public
 #include "router.h"
 #include "all_components.h"
+
+
 
 namespace alpha {
 namespace protort {
@@ -72,61 +75,61 @@ BOOST_AUTO_TEST_CASE(test_node_router)
         if(typeid(*components[i]) == typeid(components::retranslator))
             component_connections.name = "r" + std::to_string(++retranslator_count);
 
-        router_.component_list.insert(std::make_pair(component_connections.name,component_connections));
+        router_.components.insert(std::make_pair(component_connections.name,component_connections));
     }
 
     // Определяем для каждого компонента выходные порты и соединения для них
 
     // g1
-    router_.component_list["g1"].map_all_connections.insert(std::make_pair(0,mas_output_ports[0]));
-    router_.component_list["g1"].map_all_connections.insert(std::make_pair(1,mas_output_ports[1]));
+    router_.components["g1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[0]));
+    router_.components["g1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[1]));
 
     // r1
-    router_.component_list["r1"].map_all_connections.insert(std::make_pair(0,mas_output_ports[2]));
-    router_.component_list["r1"].map_all_connections.insert(std::make_pair(1,mas_output_ports[3]));
+    router_.components["r1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[2]));
+    router_.components["r1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[3]));
 
     // r2
-    router_.component_list["r2"].map_all_connections.insert(std::make_pair(0,mas_output_ports[4]));
+    router_.components["r2"].port_to_routes.insert(std::make_pair(0,mas_output_ports[4]));
 
     // r3
-    router_.component_list["r3"].map_all_connections.insert(std::make_pair(0,mas_output_ports[5]));
-    router_.component_list["r3"].map_all_connections.insert(std::make_pair(1,mas_output_ports[6]));
+    router_.components["r3"].port_to_routes.insert(std::make_pair(0,mas_output_ports[5]));
+    router_.components["r3"].port_to_routes.insert(std::make_pair(1,mas_output_ports[6]));
 
     // Определяем входные порты для соединений
     for(int i = 0;i < 7;i++)
-        mas_endpoint[i].port = 0;
+        mas_endpoint[i].in_port = 0;
 
     // Определяем входные порты компонентов и
     // для каждого выходного порта добавляем входные порты других компонентов
 
     // g1 - r1 g1 - r3
-    mas_endpoint[0].connection = &router_.component_list["r1"];
-    mas_endpoint[1].connection = &router_.component_list["r3"];
+    mas_endpoint[0].component = &router_.components["r1"];
+    mas_endpoint[1].component = &router_.components["r3"];
 
-    router_.component_list["g1"].map_all_connections[0].local_components.push_back(mas_endpoint[0]);
-    router_.component_list["g1"].map_all_connections[1].local_components.push_back(mas_endpoint[1]);
+    router_.components["g1"].port_to_routes[0].local_routes.push_back(mas_endpoint[0]);
+    router_.components["g1"].port_to_routes[1].local_routes.push_back(mas_endpoint[1]);
 
     // r1 - r2 r1 - t2
-    mas_endpoint[2].connection = &router_.component_list["r2"];
-    mas_endpoint[3].connection = &router_.component_list["t2"];
+    mas_endpoint[2].component = &router_.components["r2"];
+    mas_endpoint[3].component = &router_.components["t2"];
 
-    router_.component_list["r1"].map_all_connections[0].local_components.push_back(mas_endpoint[2]);
-    router_.component_list["r1"].map_all_connections[1].local_components.push_back(mas_endpoint[3]);
+    router_.components["r1"].port_to_routes[0].local_routes.push_back(mas_endpoint[2]);
+    router_.components["r1"].port_to_routes[1].local_routes.push_back(mas_endpoint[3]);
 
     // r2 - t1
-    mas_endpoint[4].connection = &router_.component_list["t1"];
+    mas_endpoint[4].component = &router_.components["t1"];
 
-    router_.component_list["r2"].map_all_connections[0].local_components.push_back(mas_endpoint[4]);
+    router_.components["r2"].port_to_routes[0].local_routes.push_back(mas_endpoint[4]);
 
     // r3 - t2 r3 - t3
-    mas_endpoint[5].connection = &router_.component_list["t2"];
-    mas_endpoint[6].connection = &router_.component_list["t3"];
+    mas_endpoint[5].component = &router_.components["t2"];
+    mas_endpoint[6].component = &router_.components["t3"];
 
-    router_.component_list["r3"].map_all_connections[0].local_components.push_back(mas_endpoint[5]);
-    router_.component_list["r3"].map_all_connections[0].local_components.push_back(mas_endpoint[6]);
+    router_.components["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[5]);
+    router_.components["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[6]);
 
 
-    router_.do_process("g1",0,"string for generator");
+    router_.route("g1",0,"string for generator");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

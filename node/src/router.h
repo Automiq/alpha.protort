@@ -63,10 +63,10 @@ private:
     {
     public:
         //! Список локальных маршрутов
-        std::vector<local_route> local_components;
+        std::vector<local_route> local_routes;
 
         //! Список удаленных маршрутов
-        std::vector<remote_route> remote_components;
+        std::vector<remote_route> remote_routes;
     };
 
     /*!
@@ -116,11 +116,17 @@ private:
             {
                 routes& port_routes = this_component->port_to_routes[out_port];
 
-                //
-                for (auto &local_component : port_routes.local_components)
-                    do_route(local_component.connection, local_component.port, output.payload);
+                // Рассылаем пакеты по локальным маршрутам
+                for (auto &local_route : port_routes.local_routes)
+                {
+                    std::cout << "using do_route: \nto comp " << local_route.component->name
+                              << "\ninput port" << local_route.in_port << std::endl;
+                    std::cout << "from comp " << this_component->name << " out port " << out_port << std::endl;
+                    do_route(local_route.component, local_route.in_port, output.payload);
+                }
 
-                for (auto &iter_remote_component : port_routes.remote_components)
+                // Формируем и рассылаем пакеты по удаленным маршрутам
+                for (auto &remote_route : port_routes.remote_routes)
                 {
                     alpha::protort::protocol::Packet packet_;
                     alpha::protort::protocol::ComponentEndpoint out_ep;
@@ -132,14 +138,14 @@ private:
                     packet_.set_allocated_source(&out_ep);
 
                     // in endpoint
-                    in_ep.set_port(static_cast<uint32_t>(iter_remote_component.port));
-                    in_ep.set_name(iter_remote_component.name);
+                    in_ep.set_port(static_cast<uint32_t>(remote_route.in_port));
+                    in_ep.set_name(remote_route.name);
                     packet_.set_allocated_source(&in_ep);
 
                     // payload
                     packet_.set_payload(output.payload);
 
-                    iter_remote_component.client_->async_send(packet_.SerializeAsString());
+                    remote_route.client->async_send(packet_.SerializeAsString());
                 }
             }
         }
