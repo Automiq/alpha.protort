@@ -1,13 +1,15 @@
 #ifndef NODE_H
 #define NODE_H
 
+#include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono.hpp>
-#include <iostream>
 
 #include "server.h"
 #include "client.h"
+#include "node_settings.h"
+#include "packet.pb.h"
 
 namespace alpha {
 namespace protort {
@@ -21,16 +23,27 @@ using namespace alpha::protort::link;
 class node
 {
 public:
-    node()
+    node(const node_settings &settings)
         : client_(*this, service_),
           server_(*this, service_),
+          settings_(settings),
           signals_(service_, SIGINT, SIGTERM)
     {
     }
 
     void start()
     {
+        switch (settings_.component_kind)
+        {
+        case alpha::protort::protocol::Terminator:
+            signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service_));
+            server_.listen(settings_.source);
+            break;
 
+        case alpha::protort::protocol::Generator:
+            client_.async_connect(settings_.destination);
+            break;
+        }
         service_.run();
     }
 
@@ -82,6 +95,9 @@ private:
 
     //! Клиент
     link::client<node> client_;
+
+    //! Настройки узла
+    node_settings settings_;
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;

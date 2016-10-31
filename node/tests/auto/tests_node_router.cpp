@@ -5,7 +5,7 @@
 #include "node.h"
 #define private public
 #include "router.h"
-#include "all_components.h"
+#include "components.h"
 
 
 

@@ -15,8 +15,8 @@ public:
         std::cout << "terminator string: " << payload << std::endl;
         return {};
     }
-    port_id input_port_count() const final override { return 2; }
-    port_id output_port_count() const final override { return 0; }
+    port_id in_port_count() const final override { return 2; }
+    port_id out_port_count() const final override { return 0; }
 };
 
 } // namespace components

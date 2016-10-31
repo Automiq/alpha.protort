@@ -128,24 +128,20 @@ private:
                 // Формируем и рассылаем пакеты по удаленным маршрутам
                 for (auto &remote_route : port_routes.remote_routes)
                 {
-                    alpha::protort::protocol::Packet packet_;
-                    alpha::protort::protocol::ComponentEndpoint out_ep;
-                    alpha::protort::protocol::ComponentEndpoint in_ep;
+                    alpha::protort::protocol::Packet packet;
 
                     // out endpoint
-                    out_ep.set_port(static_cast<uint32_t>(out_port));
-                    out_ep.set_name(this_component->name);
-                    packet_.set_allocated_source(&out_ep);
+                    packet.mutable_source()->set_port(static_cast<uint32_t>(out_port));
+                    packet.mutable_source()->set_name(this_component->name);
 
                     // in endpoint
-                    in_ep.set_port(static_cast<uint32_t>(remote_route.in_port));
-                    in_ep.set_name(remote_route.name);
-                    packet_.set_allocated_source(&in_ep);
+                    packet.mutable_destination()->set_port(static_cast<uint32_t>(remote_route.in_port));
+                    packet.mutable_destination()->set_name(remote_route.name);
 
                     // payload
-                    packet_.set_payload(output.payload);
+                    packet.set_payload(output.payload);
 
-                    remote_route.client->async_send(packet_.SerializeAsString());
+                    remote_route.client->async_send(packet.SerializeAsString());
                 }
             }
         }

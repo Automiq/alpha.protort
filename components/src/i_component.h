@@ -23,8 +23,8 @@ class i_component
 {
 public:
     virtual output_list process(port_id input_port, std::string const & payload) = 0;
-    virtual port_id input_port_count() const = 0;
-    virtual port_id output_port_count() const = 0;
+    virtual port_id in_port_count() const = 0;
+    virtual port_id out_port_count() const = 0;
 };
 
 } // namespace components
