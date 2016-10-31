@@ -3,11 +3,10 @@
 #include <vector>
 
 #include "node.h"
-#define private public
-#include "router.h"
 #include "components.h"
 
-
+#define private public
+#include "router.h"
 
 namespace alpha {
 namespace protort {
