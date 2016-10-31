@@ -15,8 +15,54 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::on_action_3_triggered()
+void MainWindow::on_save_file_triggered()
 {
-    QFileDialog *filedlg;
-    filedlg->getOpenFileName(this);
+    QFile file(ui->current_scheme_label->text());
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write(ui->textEdit->toPlainText().toUtf8());
+        file.close();
+    }
+}
+
+void MainWindow::on_save_as_triggered()
+{
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::WriteOnly))
+    {
+        file.write(ui->textEdit->toPlainText().toUtf8());
+        file.close();
+    }
+}
+
+void MainWindow::on_exit_triggered()
+{
+    close(); //добавить остановку приложения
+}
+
+void MainWindow::on_load_scheme_triggered()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        ui->current_scheme_label->setText(file_name);
+        QByteArray file_text = file.readAll();
+        ui->textEdit->setText(file_text);
+        file.close();
+    }
+}
+
+void MainWindow::on_load_descripton_triggered()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QFile file(file_name);
+    if (file.open(QIODevice::ReadOnly))
+    {
+        ui->current_descr_label->setText(file_name);
+        QByteArray file_text = file.readAll();
+        ui->textEdit->setText(file_text);
+        file.close();
+    }
 }

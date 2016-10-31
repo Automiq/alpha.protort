@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSyntaxHighlighter>
 
 namespace Ui {
 class MainWindow;
@@ -17,7 +18,15 @@ public:
 
 private slots:
 
-    void on_action_3_triggered();
+    void on_save_file_triggered();
+
+    void on_save_as_triggered();
+
+    void on_exit_triggered();
+
+    void on_load_scheme_triggered();
+
+    void on_load_descripton_triggered();
 
 private:
     Ui::MainWindow *ui;
