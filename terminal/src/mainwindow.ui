@@ -133,6 +133,9 @@
    <property name="text">
     <string>Выход</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+X</string>
+   </property>
   </action>
   <action name="save_all">
    <property name="icon">
@@ -141,6 +144,9 @@
    </property>
    <property name="text">
     <string>Сохранить все</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
    </property>
   </action>
   <action name="deploy">
@@ -151,6 +157,9 @@
    <property name="text">
     <string>Развернуть</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
   </action>
   <action name="stop">
    <property name="icon">
@@ -159,6 +168,9 @@
    </property>
    <property name="text">
     <string>Остановить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
    </property>
   </action>
   <action name="stop_usel">
@@ -169,11 +181,15 @@
   <action name="load_file">
    <property name="icon">
     <iconset theme="fileopen.png">
+     <normalon>images/fileopen.png</normalon>
      <activeon>images/fileopen.png</activeon>
     </iconset>
    </property>
    <property name="text">
     <string>Открыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="create_file">
@@ -185,6 +201,9 @@
    <property name="text">
     <string>Создать</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
   </action>
   <action name="save_file">
    <property name="icon">
@@ -194,6 +213,9 @@
    </property>
    <property name="text">
     <string>Сохранить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
   <action name="close_file">
@@ -208,6 +230,9 @@
    </property>
    <property name="text">
     <string>Парсить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
    </property>
   </action>
  </widget>
