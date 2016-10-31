@@ -62,15 +62,15 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
 #endif
 ----------------------------------------------------------------*/
 
-    configuration ds;
-    ds.parse_app("../testdata/app.xml");
-    ds.parse_deploy("../testdata/deploy.xml");
-    component comp = ds.get_component(inst_name);
+    configuration conf;
+    conf.parse_app("../testdata/app.xml");
+    conf.parse_deploy("../testdata/deploy.xml");
+    component comp = conf.components[0];
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.type, inst_kind);
-    std::pair<std::string, short> dest_name_port = ds.get_dest_and_port(std::pair<std::string, short>(con_src, src_out));
-    BOOST_CHECK_EQUAL(dest_name_port.first, dest);
-    BOOST_CHECK_EQUAL(dest_name_port.second, dest_in);
+    connection conn = conf.connections[0];
+    BOOST_CHECK_EQUAL(conn.dest_name, dest);
+    BOOST_CHECK_EQUAL(conn.dest_in, dest_in);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

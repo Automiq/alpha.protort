@@ -26,7 +26,7 @@ public:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на I/O сервис
      */
-    server(Callback& callback,io_service& service):
+    server(Callback& callback, boost::asio::io_service& service):
         acceptor_(service),
         callback_(callback)
     {
@@ -38,7 +38,7 @@ public:
      * \param service Ссылка на I/O сервис
      * \param ep Адрес для прослушивания входящих подключений
      */
-    server(Callback& callback,io_service& service,ip::tcp::endpoint ep)
+    server(Callback& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : acceptor_(service),
           callback_(callback)
     {
@@ -49,11 +49,11 @@ public:
      * \brief Начать пролушивание
      * \param ep Адрес для прослушивания входящих подключений
      */
-    void listen(ip::tcp::endpoint ep)
+    void listen(boost::asio::ip::tcp::endpoint ep)
     {
         // Настраиваем акцептор
         acceptor_.open(ep.protocol());
-        acceptor_.set_option(ip::tcp::acceptor::reuse_address(true));
+        acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(ep);
         acceptor_.listen();
 
@@ -104,7 +104,7 @@ private:
     }
 
     //! Акцептор входящих подключений
-    ip::tcp::acceptor acceptor_;
+    boost::asio::ip::tcp::acceptor acceptor_;
 
     //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;

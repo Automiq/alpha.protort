@@ -2,15 +2,14 @@
 #define NODE_H
 
 #include <iostream>
-
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono.hpp>
 
-#include "packet.pb.h"
 #include "server.h"
 #include "client.h"
 #include "node_settings.h"
+#include "packet.pb.h"
 
 namespace alpha {
 namespace protort {
@@ -36,17 +35,14 @@ public:
     {
         switch (settings_.component_kind)
         {
-            case alpha::protort::protocol::Terminator:
-            {
-                signals_.async_wait(boost::bind(&io_service::stop,&service_));
-                server_.listen(settings_.source);
-                break;
-            }
-            case alpha::protort::protocol::Generator:
-            {
-                client_.async_connect(settings_.destination);
-                break;
-            }
+        case alpha::protort::protocol::Terminator:
+            signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service_));
+            server_.listen(settings_.source);
+            break;
+
+        case alpha::protort::protocol::Generator:
+            client_.async_connect(settings_.destination);
+            break;
         }
         service_.run();
     }
@@ -89,9 +85,10 @@ public:
         // TODO
     }
 
+
 private:
     //! I/O сервис
-    io_service service_;
+    boost::asio::io_service service_;
 
     //! Сервер
     link::server<node> server_;
@@ -103,7 +100,7 @@ private:
     node_settings settings_;
 
     //! Подписанные сигналы
-    signal_set signals_;
+    boost::asio::signal_set signals_;
 };
 
 } // namespace node

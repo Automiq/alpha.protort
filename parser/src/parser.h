@@ -3,8 +3,6 @@
 
 #include <iostream>
 #include <string>
-#include <map>
-#include <set>
 #include <exception>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
@@ -24,10 +22,20 @@ struct component
     std::string name;
     std::string type;
 };
-bool operator <(component const& left, component const& right)
+
+/*!
+ * \brief Класс связи между портами компонентов
+ *
+ * Класс хранит имена компонентов и связанные порты
+ */
+struct connection
 {
-    return left.name < right.name;
-}
+    std::string source_name;
+    unsigned short source_out;
+    std::string dest_name;
+    unsigned short dest_in;
+};
+
 /*!
  * \brief Класс сетевого узла
  *
@@ -35,170 +43,125 @@ bool operator <(component const& left, component const& right)
  */
 struct node
 {
-    std::string id;
-    std::string ip;
+    std::string name;
+    std::string address;
     unsigned short port;
 };
+
+/*!
+ * \brief Класс отображения компонента на сетевой узел
+ *
+ * Класс хранит имя компонента и имя узла
+ */
+struct mapping
+{
+    std::string comp_name;
+    std::string node_name;
+};
+
 /*!
  * \brief Класс, описывающий схему приложения и развертывания
  *
  * Данный класс получает и хранит информацию путем парсинга xml файлов схемы приложения
  * и схемы развертывания.
  */
-class configuration
+struct configuration
 {
-public:
-    typedef std::pair<std::string, short> comp_name_port;
-    typedef std::pair<comp_name_port, comp_name_port> connection;
+    std::vector<component> components;
+    std::vector<connection> connections;
+    std::vector<node> nodes;
+    std::vector<mapping> mappings;
+
     /*!
      * \brief Парсит схему приложения
      * \param путь к файлу схемы приложения
+     * \return true если успешно, иначе false
      *
      * Метод парсит схему приложения и хранит полученную информацию внутри класса в соответствующих атрибутах
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    bool parse_app(const std::string &filename);
+    bool parse_app(const std::string &filename)
+    {
+        try
+        {
+            using boost::property_tree::ptree;
+            boost::property_tree::ptree pt;
+            read_xml(filename, pt);
+
+            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("app") ) {
+                if( v.first == "instance" ) {
+                    component comp;
+                    comp.name = v.second.get<std::string>("<xmlattr>.name");
+                    comp.type = v.second.get<std::string>("<xmlattr>.kind");
+                    components.push_back(comp);
+                }
+                else if( v.first == "connection" ) {
+                    connection conn;
+                    conn.source_name = v.second.get<std::string>("<xmlattr>.source");
+                    conn.source_out = v.second.get<unsigned short>("<xmlattr>.source_out");
+                    conn.dest_name = v.second.get<std::string>("<xmlattr>.dest");
+                    conn.dest_in = v.second.get<unsigned short>("<xmlattr>.dest_in");
+                    connections.push_back(conn);
+                }
+                else
+                    std::cout << "Unknown tag in the file" << std::endl;
+            }
+            return true;
+        }
+        catch(std::exception &e)
+        {
+            std::cout << "Error: " << e.what() << std::endl;
+            return false;
+        }
+    }
+
     /*!
      * \brief Парсит схему развертывания
      * \param путь к файлу схемы развертыания
+     * \return true если успешно, иначе false
      *
      * Метод парсит схему развертывания и хранит полученную информацию внутри класса в соответствующих атрибутах
      * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
      * об ошибках в стандартный вывод.
      */
-    bool parse_deploy(const std::string &filename);
-    /*!
-     * \brief Находит компонент по его имени
-     * \param Имя компонента
-     * \return Компонент
-     */
-    component& get_component(std::string& id)
+    bool parse_deploy(const std::string &filename)
     {
-        return id_to_component[id];
+        try
+        {
+            using boost::property_tree::ptree;
+            boost::property_tree::ptree pt;
+            read_xml(filename, pt);
+
+            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("deploy") ) {
+                if( v.first == "node" ) {
+                    node n;
+                    n.name = v.second.get<std::string>("<xmlattr>.name");
+                    n.address = v.second.get<std::string>("<xmlattr>.address");
+                    n.port = v.second.get<unsigned short>("<xmlattr>.port");
+                    nodes.push_back(n);
+                }
+                else if( v.first == "map" ) {
+                    mapping mapp;
+                    mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");
+                    mapp.node_name = v.second.get<std::string>("<xmlattr>.node");
+                    mappings.push_back(mapp);
+                }
+                else
+                    std::cout << "Unknown tag in the file" << std::endl;
+            }
+            return true;
+        }
+        catch(std::exception &e)
+        {
+            std::cout << "Error: " << e.what() << std::endl;
+            return false;
+        }
     }
-    /*!
-     * \brief Находит узел по его имени
-     * \param Имя узла
-     * \return Узел
-     */
-    std::string& get_node(std::string comp_name)
-    {
-        return component_to_node[comp_name];
-    }
-    /*!
-     * \brief Находит имя  принимающего компонента и номер входа по имени отправителя и номера выхода
-     * \param Пара <Имя компонента, номер выхода>
-     * \return Пара <Имя компонента, номер выхода>
-     *
-     * В отображении связей ищет имя и вход получателя по имени и выходу отправителя
-     */
-    comp_name_port get_dest_and_port(comp_name_port source_name_port)
-    {
-        return connections[source_name_port];
-    }
-private:
-    /*!
-     * \brief Отображение имени компонента на сам компонент
-     */
-    std::map<std::string, component> id_to_component;
-    /*!
-     * \brief Отображение имени узла на сам узел
-     */
-    std::map<std::string, node> id_to_node;
-    /*!
-     * \brief Отображение связей между портами отправителя и получателя
-     * Ассоциативный контейнер, где ключом является пара <Имя отправляющего компонента, номер выхода>,
-     * а значением является пара <Имя принимающего компонента, номер входа>
-     */
-    std::map<comp_name_port, comp_name_port> connections;
-    /*!
-     * \brief Отображение компонета на узел
-     * Ассоциативный контейнер, где ключом является имя компонента,
-     * а значением является имя узла, на котором этот компонент будет работать
-     */
-    std::map<std::string, std::string> component_to_node;
 };
-
-bool configuration::parse_app(const std::string &filename)
-{
-    try
-    {
-        // Create an empty property tree object
-        using boost::property_tree::ptree;
-        boost::property_tree::ptree pt;
-
-        // Load the XML file into the property tree. If reading fails
-        // (cannot open file, parse error), an exception is thrown.
-        read_xml(filename, pt);
-
-        BOOST_FOREACH( ptree::value_type const& v, pt.get_child("app") ) {
-            if( v.first == "instance" ) {
-                component comp;
-                comp.name = v.second.get<std::string>("<xmlattr>.name");
-                comp.type = v.second.get<std::string>("<xmlattr>.kind");
-                id_to_component.insert(std::pair<std::string, component>(comp.name, comp));
-            }
-            else if( v.first == "connection" ) {
-                std::string source_name = v.second.get<std::string>("<xmlattr>.source");
-                short source_out = v.second.get<short>("<xmlattr>.source_out");
-                std::string dest_name = v.second.get<std::string>("<xmlattr>.dest");
-                short dest_in = v.second.get<short>("<xmlattr>.dest_in");
-                connections.insert(connection(comp_name_port(source_name, source_out), comp_name_port(dest_name, dest_in)));
-            }
-            else
-                std::cout << "Unknown tag in the file" << std::endl;
-        }
-        return true;
-    }
-    catch(std::exception &e)
-    {
-        std::cout << "Error: " << e.what() << std::endl;
-        return false;
-    }    
-}
-bool configuration::parse_deploy(const std::string &filename)
-{
-    try
-    {
-        // Create an empty property tree object
-        using boost::property_tree::ptree;
-        boost::property_tree::ptree pt;
-
-        // Load the XML file into the property tree. If reading fails
-        // (cannot open file, parse error), an exception is thrown.
-        read_xml(filename, pt);
-
-        BOOST_FOREACH( ptree::value_type const& v, pt.get_child("deploy") ) {
-            if( v.first == "node" ) {
-                node n;
-                n.id = v.second.get<std::string>("<xmlattr>.name");
-                n.ip = v.second.get<std::string>("<xmlattr>.address");
-                n.port = v.second.get<unsigned short>("<xmlattr>.port");
-                id_to_node.insert(std::pair<std::string, node>(n.id, n));
-            }
-            else if( v.first == "map" ) {
-                std::string comp_name = v.second.get<std::string>("<xmlattr>.instance");
-                std::string node_name = v.second.get<std::string>("<xmlattr>.node");
-                component_to_node.insert(std::make_pair(comp_name, node_name));
-            }
-            else
-                std::cout << "Unknown tag in the file" << std::endl;
-        }
-        return true;
-    }
-    catch(std::exception &e)
-    {
-        std::cout << "Error: " << e.what() << std::endl;
-        return false;
-    }    
-}
-bool operator <(std::pair<std::string, short>& left, std::pair<std::string, short>& right)
-{
-    return left.first < right.first;
-}
 
 } // namespace parser
 } // namespace protort
 } // namespace alpha
+
 #endif // PARSER_H
