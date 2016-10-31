@@ -13,8 +13,6 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-using namespace boost::asio;
-
 /*!
  * \brief Класс входящего соединения
  *
@@ -35,7 +33,7 @@ public:
      * \param service Ссылка на I/O сервис
      * \return Новый объект класса соединение
      */
-    static ptr new_(Callback& callback, io_service& service)
+    static ptr new_(Callback& callback, boost::asio::io_service& service)
     {
         return ptr(new connection(callback, service));
     }
@@ -61,7 +59,7 @@ public:
     /*!
      * \brief Получить ссылку на сокет
      */
-    ip::tcp::socket& sock()
+    boost::asio::ip::tcp::socket& sock()
     {
         return socket_;
     }
@@ -81,7 +79,7 @@ private:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    connection(Callback& callback, io_service& service)
+    connection(Callback& callback, boost::asio::io_service& service)
         : socket_(service),
           callback_(callback),
           read_buffer_(new char[max_packet_size])
@@ -168,7 +166,7 @@ private:
     }
 
     //! Сокет
-    ip::tcp::socket socket_;
+    boost::asio::ip::tcp::socket socket_;
 
     //! Заголовок текущего пакета
     packet_header packet_header_;
