@@ -121,6 +121,13 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="create_file"/>
+   <addaction name="load_file"/>
+   <addaction name="save_file"/>
+   <addaction name="save_all"/>
+   <addaction name="parse"/>
+   <addaction name="deploy"/>
+   <addaction name="stop"/>
   </widget>
   <action name="exit">
    <property name="text">
@@ -128,16 +135,28 @@
    </property>
   </action>
   <action name="save_all">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/fileSaveAll.png</normaloff>images/fileSaveAll.png</iconset>
+   </property>
    <property name="text">
     <string>Сохранить все</string>
    </property>
   </action>
   <action name="deploy">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/deploy.png</normaloff>images/deploy.png</iconset>
+   </property>
    <property name="text">
     <string>Развернуть</string>
    </property>
   </action>
   <action name="stop">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/stop.png</normaloff>images/stop.png</iconset>
+   </property>
    <property name="text">
     <string>Остановить</string>
    </property>
@@ -148,16 +167,31 @@
    </property>
   </action>
   <action name="load_file">
+   <property name="icon">
+    <iconset theme="fileopen.png">
+     <activeon>images/fileopen.png</activeon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Открыть</string>
    </property>
   </action>
   <action name="create_file">
+   <property name="icon">
+    <iconset>
+     <activeon>images/filenew.png</activeon>
+    </iconset>
+   </property>
    <property name="text">
     <string>Создать</string>
    </property>
   </action>
   <action name="save_file">
+   <property name="icon">
+    <iconset>
+     <disabledoff>images/filesave.png</disabledoff>
+    </iconset>
+   </property>
    <property name="text">
     <string>Сохранить</string>
    </property>
@@ -168,6 +202,10 @@
    </property>
   </action>
   <action name="parse">
+   <property name="icon">
+    <iconset>
+     <normaloff>images/parse.png</normaloff>images/parse.png</iconset>
+   </property>
    <property name="text">
     <string>Парсить</string>
    </property>
