@@ -41,7 +41,7 @@ public:
      * \param service Ссылка на объект, реализующий концепцию Callback
      * \param ep Объект класса endpoint
      */
-    client(Callback &callback, boost::asio::io_service& service, ip::tcp::endpoint ep)
+    client(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
           callback_(callback),
           write_buffer_(new char[header_size + max_packet_size])
@@ -69,7 +69,7 @@ public:
      * \brief Метод для асинхронного подключения
      * \param ep Объект класса endpoint
      */
-    void async_connect(ip::tcp::endpoint ep)
+    void async_connect(boost::asio::ip::tcp::endpoint ep)
     {
         do_connect(ep);
     }
@@ -88,7 +88,7 @@ private:
     /*!
      * \brief Выполнить подключение
      */
-    void do_connect(ip::tcp::endpoint ep)
+    void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
         socket_.async_connect(
             ep, boost::bind(&client::on_connect, this,
@@ -111,7 +111,7 @@ private:
         // Добавляем асинхронный таск на отправку
         async_write(
             socket_,
-            buffer(write_buffer_.get(), header_size + packet.size()),
+            boost::asio::buffer(write_buffer_.get(), header_size + packet.size()),
             boost::bind(&client::on_packet_sent, this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
@@ -145,7 +145,7 @@ private:
     }
 
     //! Сокет
-    ip::tcp::socket socket_;
+    boost::asio::ip::tcp::socket socket_;
 
     //! Буфер для отправки пакета
     std::unique_ptr<char> write_buffer_;

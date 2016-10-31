@@ -6,7 +6,8 @@ CONFIG -= qt
 SOURCES += \
     main.cpp \
     tests_node.cpp \
-    tests_node_settings.cpp
+    tests_node_settings.cpp \
+    tests_node_router.cpp
 
 INCLUDEPATH += $$PWD/../../src
 
@@ -24,5 +25,11 @@ LIBS += \
 # Линкуемся с boost
 include(../../../boost.pri)
 
+# Подключаем библиотеку link
+include(../../../link/link.pri)
+
 # Линкуемся с библиотекой бинарного протокола
 include(../../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.components
+include(../../../components/components.pri)

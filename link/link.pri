@@ -1,4 +1,4 @@
-INCLUDEPATH += $$PWD/src/
+INCLUDEPATH += $$PWD/src
 
 HEADERS += \
     $$PWD/src/server.h \
