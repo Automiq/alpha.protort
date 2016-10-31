@@ -20,13 +20,11 @@ private slots:
 
     void on_save_file_triggered();
 
-    void on_save_as_triggered();
+    void on_save_all_triggered();
 
     void on_exit_triggered();
 
-    void on_load_scheme_triggered();
-
-    void on_load_descripton_triggered();
+    void on_load_file_triggered();
 
 private:
     Ui::MainWindow *ui;
