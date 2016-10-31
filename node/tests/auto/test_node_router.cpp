@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "node.h"
-#include "node_router.h"
+#include "router.h"
 #include "all_components.h"
 
 namespace alpha {
@@ -30,15 +30,15 @@ BOOST_AUTO_TEST_CASE(test_node_router)
 
     // Создаем объекты outport_ (1 outport_ - 1 выходной порт)
 
-    node_router<node>::outport_ mas_output_ports[7];
+    router<node>::routes mas_output_ports[7];
 
     // Создаем объекты local_input
 
-    node_router<node>::local_input_ mas_endpoint[7];
+    router<node>::local_route mas_endpoint[7];
 
     // Создаем node_router
 
-    node_router<node> router_;
+    router<node> router_;
 
     // Создаем компоненты
     components::generator generator1_;
@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(test_node_router)
 
     for(int i = 0;i < 7;i++)
     {
-        node_router<node>::component_with_connections component_connections;
+        router<node>::component_instance component_connections;
         component_connections.component_ = components[i];
 
         if(typeid(*components[i]) == typeid(components::generator))
