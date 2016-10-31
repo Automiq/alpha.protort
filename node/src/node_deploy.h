@@ -5,6 +5,8 @@
 #include <vector>
 #include "parser.h"
 #include "node.h"
+#include <boost/shared_ptr.hpp>
+#include "i_component"
 
 std::string current_node_name = "current_node";
 using namespace alpha::protort;
@@ -40,11 +42,10 @@ public:
     void deploy();
 
 private:
-    //link::benchmarks::test_node;
+    node::node* node_;
     std::map<std::string, component_info> components_;
     node_info node_info_;
     std::map<std::string, node_info> nodes_;
-
 };
 
 void node_deploy::get_node_config(xml_config &conf)
@@ -84,7 +85,9 @@ void node_deploy::get_node_config(xml_config &conf)
 
 void node_deploy::deploy()
 {
-    for (auto comp = node_config_.components.begin(); comp != node_config_.components.end(); comp++){
+    for (auto iter = node_info_.local_components.begin(); iter != node_info_.local_components.end(); iter++){
+        boost::shared_ptr ptr_to_comp(new alpha::protort::i_component)
+        node_->router_.component_list[iter->name] = {}
 
     }
 

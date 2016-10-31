@@ -6,8 +6,7 @@ CONFIG -= qt
 SOURCES += main.cpp
 HEADERS += \
     node_settings.h\
-    node.h \
-    node_deploy.h
+    node.h
 
 DESTDIR = ../../bin
 

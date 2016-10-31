@@ -6,7 +6,9 @@ CONFIG -= qt
 SOURCES += main.cpp
 HEADERS += \
     node_settings.h\
-    node.h
+    node.h \
+    node_deploy.h
+
 
 DESTDIR = ../bin
 
@@ -27,3 +29,9 @@ include(../../link/link.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.parser
+include(../../parser/parser.pri)
+
+# Библиотека alpha.protort.components
+include(../../components/components.pri)

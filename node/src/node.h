@@ -11,6 +11,7 @@
 #include "server.h"
 #include "client.h"
 #include "node_settings.h"
+#include "node_router.h"
 
 namespace alpha {
 namespace protort {
@@ -96,14 +97,18 @@ private:
     //! Сервер
     link::server<node> server_;
 
-    //! Клиент
-    link::client<node> client_;
+    //! Список клиентов
+    std::vector<link::client<node> > client_;
 
     //! Настройки узла
     node_settings settings_;
 
     //! Подписанные сигналы
     signal_set signals_;
+
+    alpha::protort::node::node_router router_;
+
+    friend class node_deploy;
 };
 
 } // namespace node
