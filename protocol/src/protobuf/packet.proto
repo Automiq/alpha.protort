@@ -1,20 +1,6 @@
 syntax = 'proto3';
-
+import "components.proto";
 package alpha.protort.protocol;
-
-enum ComponentKind
-{
-    Generator = 0;
-    Retranslator = 1;
-    Terminator = 2;
-}
-
-message ComponentEndpoint
-{
-    ComponentKind component_kind = 1;
-    uint32 port = 2; // Идентификатор входа или выхода
-    string name = 3; // Имя компонента
-}
 
 message Packet 
 {
@@ -25,37 +11,6 @@ message Packet
 }
 
 
-message NodeInfo
-{
-    string node_name = 1;
-    string node_addr = 2; //todo: пихать ли сюда порт
-}
-
-message NodeInfoList
-{
-    repeated NodeInfo = 1;
-}
-
-message ComponentList
-{
-    message Component
-    {
-        string name = 1
-        ComponentKind kind = 2;
-    }
-    repeated Component component = 1;
-}
-
-message ConnectionList
-{
-    message Connection
-    {
-        ComponentEndpoint source = 1;
-        ComponentEndpoint destination = 2;
-        string remote_node_name = 3;
-    }
-    repeated Connection connection = 1;
-}
 
 
 

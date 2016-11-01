@@ -2,6 +2,8 @@
 #include <boost/test/unit_test_suite.hpp>
 
 #include "packet.pb.h"
+#include "components.pb.h"
+#include "terminal-to-node.pb.h"
 
 namespace alpha {
 namespace protort {
