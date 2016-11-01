@@ -1,0 +1,17 @@
+syntax = 'proto3';
+
+package alpha.protort.protocol;
+
+enum ComponentKind
+{
+    Generator = 0;
+    Retranslator = 1;
+    Terminator = 2;
+}
+
+message ComponentEndpoint
+{
+    ComponentKind component_kind = 1;
+    uint32 port = 2; // Идентификатор входа или выхода
+    string name = 3; // Имя компонента
+}
