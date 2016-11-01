@@ -139,8 +139,8 @@
   </action>
   <action name="save_all">
    <property name="icon">
-    <iconset>
-     <normaloff>images/fileSaveAll.png</normaloff>images/fileSaveAll.png</iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/fileSaveAll.png</normaloff>:/images/fileSaveAll.png</iconset>
    </property>
    <property name="text">
     <string>Сохранить все</string>
@@ -151,8 +151,8 @@
   </action>
   <action name="deploy">
    <property name="icon">
-    <iconset>
-     <normaloff>images/deploy.png</normaloff>images/deploy.png</iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/deploy.png</normaloff>:/images/deploy.png</iconset>
    </property>
    <property name="text">
     <string>Развернуть</string>
@@ -163,14 +163,14 @@
   </action>
   <action name="stop">
    <property name="icon">
-    <iconset>
-     <normaloff>images/stop.png</normaloff>images/stop.png</iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
    </property>
    <property name="text">
     <string>Остановить</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+T</string>
+    <string>Ctrl+F</string>
    </property>
   </action>
   <action name="stop_usel">
@@ -180,10 +180,10 @@
   </action>
   <action name="load_file">
    <property name="icon">
-    <iconset theme="fileopen.png">
+    <iconset theme="fileopen.png" resource="images.qrc">
+     <normaloff>:/images/fileopen.png</normaloff>
      <normalon>images/fileopen.png</normalon>
-     <activeon>images/fileopen.png</activeon>
-    </iconset>
+     <activeon>images/fileopen.png</activeon>:/images/fileopen.png</iconset>
    </property>
    <property name="text">
     <string>Открыть</string>
@@ -194,9 +194,9 @@
   </action>
   <action name="create_file">
    <property name="icon">
-    <iconset>
-     <activeon>images/filenew.png</activeon>
-    </iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/filenew.png</normaloff>
+     <activeon>images/filenew.png</activeon>:/images/filenew.png</iconset>
    </property>
    <property name="text">
     <string>Создать</string>
@@ -207,9 +207,9 @@
   </action>
   <action name="save_file">
    <property name="icon">
-    <iconset>
-     <disabledoff>images/filesave.png</disabledoff>
-    </iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/filesave.png</normaloff>
+     <disabledoff>images/filesave.png</disabledoff>:/images/filesave.png</iconset>
    </property>
    <property name="text">
     <string>Сохранить</string>
@@ -225,8 +225,8 @@
   </action>
   <action name="parse">
    <property name="icon">
-    <iconset>
-     <normaloff>images/parse.png</normaloff>images/parse.png</iconset>
+    <iconset resource="images.qrc">
+     <normaloff>:/images/parse.png</normaloff>:/images/parse.png</iconset>
    </property>
    <property name="text">
     <string>Парсить</string>
@@ -237,6 +237,8 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>

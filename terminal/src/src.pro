@@ -33,3 +33,6 @@ DISTFILES += \
     images/parse.png \
     images/deploy.png \
     images/stop.png
+
+RESOURCES += \
+    images.qrc
