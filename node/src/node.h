@@ -10,6 +10,7 @@
 #include "client.h"
 #include "node_settings.h"
 #include "packet.pb.h"
+#include "router.h"
 
 namespace alpha {
 namespace protort {
@@ -22,6 +23,7 @@ using namespace alpha::protort::link;
  */
 class node
 {
+    friend class node_deploy;
 public:
     node(const node_settings &settings)
         : client_(*this, service_),
@@ -94,13 +96,15 @@ private:
     link::server<node> server_;
 
     //! Список клиентов
-    std::vector<link::client<node> > client_;
+    link::client<node> client_;
 
     //! Настройки узла
     node_settings settings_;
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
+
+    router<node> router_;
 };
 
 } // namespace node

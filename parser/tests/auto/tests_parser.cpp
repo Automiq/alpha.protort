@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     conf.parse_deploy("../testdata/deploy.xml");
     component comp = conf.components[0];
     BOOST_CHECK_EQUAL(comp.name, inst_name);
-    BOOST_CHECK_EQUAL(comp.type, inst_kind);
+    BOOST_CHECK_EQUAL(comp.kind, inst_kind);
     connection conn = conf.connections[0];
     BOOST_CHECK_EQUAL(conn.dest_name, dest);
     BOOST_CHECK_EQUAL(conn.dest_in, dest_in);

@@ -7,7 +7,7 @@ SOURCES += main.cpp
 HEADERS += \
     node_settings.h \
     node.h \
-    router.h
+    router.h \
     node_deploy.h
 
 DESTDIR = ../bin

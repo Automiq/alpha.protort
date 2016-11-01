@@ -8,6 +8,7 @@
 #include "packet.pb.h"
 #include "client.h"
 #include "i_component.h"
+#include "node.h"
 
 namespace alpha {
 namespace protort {
@@ -17,11 +18,12 @@ using component_ptr = alpha::protort::components::i_component *;
 using port_id = alpha::protort::components::port_id;
 
 /*!
- * \brief The node_router class используется для роутинга
+ * \brief Роутер пакетов
  */
-template<class node>
+template<class app>
 class router
 {
+    friend class node_deploy;
 private:
     class component_instance;
 
@@ -53,7 +55,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        link::client<node> * client;
+        link::client<app> * client;
     };
 
     /*!
@@ -148,6 +150,7 @@ private:
     }
 
     std::map<std::string, component_instance> components;
+    std::vector< link::client<app> > clients;
 };
 
 } // namespae node
