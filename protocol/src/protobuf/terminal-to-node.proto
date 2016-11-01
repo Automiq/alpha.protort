@@ -41,7 +41,6 @@ message Connection
 {
     ComponentEndpoint source = 1;
     ComponentEndpoint destination = 2;
-    string remote_node_name = 3;
 }
 
 message ConnectionList

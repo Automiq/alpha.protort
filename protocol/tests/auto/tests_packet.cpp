@@ -143,7 +143,6 @@ BOOST_AUTO_TEST_CASE(test_serialize_trerminal_to_node_protocol){
     BOOST_CHECK_EQUAL(con_list.connection(0).source().port(),generator_port_out);
     BOOST_CHECK_EQUAL(con_list.connection(0).destination().name(),terminator_name);
     BOOST_CHECK_EQUAL(con_list.connection(0).destination().port(),terminator_port_in);
-    BOOST_CHECK_EQUAL(con_list.connection(0).remote_node_name(),"");
 
     auto serialized_info_list = info_list.SerializeAsString(),
          serialized_map_list  = map_list.SerializeAsString(),
@@ -180,7 +179,6 @@ BOOST_AUTO_TEST_CASE(test_serialize_trerminal_to_node_protocol){
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).source().port(),generator_port_out);
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).destination().name(),terminator_name);
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).destination().port(),terminator_port_in);
-    BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).remote_node_name(),"");
 
 }
 
