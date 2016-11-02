@@ -9,12 +9,3 @@ message Packet
     ComponentEndpoint destination = 3;
     bytes payload = 4;
 }
-
-
-
-
-
-
-
-
-
