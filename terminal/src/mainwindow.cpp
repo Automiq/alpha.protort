@@ -21,8 +21,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_save_file_triggered()
 {
-    auto idx = ui->tabWidget->currentIndex();
-    QWidget *w = ui->tabWidget->currentWidget();
     auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->currentWidget());
     QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
     if (file.open(QIODevice::ReadWrite))
