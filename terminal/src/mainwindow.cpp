@@ -49,12 +49,13 @@ void MainWindow::on_load_file_triggered()
     {   
         if (ui->textEdit->toPlainText() == "")
         {
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
             QByteArray file_text = file.readAll();
             ui->textEdit->setText(file_text);
             file.close();
         }
         else
-            ui->tabWidget->addTab(new QTextEdit(), QString(file_name));
+            ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName()));
     }
 }
 
