@@ -26,9 +26,9 @@ private slots:
 
     void on_load_file_triggered();
 
-    void on_tabWidget_currentChanged(int index);
-
     void on_create_file_triggered();
+
+    void on_tabWidget_tabCloseRequested(int index);
 
 private:
     Ui::MainWindow *ui;

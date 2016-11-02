@@ -47,7 +47,7 @@ void MainWindow::on_load_file_triggered()
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
     {   
-        if (ui->textEdit->toPlainText() == "")
+        if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
         {
             ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
             QByteArray file_text = file.readAll();
@@ -55,25 +55,35 @@ void MainWindow::on_load_file_triggered()
             file.close();
         }
         else
-            ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName()));
+        {
+            QTextEdit *text_edit = new QTextEdit();
+            ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, QString(QFileInfo(file_name).fileName())));
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
+            QByteArray file_text = file.readAll();
+            text_edit->setText(file_text);
+            file.close();
+        }
     }
-}
-
-void MainWindow::on_tabWidget_currentChanged(int index)
-{
-
 }
 
 void MainWindow::on_create_file_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
     QFile file(file_name);
     if (file.open(QIODevice::ReadWrite))
     {
-        if (ui->textEdit->toPlainText() == "")
+        if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
             ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
         else
             ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName()));
         file.close();
     }
+}
+
+void MainWindow::on_tabWidget_tabCloseRequested(int index)
+{
+    ui->tabWidget->currentWidget()->deleteLater();
+    ui->tabWidget->removeTab(index);
+    if (ui->tabWidget->count() == 0)
+        close();
 }
