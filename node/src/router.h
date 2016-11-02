@@ -121,9 +121,11 @@ private:
                 // Рассылаем пакеты по локальным маршрутам
                 for (auto &local_route : port_routes.local_routes)
                 {
-                    std::cout << "using do_route: \nto comp " << local_route.component->name
-                              << "\ninput port" << local_route.in_port << std::endl;
-                    std::cout << "from comp " << this_component->name << " out port " << out_port << std::endl;
+
+                    std::cout << "using do_route: \nfrom comp " << this_component->name
+                              << " out port " << out_port << std::endl;
+                    std::cout << "to comp " << local_route.component->name
+                              << " in port " << local_route.in_port << std::endl;
                     do_route(local_route.component, local_route.in_port, output.payload);
                 }
 
@@ -150,7 +152,7 @@ private:
     }
 
     std::map<std::string, component_instance> components;
-    std::vector< link::client<app> > clients;
+    std::map<std::string, link::client<app>* > clients;
 };
 
 } // namespae node

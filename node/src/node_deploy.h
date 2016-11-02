@@ -1,27 +1,28 @@
 #ifndef NODE_DEPLOY_H
 #define NODE_DEPLOY_H
 
+#include <iostream>
 #include <map>
 #include <vector>
-#include <boost/shared_ptr.hpp>
 #include "node.h"
-#include "parser.h"
+#include "../../parser/src/parser.h"
 #include "components.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
-std::string current_node_name = "current_node";
+const std::string current_node_name = "current_node";
 
-using xml_config = parser::configuration;
+//using alpha::protort::parser::configuration;
 
 using alpha::protort::components::i_component;
 using alpha::protort::components::generator;
 using alpha::protort::components::retranslator;
 using alpha::protort::components::terminator;
 using alpha::protort::node::node;
-//using boost::asio::ip;
+using boost::asio::ip::address_v4;
+
 
 
 struct destination
@@ -32,7 +33,7 @@ struct destination
 
 struct component_info
 {
-    std::string name;
+    std::string name; // убрать возможно
     std::string kind;
     std::string node_name;
     std::map<unsigned short, std::vector<destination> > connections;
@@ -40,106 +41,108 @@ struct component_info
 
 struct node_info
 {
-    std::string name;
+    std::string name;  // убрать возможно
     std::string address;
     unsigned short port;
-    std::vector<component_info*> local_components;
-    std::vector<component_info*> remote_components;
 };
 
 class node_deploy
 {
 public:
-    void get_node_config(xml_config& conf);
-    void deploy(alpha::protort::node::node &);
+    void get_node_config(alpha::protort::parser::configuration &conf)
+    {
+        for (const auto & comp : conf.components){
+            component_info comp_info;
+            comp_info.name = comp.name;
+            comp_info.kind = comp.kind;
+            components_[comp_info.name] = comp_info;
+        }
+
+        for (const auto & node : conf.nodes){
+            nodes_[node.name] = { node.name, node.address, node.port };
+        }
+
+        for (const auto & conn : conf.connections){
+            component_info& comp_info = components_[conn.source_name];
+            std::vector<destination>& v_dest =  comp_info.connections[conn.source_out];
+            v_dest.push_back( {conn.dest_name, conn.dest_in} );
+        }
+
+        for (const auto & mapp : conf.mappings){
+            component_info& comp_info = components_[mapp.comp_name];
+            comp_info.node_name = mapp.node_name;
+        }
+    }
+    void deploy(node &_node)
+    {
+        // Создаем экземпляры локальных компонентов
+        for (const auto & name_to_comp : components_){
+            if (name_to_comp.second.node_name == current_node_name){
+                i_component* comp_ptr;
+
+                if (name_to_comp.second.kind == "generator")
+                    comp_ptr = new generator;
+                else if (name_to_comp.second.kind =="retranslator")
+                    comp_ptr = new retranslator;
+                else if (name_to_comp.second.kind =="terminator")
+                    comp_ptr = new terminator;
+                else
+                    assert(false);
+
+                // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
+                _node.router_.components[name_to_comp.first] = {comp_ptr, name_to_comp.first, {} };
+            }
+        }
+
+        // Копируем маршруты для каждого локального компонента
+        for (auto & name_to_comp : _node.router_.components){
+            const std::string & inst_name = name_to_comp.first;
+            router<node>::component_instance & comp_inst = name_to_comp.second;
+
+            // Копируем маршруты компонента
+            component_info& comp_info = components_[inst_name];
+
+            // Для каждого набора соединений
+            for (const auto & port_to_conn : comp_info.connections){
+                port_id out_port = port_to_conn.first;
+
+                // Для каждого получателя
+                for(const auto & dest : port_to_conn.second){
+                    std::string dest_node_name = components_[dest.comp_name].node_name;
+
+                    // Если получатель локальный                    
+                    if (dest_node_name == current_node_name){
+                        router<node>::component_instance * dest_ptr = &(_node.router_.components[dest.comp_name]);
+                        comp_inst.port_to_routes[out_port].local_routes.push_back( {dest.in_port, dest_ptr } );
+                    }
+
+                    //Если получатель удаленный
+                    else {
+                        //Если нет клиента для удаленного узла, то создаем соответствующий
+                        auto _client = _node.router_.clients.find(dest_node_name);
+                        if (_client == _node.router_.clients.end()){
+                            node_info n_info = nodes_[dest_node_name];
+                            boost::asio::ip::tcp::endpoint ep(address_v4::from_string(n_info.address), n_info.port);
+                            link::client<node>* cl = new link::client<node> { _node, _node.service_, ep };
+                            _node.router_.clients[dest_node_name] = cl;
+
+                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, cl };
+                            comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
+                        }
+                        else {
+                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, _client->second };
+                            comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
+                        }
+                    }
+                }
+            }
+        }
+    }
 
 private:
-    std::map<std::string, component_info> components_;
-    node_info node_info_;
+    std::map<std::string, component_info> components_;    
     std::map<std::string, node_info> nodes_;
 };
-
-void node_deploy::get_node_config(xml_config &conf)
-{
-    for (auto iter = conf.components.begin(); iter != conf.components.end(); ++iter){
-        component_info comp_info;
-        comp_info.name = iter->name;
-        comp_info.kind = iter->kind;
-        components_[comp_info.name] = comp_info;
-    }
-    for (auto iter = conf.connections.begin(); iter != conf.connections.end(); ++iter){
-        component_info& comp_info = components_[iter->source_name];
-        std::vector<destination>& v_dest =  comp_info.connections[iter->source_out];
-        v_dest.push_back( {iter->dest_name, iter->dest_in} );
-    }
-    for (auto iter = conf.mappings.begin(); iter != conf.mappings.end(); ++iter){
-        component_info& comp_info = components_[iter->comp_name];
-        comp_info.node_name = iter->node_name;
-    }
-    for (auto iter = conf.nodes.begin(); iter != conf.nodes.end(); ++iter){
-        if (iter->name == current_node_name) {
-            node_info_.name = current_node_name;
-            for (auto & entry : components_){
-                if (entry.second.node_name == current_node_name){
-                    node_info_.local_components.push_back(&(entry.second));
-                }
-                else {
-                    node_info_.remote_components.push_back(&(entry.second));
-                }
-            }
-        }
-        else {
-            nodes_[iter->name] = {iter->name, iter->address, iter->port, {}, {} };
-        }
-    }
-}
-
-void node_deploy::deploy(alpha::protort::node::node &_node)
-{
-    // Создаем экземпляры локальных компонентов
-    for (auto const & comp_info_ptr : node_info_.local_components){
-        i_component* comp_ptr;
-
-        if (comp_info_ptr->kind == "generator")
-            comp_ptr = new generator;
-        else if (comp_info_ptr->kind =="retranslator")
-            comp_ptr = new retranslator;
-        else if (comp_info_ptr->kind =="terminator")
-            comp_ptr = new terminator;
-        else
-            assert(false);
-
-        // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-        _node.router_.components[comp_info_ptr->name] = {comp_ptr, comp_info_ptr->name, {} };
-    }
-
-    // Копируем локальные маршруты для каждого экземпляра
-    for (auto const & comp_info_ptr : node_info_.local_components){
-        router<node>::component_instance & comp_inst = _node.router_.components[comp_info_ptr->name];
-        for (auto const & conn : comp_info_ptr->connections){
-            for(auto const & dest : conn.second)     {
-                comp_inst.port_to_routes[conn.first].local_routes.push_back( {dest.in_port, &comp_inst } );
-            }
-        }
-    }
-
-    // Копируем удаленные маршруты
-/*
-    for (auto const & comp_info_ptr : node_info_.remote_components){
-        // Находим данные узла, на котором размещен удаленный компонент
-        node_info& _node_info = nodes_[comp_info_ptr->node_name];
-        ip::tcp::endpoint ep(ip::address_v4::from_string(_node_info.address), _node_info.port);
-
-        // Создаем клиентское подключение к удаленному узлу
-        _node.router_.clients.push_back( {_node, _node.service_, ep } );
-
-        //Копируем маршрут для соответствующего компонента
-        router<node>::component_instance & comp_inst = _node.router_.components[comp_info_ptr->name];
-        comp_inst.port_to_routes[]
-
-    }
-*/
-}
 
 } // namespace node
 } // namespace protort

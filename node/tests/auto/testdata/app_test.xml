@@ -1,0 +1,14 @@
+<app>
+ <instance name="A" kind="generator"/>
+ <instance name="B" kind="retranslator"/>
+ <instance name="C" kind="retranslator"/>
+ <instance name="D" kind="retranslator"/>
+ <instance name="E" kind="terminator"/>
+ <instance name="F" kind="terminator"/>
+ <connection source="A" source_out="0" dest="B" dest_in="0"/>
+ <connection source="B" source_out="0" dest="C" dest_in="1"/>
+ <connection source="C" source_out="0" dest="F" dest_in="1"/>
+ <connection source="A" source_out="1" dest="D" dest_in="0"/>
+ <connection source="D" source_out="0" dest="F" dest_in="0"/>
+ <connection source="A" source_out="1" dest="E" dest_in="0"/>
+</app>
