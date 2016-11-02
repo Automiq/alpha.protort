@@ -17,7 +17,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_save_file_triggered()
 {
-    QFile file(ui->current_scheme_label->text());
+    QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
     if (file.open(QIODevice::WriteOnly))
     {
         file.write(ui->textEdit->toPlainText().toUtf8());
@@ -27,7 +27,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml);; all (*)"));
     QFile file(file_name);
     if (file.open(QIODevice::WriteOnly))
     {
@@ -43,14 +43,18 @@ void MainWindow::on_exit_triggered()
 
 void MainWindow::on_load_file_triggered()
 {
-    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*.*)"));
+    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
-    {
-        //ui->current_scheme_label->setText(file_name);
-        QByteArray file_text = file.readAll();
-        ui->textEdit->setText(file_text);
-        file.close();
+    {   
+        if (ui->textEdit->toPlainText() == "")
+        {
+            QByteArray file_text = file.readAll();
+            ui->textEdit->setText(file_text);
+            file.close();
+        }
+        else
+            ui->tabWidget->addTab(new QTextEdit(), QString(file_name));
     }
 }
 
@@ -65,7 +69,10 @@ void MainWindow::on_create_file_triggered()
     QFile file(file_name);
     if (file.open(QIODevice::ReadWrite))
     {
-        ui->tabWidget->addTab(new QTextEdit(), QString(file_name));
+        if (ui->textEdit->toPlainText() == "")
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
+        else
+            ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName()));
+        file.close();
     }
-
 }
