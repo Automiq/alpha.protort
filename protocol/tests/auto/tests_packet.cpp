@@ -3,7 +3,7 @@
 
 #include "packet.pb.h"
 #include "components.pb.h"
-#include "terminal-to-node.pb.h"
+#include "deploy.pb.h"
 
 namespace alpha {
 namespace protort {
