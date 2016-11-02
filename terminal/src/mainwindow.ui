@@ -27,7 +27,7 @@
        <bool>false</bool>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>-1</number>
       </property>
       <property name="tabsClosable">
        <bool>true</bool>
@@ -35,31 +35,6 @@
       <property name="movable">
        <bool>false</bool>
       </property>
-      <widget class="QWidget" name="tab">
-       <attribute name="title">
-        <string>Tab 1</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <property name="spacing">
-         <number>1</number>
-        </property>
-        <property name="leftMargin">
-         <number>3</number>
-        </property>
-        <property name="topMargin">
-         <number>3</number>
-        </property>
-        <property name="rightMargin">
-         <number>3</number>
-        </property>
-        <property name="bottomMargin">
-         <number>3</number>
-        </property>
-        <item>
-         <widget class="QTextEdit" name="text_edit"/>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
    </layout>

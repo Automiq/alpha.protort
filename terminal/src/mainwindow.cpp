@@ -2,12 +2,16 @@
 #include "ui_mainwindow.h"
 
 #include <QFileDialog>
+#include <QTextEdit>
+#include <QObject>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+//    createNewTab("New");
 }
 
 MainWindow::~MainWindow()
@@ -17,9 +21,11 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_save_file_triggered()
 {
-    auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(ui->tabWidget->currentIndex()));
+    auto idx = ui->tabWidget->currentIndex();
+    QWidget *w = ui->tabWidget->currentWidget();
+    auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->currentWidget());
     QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
-    if (file.open(QIODevice::WriteOnly))
+    if (file.open(QIODevice::ReadWrite))
     {
         file.write(text_edit->toPlainText().toUtf8());
         file.close();
@@ -52,23 +58,11 @@ void MainWindow::on_load_file_triggered()
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
-    {   
-        if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
-        {
-            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
-            QByteArray file_text = file.readAll();
-            ui->text_edit->setText(file_text);
-            file.close();
-        }
-        else
-        {
-            QTextEdit *text_edit = new QTextEdit();
-            ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, QString(QFileInfo(file_name).fileName())));
-            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
-            QByteArray file_text = file.readAll();
-            text_edit->setText(file_text);
-            file.close();
-        }
+    {
+        auto text_edit = createNewTab(QString(QFileInfo(file_name).fileName()));
+        QByteArray file_text = file.readAll();
+        text_edit->setText(file_text);
+        file.close();
     }
 }
 
@@ -92,4 +86,12 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
     ui->tabWidget->removeTab(index);
     if (ui->tabWidget->count() == 0)
         close();
+}
+
+QTextEdit* MainWindow::createNewTab(const QString &name)
+{
+    QTextEdit *text_edit = new QTextEdit();
+    ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
+    ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
+    return text_edit;
 }

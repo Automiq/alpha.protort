@@ -33,6 +33,8 @@ private slots:
     void on_tabWidget_tabCloseRequested(int index);
 
 private:
+    QTextEdit* createNewTab(const QString &name);
+
     Ui::MainWindow *ui;
 //    QList<QTextEdit*> text_editors;
 };
