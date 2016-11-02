@@ -114,7 +114,7 @@
     <string>Выход</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+X</string>
+    <string>Ctrl+Q</string>
    </property>
   </action>
   <action name="save_all">
