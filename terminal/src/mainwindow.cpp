@@ -75,7 +75,7 @@ void MainWindow::on_create_file_triggered()
         if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
             ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
         else
-            ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName()));
+            ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName())));
         file.close();
     }
 }
