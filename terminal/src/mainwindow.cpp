@@ -17,22 +17,28 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_save_file_triggered()
 {
+    auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(ui->tabWidget->currentIndex()));
     QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
     if (file.open(QIODevice::WriteOnly))
     {
-        file.write(ui->textEdit->toPlainText().toUtf8());
+        file.write(text_edit->toPlainText().toUtf8());
         file.close();
     }
 }
 
 void MainWindow::on_save_all_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Сохранить файл"), QString(), QString("xml (*.xml);; all (*)"));
-    QFile file(file_name);
-    if (file.open(QIODevice::WriteOnly))
+    for (int i = ui->tabWidget->count(); i >= 0; --i)
     {
-        file.write(ui->textEdit->toPlainText().toUtf8());
-        file.close();
+        auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+        QFile file(ui->tabWidget->tabText(i));
+        if (file.open(QIODevice::WriteOnly))
+        {
+            file.write(text_edit->toPlainText().toUtf8());
+            file.close();
+        }
     }
 }
 
@@ -51,7 +57,7 @@ void MainWindow::on_load_file_triggered()
         {
             ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
             QByteArray file_text = file.readAll();
-            ui->textEdit->setText(file_text);
+            ui->text_edit->setText(file_text);
             file.close();
         }
         else

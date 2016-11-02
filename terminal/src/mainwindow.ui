@@ -56,7 +56,7 @@
          <number>3</number>
         </property>
         <item>
-         <widget class="QTextEdit" name="textEdit"/>
+         <widget class="QTextEdit" name="text_edit"/>
         </item>
        </layout>
       </widget>
@@ -204,6 +204,9 @@
   <action name="close_file">
    <property name="text">
     <string>Закрыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
    </property>
   </action>
   <action name="parse">

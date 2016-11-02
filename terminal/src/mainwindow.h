@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QSyntaxHighlighter>
 
+class QTextEdit;
+
 namespace Ui {
 class MainWindow;
 }
@@ -32,6 +34,7 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+//    QList<QTextEdit*> text_editors;
 };
 
 #endif // MAINWINDOW_H
