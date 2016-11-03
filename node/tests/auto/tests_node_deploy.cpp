@@ -1,7 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
-
 #define private public
 
 #include "node.h"
@@ -39,10 +38,6 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
     node_deploy_.get_node_config(cnfg);
     node_deploy_.deploy(n);
     n.router_.route("A", 0, "smth");
-
-
-
-
 }
 BOOST_AUTO_TEST_SUITE_END()
 

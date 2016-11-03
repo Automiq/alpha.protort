@@ -15,6 +15,7 @@ namespace protort {
 namespace node {
 
 using component_ptr = alpha::protort::components::i_component *;
+using component_unique_ptr = std::unique_ptr<alpha::protort::components::i_component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
@@ -151,8 +152,9 @@ private:
         }
     }
 
+    std::vector<component_unique_ptr> components_;
     std::map<std::string, component_instance> components;
-    std::map<std::string, link::client<app>* > clients;
+    std::map<std::string, std::unique_ptr<link::client<app> > > clients;
 };
 
 } // namespae node

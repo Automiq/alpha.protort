@@ -12,10 +12,6 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-const std::string current_node_name = "current_node";
-
-//using alpha::protort::parser::configuration;
-
 using alpha::protort::components::i_component;
 using alpha::protort::components::generator;
 using alpha::protort::components::retranslator;
@@ -23,43 +19,49 @@ using alpha::protort::components::terminator;
 using alpha::protort::node::node;
 using boost::asio::ip::address_v4;
 
-
-
-struct destination
-{
-    std::string comp_name;
-    unsigned short in_port;
-};
-
-struct component_info
-{
-    std::string name; // убрать возможно
-    std::string kind;
-    std::string node_name;
-    std::map<unsigned short, std::vector<destination> > connections;
-};
-
-struct node_info
-{
-    std::string name;  // убрать возможно
-    std::string address;
-    unsigned short port;
-};
-
+/*!
+ * \brief Разворачивает узел
+ * Принимает конфигурацию приложения и развертывания и инициализирует роутер,
+ * создавая необходимые компоненты, локальные и удаленные связи.
+ */
 class node_deploy
 {
 public:
+    /// Маршрут
+    struct destination
+    {
+        std::string comp_name;
+        unsigned short in_port;
+    };
+
+    /// Информация о компоненте
+    struct component_info
+    {
+        std::string kind;
+        std::string node_name;
+        std::map<unsigned short, std::vector<destination> > connections;
+    };
+
+    /// Информация о узле
+    struct node_info
+    {
+        std::string address;
+        unsigned short port;
+    };
+    /*!
+     * \brief Преобразует конфигурацию в промежуточную структуру
+     * \param conf Конфигурация, создаваемая xml парсером
+     */
     void get_node_config(alpha::protort::parser::configuration &conf)
     {
         for (const auto & comp : conf.components){
             component_info comp_info;
-            comp_info.name = comp.name;
             comp_info.kind = comp.kind;
-            components_[comp_info.name] = comp_info;
+            components_[comp.name] = comp_info;
         }
 
         for (const auto & node : conf.nodes){
-            nodes_[node.name] = { node.name, node.address, node.port };
+            nodes_[node.name] = { node.address, node.port };
         }
 
         for (const auto & conn : conf.connections){
@@ -73,24 +75,31 @@ public:
             comp_info.node_name = mapp.node_name;
         }
     }
+
+    /*!
+     * \brief Разворачивает узел
+     * \param _node Узел, на котором происходит разворачивание
+     * Создает необходимые компоненты, локальные и удаленные связи роутера.
+     */
     void deploy(node &_node)
     {
         // Создаем экземпляры локальных компонентов
         for (const auto & name_to_comp : components_){
             if (name_to_comp.second.node_name == current_node_name){
-                i_component* comp_ptr;
+                component_unique_ptr comp_ptr;
 
                 if (name_to_comp.second.kind == "generator")
-                    comp_ptr = new generator;
+                    comp_ptr.reset(new generator);
                 else if (name_to_comp.second.kind =="retranslator")
-                    comp_ptr = new retranslator;
+                    comp_ptr.reset( new retranslator);
                 else if (name_to_comp.second.kind =="terminator")
-                    comp_ptr = new terminator;
+                    comp_ptr.reset(new terminator);
                 else
                     assert(false);
 
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                _node.router_.components[name_to_comp.first] = {comp_ptr, name_to_comp.first, {} };
+                _node.router_.components_.push_back(std::move(comp_ptr));
+                _node.router_.components[name_to_comp.first] = {_node.router_.components_.back().get(), name_to_comp.first, {} };
             }
         }
 
@@ -123,14 +132,13 @@ public:
                         if (_client == _node.router_.clients.end()){
                             node_info n_info = nodes_[dest_node_name];
                             boost::asio::ip::tcp::endpoint ep(address_v4::from_string(n_info.address), n_info.port);
-                            link::client<node>* cl = new link::client<node> { _node, _node.service_, ep };
-                            _node.router_.clients[dest_node_name] = cl;
-
-                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, cl };
+                           std::unique_ptr<link::client<node> > cl( new link::client<node> { _node, _node.service_, ep } );
+                            _node.router_.clients[dest_node_name] = std::move(cl);
+                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, cl.get() };
                             comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
                         }
                         else {
-                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, _client->second };
+                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, _client->second.get() };
                             comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
                         }
                     }
@@ -142,6 +150,7 @@ public:
 private:
     std::map<std::string, component_info> components_;    
     std::map<std::string, node_info> nodes_;
+    const std::string current_node_name = "current_node";
 };
 
 } // namespace node

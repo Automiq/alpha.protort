@@ -95,7 +95,7 @@ private:
     //! Сервер
     link::server<node> server_;
 
-    //! Список клиентов
+    //! Клиент
     link::client<node> client_;
 
     //! Настройки узла

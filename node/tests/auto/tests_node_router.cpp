@@ -6,6 +6,7 @@
 
 #include "node.h"
 #include "components.h"
+#include "router.h"
 
 namespace alpha {
 namespace protort {
