@@ -12,12 +12,7 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using alpha::protort::components::i_component;
-using alpha::protort::components::generator;
-using alpha::protort::components::retranslator;
-using alpha::protort::components::terminator;
 using alpha::protort::node::node;
-using boost::asio::ip::address_v4;
 
 /*!
  * \brief Разворачивает узел
@@ -52,7 +47,7 @@ public:
      * \brief Преобразует конфигурацию в промежуточную структуру
      * \param conf Конфигурация, создаваемая xml парсером
      */
-    void get_node_config(alpha::protort::parser::configuration &conf)
+    void load_config(alpha::protort::parser::configuration &conf)
     {
         for (const auto & comp : conf.components){
             component_info comp_info;
@@ -89,11 +84,11 @@ public:
                 component_unique_ptr comp_ptr;
 
                 if (name_to_comp.second.kind == "generator")
-                    comp_ptr.reset(new generator);
+                    comp_ptr.reset(new alpha::protort::components::generator);
                 else if (name_to_comp.second.kind =="retranslator")
-                    comp_ptr.reset( new retranslator);
+                    comp_ptr.reset( new alpha::protort::components::retranslator);
                 else if (name_to_comp.second.kind =="terminator")
-                    comp_ptr.reset(new terminator);
+                    comp_ptr.reset(new alpha::protort::components::terminator);
                 else
                     assert(false);
 
@@ -131,11 +126,13 @@ public:
                         auto _client = _node.router_.clients.find(dest_node_name);
                         if (_client == _node.router_.clients.end()){
                             node_info n_info = nodes_[dest_node_name];
-                            boost::asio::ip::tcp::endpoint ep(address_v4::from_string(n_info.address), n_info.port);
+                            boost::asio::ip::address_v4 addr { boost::asio::ip::address_v4::from_string(n_info.address) };
+                            boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
                            std::unique_ptr<link::client<node> > cl( new link::client<node> { _node, _node.service_, ep } );
+                           router<node>::remote_route rem_route {dest.in_port, dest.comp_name, cl.get() };
+                           comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
                             _node.router_.clients[dest_node_name] = std::move(cl);
-                            router<node>::remote_route rem_route {dest.in_port, dest.comp_name, cl.get() };
-                            comp_inst.port_to_routes[out_port].remote_routes.push_back(rem_route);
+
                         }
                         else {
                             router<node>::remote_route rem_route {dest.in_port, dest.comp_name, _client->second.get() };

@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
     cnfg.parse_deploy("../tests/auto/testdata/deploy_test.xml");
 
     node_deploy node_deploy_;
-    node_deploy_.get_node_config(cnfg);
+    node_deploy_.load_config(cnfg);
     node_deploy_.deploy(n);
     n.router_.route("A", 0, "smth");
 }
