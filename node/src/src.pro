@@ -4,11 +4,6 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp
-HEADERS += \
-    node_settings.h \
-    node.h \
-    router.h \
-    node_deploy.h
 
 DESTDIR = ../bin
 
@@ -35,3 +30,6 @@ include(../../parser/parser.pri)
 
 # Библиотека alpha.protort.components
 include(../../components/components.pri)
+
+include(../node.pri)
+

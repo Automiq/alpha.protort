@@ -37,6 +37,7 @@ struct node_settings
     uint32_t npackets = 0;
     std::string path_app;
     std::string path_deploy;
+    std::string name;
 
     /*!
      * \brief Тип компонента
@@ -94,7 +95,8 @@ struct node_settings
                     ("packet-size", boost::program_options::value<uint32_t>(&packet_size), "packet size")
                     ("npackets", boost::program_options::value<uint32_t>(&npackets), "number of packet")
                     ("app", boost::program_options::value<std::string>(&path_app)->default_value("./app.xml"), "path to app.xml")
-                    ("deploy", boost::program_options::value<std::string>(&path_deploy)->default_value("./deploy.xml"), "path to deploy.xml");
+                    ("deploy", boost::program_options::value<std::string>(&path_deploy)->default_value("./deploy.xml"), "path to deploy.xml")
+                    ("name", boost::program_options::value<std::string>(&name)->default_value("current_node"), "node name");
 
 
             boost::program_options::variables_map vm;

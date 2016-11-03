@@ -103,7 +103,7 @@ private:
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
-
+public:
     router<node> router_;
 };
 

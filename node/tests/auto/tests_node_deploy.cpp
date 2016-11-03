@@ -1,12 +1,10 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 
-#define private public
-
 #include "node.h"
 #include "components.h"
 #include "node_deploy.h"
-#include "../../parser/src/parser.h"
+#include "parser.h"
 
 namespace alpha {
 namespace protort {
@@ -25,10 +23,12 @@ BOOST_FIXTURE_TEST_SUITE(tests_node_deploy,fixture)
 
 BOOST_AUTO_TEST_CASE(test_node_deploy)
 {
-    node_settings node_settings_;
-    const char *argv[] = { "--s", "192.168.1.1:999" };
+    alpha::protort::node::node_settings node_settings_;
+    const char *argv[] = { "-name", "current_node" };
+    node_settings_.parse(2, argv);
 
     node n(node_settings_);
+    std::cout << node_settings_.name;
 
     alpha::protort::parser::configuration cnfg;
     cnfg.parse_app("../tests/auto/testdata/app_test.xml");

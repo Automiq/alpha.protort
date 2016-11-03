@@ -36,7 +36,9 @@ include(../../../protocol/protocol.pri)
 include(../../../components/components.pri)
 
 # Линкуемся с парсером xml
-include(../../parser.pri)
+include(../../../parser/parser.pri)
+
+include(../../node.pri)
 
 # Копируем файлы в зависимости от наличия shadow build
 !equals(PWD, $${OUT_PWD}) {
