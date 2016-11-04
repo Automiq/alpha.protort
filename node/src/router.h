@@ -24,7 +24,7 @@ using port_id = alpha::protort::components::port_id;
 template<class app>
 class router
 {
-    friend class node_deploy;
+    friend class node;
 private:
     class component_instance;
 
@@ -147,14 +147,15 @@ private:
                     packet.set_payload(output.payload);
 
                     remote_route.client->async_send(packet.SerializeAsString());
+                    std::cout << "Sending packet to " << remote_route.name << std::endl;
                 }
             }
         }
     }
 
-    std::vector<component_unique_ptr> components_;
+    std::vector<component_unique_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
-    std::map<std::string, std::unique_ptr<link::client<app> > > clients;
+    std::map<std::string, std::unique_ptr<link::client<app>>> clients;
 };
 
 } // namespae node

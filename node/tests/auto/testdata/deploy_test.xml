@@ -1,11 +1,11 @@
 <deploy>
  <node name="current_node" address="192.168.1.1" port="8080"/>
- <node name="node2" address="192.168.1.2" port="31337"/>
- <node name="node3" address="192.168.1.3" port="31338"/>
+ <node name="other_node_1" address="192.168.1.2" port="31337"/>
+ <node name="other_node_2" address="192.168.1.3" port="31338"/>
  <map instance="A" node="current_node"/>
  <map instance="B" node="current_node"/>
  <map instance="C" node="current_node"/>
- <map instance="D" node="current_node"/>
- <map instance="E" node="current_node"/>
+ <map instance="D" node="other_node_1"/>
+ <map instance="E" node="other_node_2"/>
  <map instance="F" node="current_node"/>
 </deploy>

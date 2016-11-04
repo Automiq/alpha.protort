@@ -78,7 +78,7 @@ struct node_settings
      *  }
      * \endcode
      */
-    bool parse(int argc, const char **argv)
+    bool parse(int argc, const char ** argv)
     {
         try
         {
@@ -96,7 +96,7 @@ struct node_settings
                     ("npackets", boost::program_options::value<uint32_t>(&npackets), "number of packet")
                     ("app", boost::program_options::value<std::string>(&path_app)->default_value("./app.xml"), "path to app.xml")
                     ("deploy", boost::program_options::value<std::string>(&path_deploy)->default_value("./deploy.xml"), "path to deploy.xml")
-                    ("name", boost::program_options::value<std::string>(&name)->default_value("current_node"), "node name");
+                    ("name", boost::program_options::value<std::string>(&name)->default_value("node"), "node name");
 
 
             boost::program_options::variables_map vm;

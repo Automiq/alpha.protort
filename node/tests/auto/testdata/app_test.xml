@@ -11,4 +11,5 @@
  <connection source="A" source_out="1" dest="D" dest_in="0"/>
  <connection source="D" source_out="0" dest="F" dest_in="0"/>
  <connection source="A" source_out="1" dest="E" dest_in="0"/>
+ <connection source="B" source_out="1" dest="F" dest_in="0"/>
 </app>

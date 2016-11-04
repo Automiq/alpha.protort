@@ -69,7 +69,7 @@ BOOST_AUTO_TEST_CASE(test_parser_parse)
     BOOST_CHECK_EQUAL(comp.name, inst_name);
     BOOST_CHECK_EQUAL(comp.kind, inst_kind);
     connection conn = conf.connections[0];
-    BOOST_CHECK_EQUAL(conn.dest_name, dest);
+    BOOST_CHECK_EQUAL(conn.dest, dest);
     BOOST_CHECK_EQUAL(conn.dest_in, dest_in);
 }
 
