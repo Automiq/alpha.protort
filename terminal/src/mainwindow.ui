@@ -1,24 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
  <class>MainWindow</class>
- <widget class="QMainWindow" name="MainWindow" >
-  <property name="geometry" >
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>611</width>
+    <height>406</height>
    </rect>
   </property>
-  <property name="windowTitle" >
-   <string>MainWindow</string>
+  <property name="windowTitle">
+   <string>alpha.protort.terminal</string>
   </property>
-  <widget class="QMenuBar" name="menuBar" />
-  <widget class="QToolBar" name="mainToolBar" />
-  <widget class="QWidget" name="centralWidget" />
-  <widget class="QStatusBar" name="statusBar" />
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QHBoxLayout" name="horizontalLayout">
+    <item>
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="currentIndex">
+       <number>-1</number>
+      </property>
+      <property name="tabsClosable">
+       <bool>true</bool>
+      </property>
+      <property name="movable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>611</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menu">
+    <property name="title">
+     <string>Файл</string>
+    </property>
+    <addaction name="create_file"/>
+    <addaction name="load_file"/>
+    <addaction name="save_file"/>
+    <addaction name="save_all"/>
+    <addaction name="separator"/>
+    <addaction name="parse"/>
+    <addaction name="separator"/>
+    <addaction name="close_file"/>
+    <addaction name="exit"/>
+   </widget>
+   <widget class="QMenu" name="menu_2">
+    <property name="title">
+     <string>Приложение</string>
+    </property>
+    <addaction name="deploy"/>
+    <addaction name="stop"/>
+   </widget>
+   <addaction name="menu"/>
+   <addaction name="menu_2"/>
+  </widget>
+  <widget class="QToolBar" name="mainToolBar">
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="create_file"/>
+   <addaction name="load_file"/>
+   <addaction name="save_file"/>
+   <addaction name="save_all"/>
+   <addaction name="parse"/>
+   <addaction name="deploy"/>
+   <addaction name="stop"/>
+  </widget>
+  <action name="exit">
+   <property name="text">
+    <string>Выход</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="save_all">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/fileSaveAll.png</normaloff>:/images/fileSaveAll.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить все</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+S</string>
+   </property>
+  </action>
+  <action name="deploy">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/deploy.png</normaloff>:/images/deploy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Развернуть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+D</string>
+   </property>
+  </action>
+  <action name="stop">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Остановить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+F</string>
+   </property>
+  </action>
+  <action name="stop_usel">
+   <property name="text">
+    <string>Остановить узел</string>
+   </property>
+  </action>
+  <action name="load_file">
+   <property name="icon">
+    <iconset theme="fileopen.png" resource="images.qrc">
+     <normaloff>:/images/fileopen.png</normaloff>
+     <normalon>images/fileopen.png</normalon>
+     <activeon>images/fileopen.png</activeon>:/images/fileopen.png</iconset>
+   </property>
+   <property name="text">
+    <string>Открыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="create_file">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/filenew.png</normaloff>
+     <activeon>images/filenew.png</activeon>:/images/filenew.png</iconset>
+   </property>
+   <property name="text">
+    <string>Создать</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="save_file">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/filesave.png</normaloff>
+     <disabledoff>images/filesave.png</disabledoff>:/images/filesave.png</iconset>
+   </property>
+   <property name="text">
+    <string>Сохранить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="close_file">
+   <property name="text">
+    <string>Закрыть</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+K</string>
+   </property>
+  </action>
+  <action name="parse">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/parse.png</normaloff>:/images/parse.png</iconset>
+   </property>
+   <property name="text">
+    <string>Парсить</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
  </widget>
- <layoutDefault spacing="6" margin="11" />
- <pixmapfunction></pixmapfunction>
- <resources/>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources>
+  <include location="images.qrc"/>
+ </resources>
  <connections/>
 </ui>
