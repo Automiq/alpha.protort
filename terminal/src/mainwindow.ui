@@ -14,7 +14,7 @@
    <string>alpha.protort.terminal</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <layout class="QHBoxLayout" name="horizontalLayout">
+   <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="mouseTracking">
@@ -50,23 +50,24 @@
    </property>
    <widget class="QMenu" name="menu">
     <property name="title">
-     <string>Файл</string>
+     <string>&amp;Файл</string>
     </property>
     <addaction name="create_file"/>
     <addaction name="load_file"/>
     <addaction name="save_file"/>
     <addaction name="save_all"/>
     <addaction name="separator"/>
-    <addaction name="parse"/>
     <addaction name="separator"/>
     <addaction name="close_file"/>
     <addaction name="exit"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
-     <string>Приложение</string>
+     <string>Проект</string>
     </property>
+    <addaction name="config"/>
     <addaction name="deploy"/>
+    <addaction name="start"/>
     <addaction name="stop"/>
    </widget>
    <addaction name="menu"/>
@@ -83,9 +84,23 @@
    <addaction name="load_file"/>
    <addaction name="save_file"/>
    <addaction name="save_all"/>
-   <addaction name="parse"/>
    <addaction name="deploy"/>
    <addaction name="stop"/>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <property name="windowTitle">
+    <string>    log</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents">
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QTextBrowser" name="textBrowser"/>
+     </item>
+    </layout>
+   </widget>
   </widget>
   <action name="exit">
    <property name="text">
@@ -101,7 +116,7 @@
      <normaloff>:/images/fileSaveAll.png</normaloff>:/images/fileSaveAll.png</iconset>
    </property>
    <property name="text">
-    <string>Сохранить все</string>
+    <string>Сохранить &amp;всё</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+S</string>
@@ -144,7 +159,7 @@
      <activeon>images/fileopen.png</activeon>:/images/fileopen.png</iconset>
    </property>
    <property name="text">
-    <string>Открыть</string>
+    <string>&amp;Открыть</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+O</string>
@@ -157,7 +172,7 @@
      <activeon>images/filenew.png</activeon>:/images/filenew.png</iconset>
    </property>
    <property name="text">
-    <string>Создать</string>
+    <string>Соз&amp;дать</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+N</string>
@@ -170,7 +185,7 @@
      <disabledoff>images/filesave.png</disabledoff>:/images/filesave.png</iconset>
    </property>
    <property name="text">
-    <string>Сохранить</string>
+    <string>&amp;Сохранить</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -181,19 +196,20 @@
     <string>Закрыть</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+K</string>
+    <string>Ctrl+W</string>
    </property>
   </action>
-  <action name="parse">
-   <property name="icon">
-    <iconset resource="images.qrc">
-     <normaloff>:/images/parse.png</normaloff>:/images/parse.png</iconset>
-   </property>
+  <action name="config">
    <property name="text">
-    <string>Парсить</string>
+    <string>Конфигурация...</string>
+   </property>
+  </action>
+  <action name="start">
+   <property name="text">
+    <string>Запустить</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+P</string>
+    <string>F5</string>
    </property>
   </action>
  </widget>
