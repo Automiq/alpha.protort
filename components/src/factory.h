@@ -17,9 +17,9 @@ public:
     {
         if (kind == "generator")
             return protocol::ComponentKind::Generator;
-        else if (kind =="retranslator")
+        else if (kind == "retranslator")
             return protocol::ComponentKind::Retranslator;
-        else if (kind =="terminator")
+        else if (kind == "terminator")
             return protocol::ComponentKind::Terminator;
         else
             assert(false);
@@ -30,7 +30,6 @@ public:
         std::unique_ptr<components::i_component> ptr;
 
         switch (kind) {
-
         case protocol::ComponentKind::Generator:
             ptr.reset(new components::generator);
             break;
@@ -45,12 +44,13 @@ public:
 
         default:
             assert(false);
+            break;
         }
 
         return ptr;
     }
 
-    static std::unique_ptr<components::i_component> create (const std::string & kind)
+    static std::unique_ptr<components::i_component> create(const std::string & kind)
     {
         return create(get_component_kind(kind));
     }
