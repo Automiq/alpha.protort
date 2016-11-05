@@ -78,7 +78,7 @@ struct node_settings
      *  }
      * \endcode
      */
-    bool parse(int argc, const char ** argv)
+    bool parse(int argc, const char **argv)
     {
         try
         {
