@@ -13,7 +13,7 @@ class factory
 public:
     factory() = delete;
 
-    static protocol::ComponentKind get_component_kind(const std::string & kind)
+    static protocol::ComponentKind get_component_kind(const std::string& kind)
     {
         if (kind == "generator")
             return protocol::ComponentKind::Generator;
@@ -33,15 +33,12 @@ public:
         case protocol::ComponentKind::Generator:
             ptr.reset(new components::generator);
             break;
-
         case protocol::ComponentKind::Retranslator:
             ptr.reset(new components::retranslator);
             break;
-
         case protocol::ComponentKind::Terminator:
             ptr.reset(new components::terminator);
             break;
-
         default:
             assert(false);
             break;
@@ -50,7 +47,7 @@ public:
         return ptr;
     }
 
-    static std::unique_ptr<components::i_component> create(const std::string & kind)
+    static std::unique_ptr<components::i_component> create(const std::string& kind)
     {
         return create(get_component_kind(kind));
     }
