@@ -110,10 +110,10 @@ public:
             std::map<std::string, node_info> nodes;
 
             for (const auto& node : conf.nodes)
-                nodes[node.name] = {node.name, node.address, node.port};
+                nodes.emplace(node.name, node_info{node.name, node.address, node.port});
 
             for (const auto& mapp : conf.mappings)
-                comp_to_node[mapp.comp_name] = nodes[mapp.node_name];
+                comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
         }
 
         const auto& current_node_name = settings_.name;
