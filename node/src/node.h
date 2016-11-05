@@ -148,13 +148,15 @@ public:
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
                         std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
-                        router<node>::remote_route rem_route {conn.dest_in, conn.dest, client_ptr.get()};
-                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
+                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
+                            router<node>::remote_rout{conn.dest_in, conn.dest, client_ptr.get()}
+                        );
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
                     else {
-                        router<node>::remote_route rem_route {conn.dest_in, conn.dest, client->second.get()};
-                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
+                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
+                            router<node>::remote_route{conn.dest_in, conn.dest, client->second.get()}
+                        );
                     }
                 }
             }
