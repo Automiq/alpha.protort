@@ -54,7 +54,7 @@
      <height>18</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu">
+   <widget class="QMenu" name="menu_file">
     <property name="title">
      <string>&amp;Файл</string>
     </property>
@@ -67,7 +67,7 @@
     <addaction name="close_file"/>
     <addaction name="exit"/>
    </widget>
-   <widget class="QMenu" name="menu_2">
+   <widget class="QMenu" name="menu_project">
     <property name="title">
      <string>&amp;Проект</string>
     </property>
@@ -76,8 +76,8 @@
     <addaction name="start"/>
     <addaction name="stop"/>
    </widget>
-   <addaction name="menu"/>
-   <addaction name="menu_2"/>
+   <addaction name="menu_file"/>
+   <addaction name="menu_project"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">

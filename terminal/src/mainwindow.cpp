@@ -10,8 +10,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-//    createNewTab("New");
 }
 
 MainWindow::~MainWindow()
@@ -92,4 +90,14 @@ QTextEdit* MainWindow::createNewTab(const QString &name)
     ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
     ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
     return text_edit;
+}
+
+void MainWindow::on_config_triggered()
+{
+    ConfigDialog dlg(this);
+    if (dlg.exec())
+    {
+        m_app = dlg.app();
+        m_deploySchema = dlg.deploySchema();
+    }
 }
