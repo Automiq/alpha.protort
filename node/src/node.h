@@ -13,6 +13,7 @@
 #include "router.h"
 #include "parser.h"
 #include "components.h"
+#include "factory.h"
 
 namespace alpha {
 namespace protort {
@@ -93,7 +94,7 @@ public:
      * \param conf Конфигурация полученная парсером из xml
      * Создает необходимые компоненты, локальные и удаленные связи роутера.
      */
-    void deploy(alpha::protort::parser::configuration &conf)
+    void deploy(const alpha::protort::parser::configuration& conf)
     {
         struct node_info
         {
@@ -106,49 +107,35 @@ public:
         std::map<std::string, node_info> comp_to_node;
 
         {
-            std::map<std::string, node_info> nodes_;
+            std::map<std::string, node_info> nodes;
 
+            for (const auto & node : conf.nodes)
+                nodes[node.name] = { node.name, node.address, node.port };
 
-            for (const auto & node : conf.nodes){
-                nodes_[node.name] = { node.name, node.address, node.port };
-            }
-
-            for (const auto & mapp : conf.mappings){
-                comp_to_node[mapp.comp_name] = nodes_[mapp.node_name];
-            }
+            for (const auto & mapp : conf.mappings)
+                comp_to_node[mapp.comp_name] = nodes[mapp.node_name];
         }
 
         const std::string & current_node_name = settings_.name;
 
         // Создаем экземпляры локальных компонентов
-        for (const auto & comp : conf.components){
-            if (comp_to_node[comp.name].name == current_node_name){
-                component_unique_ptr comp_ptr;
-
-                if (comp.kind == "generator")
-                    comp_ptr.reset(new alpha::protort::components::generator);
-                else if (comp.kind =="retranslator")
-                    comp_ptr.reset( new alpha::protort::components::retranslator);
-                else if (comp.kind =="terminator")
-                    comp_ptr.reset(new alpha::protort::components::terminator);
-                else
-                    assert(false);
-
+        for (const auto & comp : conf.components) {
+            if (comp_to_node[comp.name].name == current_node_name) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back(std::move(comp_ptr));
-                router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {} };
+                router_.component_ptrs.push_back( alpha::protort::components::factory::create(comp.kind) );
+                router_.components[comp.name] = { router_.component_ptrs.back().get(), comp.name, {} };
             }
         }
 
         // Для каждого локального компонента
         for (auto & conn : conf.connections) {
             auto name_to_comp_inst = router_.components.find(conn.source);
-            if (name_to_comp_inst != router_.components.end()){
+            if (name_to_comp_inst != router_.components.end()) {
                 router<node>::component_instance & comp_inst = name_to_comp_inst->second;
                 const std::string & dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
-                if (dest_node_name == current_node_name){
+                if (dest_node_name == current_node_name) {
                     router<node>::component_instance * dest_ptr = &(router_.components[conn.dest]);
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back( {conn.dest_in, dest_ptr} );
                 }
@@ -156,18 +143,18 @@ public:
                 //Копируем удаленный маршрут
                 else {
                     //Если нет клиента для удаленного узла, то создаем соответствующий
-                    auto _client = router_.clients.find(conn.dest);
-                    if (_client == router_.clients.end()){
+                    auto client = router_.clients.find(conn.dest);
+                    if ( client == router_.clients.end()) {
                         const node_info & n_info = comp_to_node[conn.dest];
-                        boost::asio::ip::address_v4 addr { boost::asio::ip::address_v4::from_string(n_info.address) };
-                        boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
+                        boost::asio::ip::address_v4 addr( boost::asio::ip::address_v4::from_string(n_info.address) );
+                        boost::asio::ip::tcp::endpoint ep{ addr, n_info.port };
                         std::unique_ptr<link::client<node> > client_ptr( new link::client<node> { *this, service_, ep } );
                         router<node>::remote_route rem_route { conn.dest_in, conn.dest, client_ptr.get() };
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
                     else {
-                        router<node>::remote_route rem_route {conn.dest_in, conn.dest, _client->second.get() };
+                        router<node>::remote_route rem_route { conn.dest_in, conn.dest, client->second.get() };
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
                     }
                 }
