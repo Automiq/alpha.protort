@@ -149,7 +149,7 @@ public:
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
                         std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                            router<node>::remote_rout{conn.dest_in, conn.dest, client_ptr.get()}
+                            router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
                         );
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
