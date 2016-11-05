@@ -60,16 +60,16 @@
     </property>
     <addaction name="create_file"/>
     <addaction name="load_file"/>
+    <addaction name="separator"/>
     <addaction name="save_file"/>
     <addaction name="save_all"/>
-    <addaction name="separator"/>
     <addaction name="separator"/>
     <addaction name="close_file"/>
     <addaction name="exit"/>
    </widget>
    <widget class="QMenu" name="menu_2">
     <property name="title">
-     <string>Проект</string>
+     <string>&amp;Проект</string>
     </property>
     <addaction name="config"/>
     <addaction name="deploy"/>
@@ -210,11 +210,19 @@
    </property>
   </action>
   <action name="config">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/config.png</normaloff>:/images/config.png</iconset>
+   </property>
    <property name="text">
     <string>Конфигурация...</string>
    </property>
   </action>
   <action name="start">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/start.png</normaloff>:/images/start.png</iconset>
+   </property>
    <property name="text">
     <string>Запустить</string>
    </property>
