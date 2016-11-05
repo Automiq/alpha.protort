@@ -140,9 +140,9 @@ public:
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
 
-                //Копируем удаленный маршрут
+                // Копируем удаленный маршрут
                 else {
-                    //Если нет клиента для удаленного узла, то создаем соответствующий
+                    // Если нет клиента для удаленного узла, то создаем соответствующий
                     auto client = router_.clients.find(conn.dest);
                     if ( client == router_.clients.end()) {
                         const node_info & n_info = comp_to_node[conn.dest];
