@@ -103,14 +103,14 @@ public:
             unsigned short port;
         };
 
-        //Создаем отображение имени компонента на информацию о узле
+        // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
 
         {
             std::map<std::string, node_info> nodes;
 
             for (const auto & node : conf.nodes)
-                nodes[node.name] = { node.name, node.address, node.port };
+                nodes[node.name] = {node.name, node.address, node.port};
 
             for (const auto & mapp : conf.mappings)
                 comp_to_node[mapp.comp_name] = nodes[mapp.node_name];
@@ -122,8 +122,8 @@ public:
         for (const auto & comp : conf.components) {
             if (comp_to_node[comp.name].name == current_node_name) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back( alpha::protort::components::factory::create(comp.kind) );
-                router_.components[comp.name] = { router_.component_ptrs.back().get(), comp.name, {} };
+                router_.component_ptrs.push_back(alpha::protort::components::factory::create(comp.kind));
+                router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {}};
             }
         }
 
@@ -137,7 +137,7 @@ public:
                 // Копируем локальный маршрут
                 if (dest_node_name == current_node_name) {
                     router<node>::component_instance * dest_ptr = &(router_.components[conn.dest]);
-                    comp_inst.port_to_routes[conn.source_out].local_routes.push_back( {conn.dest_in, dest_ptr} );
+                    comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
 
                 //Копируем удаленный маршрут
@@ -146,15 +146,15 @@ public:
                     auto client = router_.clients.find(conn.dest);
                     if ( client == router_.clients.end()) {
                         const node_info & n_info = comp_to_node[conn.dest];
-                        boost::asio::ip::address_v4 addr( boost::asio::ip::address_v4::from_string(n_info.address) );
-                        boost::asio::ip::tcp::endpoint ep{ addr, n_info.port };
-                        std::unique_ptr<link::client<node> > client_ptr( new link::client<node> { *this, service_, ep } );
-                        router<node>::remote_route rem_route { conn.dest_in, conn.dest, client_ptr.get() };
+                        boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
+                        boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
+                        std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
+                        router<node>::remote_route rem_route(conn.dest_in, conn.dest, client_ptr.get());
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
                     else {
-                        router<node>::remote_route rem_route { conn.dest_in, conn.dest, client->second.get() };
+                        router<node>::remote_route rem_route(conn.dest_in, conn.dest, client->second.get());
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(rem_route);
                     }
                 }
@@ -177,6 +177,7 @@ private:
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
+    
 public:
     router<node> router_;
 };
