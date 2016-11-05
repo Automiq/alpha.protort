@@ -40,7 +40,7 @@ public:
         switch (settings_.component_kind)
         {
         case alpha::protort::protocol::Terminator:
-            signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service_));
+            signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
             server_.listen(settings_.source);
             break;
 
@@ -56,7 +56,7 @@ public:
      * \param err
      * \param bytes
      */
-    void on_packet_sent(const boost::system::error_code & err, size_t bytes)
+    void on_packet_sent(const boost::system::error_code& err, size_t bytes)
     {
         // TODO
     }
@@ -65,7 +65,7 @@ public:
      * \brief Уведомление о подключении или безуспешном подключении
      * \param err
      */
-    void on_connected(const boost::system::error_code & err)
+    void on_connected(const boost::system::error_code& err)
     {
         // TODO
     }
@@ -84,7 +84,7 @@ public:
      * \brief Уведомление о приеме сервером нового подключения
      * \param err
      */
-    void on_new_connection(const boost::system::error_code & err)
+    void on_new_connection(const boost::system::error_code& err)
     {
         // TODO
     }
@@ -109,17 +109,17 @@ public:
         {
             std::map<std::string, node_info> nodes;
 
-            for (const auto & node : conf.nodes)
+            for (const auto& node : conf.nodes)
                 nodes[node.name] = {node.name, node.address, node.port};
 
-            for (const auto & mapp : conf.mappings)
+            for (const auto& mapp : conf.mappings)
                 comp_to_node[mapp.comp_name] = nodes[mapp.node_name];
         }
 
-        const std::string & current_node_name = settings_.name;
+        const auto& current_node_name = settings_.name;
 
         // Создаем экземпляры локальных компонентов
-        for (const auto & comp : conf.components) {
+        for (const auto& comp : conf.components) {
             if (comp_to_node[comp.name].name == current_node_name) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
                 router_.component_ptrs.push_back(alpha::protort::components::factory::create(comp.kind));
@@ -128,24 +128,23 @@ public:
         }
 
         // Для каждого локального компонента
-        for (auto & conn : conf.connections) {
+        for (const auto& conn : conf.connections) {
             auto name_to_comp_inst = router_.components.find(conn.source);
             if (name_to_comp_inst != router_.components.end()) {
-                router<node>::component_instance & comp_inst = name_to_comp_inst->second;
-                const std::string & dest_node_name = comp_to_node[conn.dest].name;
+                auto& comp_inst = name_to_comp_inst->second;
+                const auto& dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
                 if (dest_node_name == current_node_name) {
-                    router<node>::component_instance * dest_ptr = &(router_.components[conn.dest]);
+                    router<node>::component_instance* dest_ptr = &(router_.components[conn.dest]);
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
-
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
                     auto client = router_.clients.find(conn.dest);
-                    if ( client == router_.clients.end()) {
-                        const node_info & n_info = comp_to_node[conn.dest];
+                    if (client == router_.clients.end()) {
+                        const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
                         std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
@@ -179,6 +178,7 @@ private:
     boost::asio::signal_set signals_;
     
 public:
+    //! Роутер пакетов
     router<node> router_;
 };
 
