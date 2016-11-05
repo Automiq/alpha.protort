@@ -27,3 +27,6 @@ include(../../link.pri)
 
 # Протокол alpha.protort.protocol
 include(../../../protocol/protocol.pri)
+
+# Библиотека alpha.protort.parser
+include(../../../parser/parser.pri)

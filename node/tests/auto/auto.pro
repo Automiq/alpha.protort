@@ -7,7 +7,8 @@ SOURCES += \
     main.cpp \
     tests_node.cpp \
     tests_node_settings.cpp \
-    tests_node_router.cpp
+    tests_node_router.cpp \
+    tests_node_deploy.cpp
 
 INCLUDEPATH += $$PWD/../../src
 
@@ -33,3 +34,21 @@ include(../../../protocol/protocol.pri)
 
 # Библиотека alpha.protort.components
 include(../../../components/components.pri)
+
+# Линкуемся с парсером xml
+include(../../../parser/parser.pri)
+
+include(../../node.pri)
+
+# Копируем файлы в зависимости от наличия shadow build
+!equals(PWD, $${OUT_PWD}) {
+    win32 {
+        copyapp.commands = $(COPY_DIR) \"$$PWD\testdata\\*\" \"$$OUT_PWD\testdata\"
+    } else {
+        copydata.commands = $(COPY_DIR) $$PWD/testdata/* $$OUT_PWD/tesdata
+    }
+}
+first.depends = $(first) copyapp
+export(first.depends)
+export(copyapp.commands)
+QMAKE_EXTRA_TARGETS += first copyapp

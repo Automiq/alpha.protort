@@ -20,7 +20,7 @@ namespace parser {
 struct component
 {
     std::string name;
-    std::string type;
+    std::string kind;
 };
 
 /*!
@@ -30,9 +30,9 @@ struct component
  */
 struct connection
 {
-    std::string source_name;
+    std::string source;
     unsigned short source_out;
-    std::string dest_name;
+    std::string dest;
     unsigned short dest_in;
 };
 
@@ -93,14 +93,14 @@ struct configuration
                 if( v.first == "instance" ) {
                     component comp;
                     comp.name = v.second.get<std::string>("<xmlattr>.name");
-                    comp.type = v.second.get<std::string>("<xmlattr>.kind");
+                    comp.kind = v.second.get<std::string>("<xmlattr>.kind");
                     components.push_back(comp);
                 }
                 else if( v.first == "connection" ) {
                     connection conn;
-                    conn.source_name = v.second.get<std::string>("<xmlattr>.source");
+                    conn.source = v.second.get<std::string>("<xmlattr>.source");
                     conn.source_out = v.second.get<unsigned short>("<xmlattr>.source_out");
-                    conn.dest_name = v.second.get<std::string>("<xmlattr>.dest");
+                    conn.dest = v.second.get<std::string>("<xmlattr>.dest");
                     conn.dest_in = v.second.get<unsigned short>("<xmlattr>.dest_in");
                     connections.push_back(conn);
                 }
