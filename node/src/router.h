@@ -8,20 +8,23 @@
 #include "packet.pb.h"
 #include "client.h"
 #include "i_component.h"
+#include "node.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
 using component_ptr = alpha::protort::components::i_component *;
+using component_unique_ptr = std::unique_ptr<alpha::protort::components::i_component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
- * \brief The node_router class используется для роутинга
+ * \brief Роутер пакетов
  */
-template<class node>
+template<class app>
 class router
 {
+    friend class node;
 private:
     class component_instance;
 
@@ -53,7 +56,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        link::client<node> * client;
+        link::client<app> * client;
     };
 
     /*!
@@ -119,9 +122,11 @@ private:
                 // Рассылаем пакеты по локальным маршрутам
                 for (auto &local_route : port_routes.local_routes)
                 {
-                    std::cout << "using do_route: \nto comp " << local_route.component->name
-                              << "\ninput port" << local_route.in_port << std::endl;
-                    std::cout << "from comp " << this_component->name << " out port " << out_port << std::endl;
+
+                    std::cout << "using do_route: \nfrom comp " << this_component->name
+                              << " out port " << out_port << std::endl;
+                    std::cout << "to comp " << local_route.component->name
+                              << " in port " << local_route.in_port << std::endl;
                     do_route(local_route.component, local_route.in_port, output.payload);
                 }
 
@@ -142,12 +147,15 @@ private:
                     packet.set_payload(output.payload);
 
                     remote_route.client->async_send(packet.SerializeAsString());
+                    std::cout << "Sending packet to " << remote_route.name << std::endl;
                 }
             }
         }
     }
 
+    std::vector<component_unique_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
+    std::map<std::string, std::unique_ptr<link::client<app>>> clients;
 };
 
 } // namespae node

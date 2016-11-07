@@ -14,8 +14,7 @@ public:
     {
         if (input_port == 0 || input_port == 1)
         {
-            output_list result = {{payload, {0, 1}}};
-            std::cout << "retranslator string: " << payload << std::endl;
+            output_list result = { { payload, {0, 1} } };
             return result;
         }
         std::vector<output> result;
