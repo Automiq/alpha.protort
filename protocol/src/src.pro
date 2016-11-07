@@ -24,7 +24,8 @@ LIBS += \
 PROTOS += \
     protobuf/components.proto\
     protobuf/packet.proto\
-    protobuf/deploy.proto
+    protobuf/deploy.proto\
+    protobuf/protocol.proto
 
 
 # Для компиляции протокола с помощью protoc налету

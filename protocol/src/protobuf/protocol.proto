@@ -1,0 +1,25 @@
+syntax = 'proto3';
+import import "google/protobuf/any.proto";
+
+
+message Packet
+{
+    enum PacketType
+    {
+        Message = 0;
+        Request = 1;
+        Response = 2;
+    }
+
+    PacketType packet_type = 1;
+    uint32 transacion_id = 2;
+    oneof Payload
+    {
+        CommunicationProtocolPacket communication_protocol_packet = 3;
+        DeployProtocolPacket deploy_protocol_packet = 4;
+        bytes payload = 5;
+        google.protobuf.Any any_payload = 6;
+    }
+}
+
+

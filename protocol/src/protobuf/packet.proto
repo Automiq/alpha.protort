@@ -2,9 +2,8 @@ syntax = 'proto3';
 import "components.proto";
 package alpha.protort.protocol;
 
-message Packet 
+message CommunicationProtocolPacket
 {
-    uint32 id = 1;
     ComponentEndpoint source = 2;
     ComponentEndpoint destination = 3;
     bytes payload = 4;

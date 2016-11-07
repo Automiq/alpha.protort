@@ -48,43 +48,108 @@ message ConnectionList
     repeated Connection connection = 1;
 }
 
-enum CommandType
+enum RequestType
 {
-    Deploy = 0;         //деплой схемы приложения
+    DeployConfig = 0;   //деплой конфигурации
     Start = 1;          //старт ноды: старт роутера и компонентов
     Stop = 2;           //остановка ноды:
     GetNodeStatus = 3;  //запрос на статус ноды
     Update = 4;         //обновить схему развёрывания на лету
-    SetNodeProp = 5;    //установка свойств ноды
+    GetDeployConfig = 6;
 }
 
-message DeployPacket
+message DeployConfig
 {
-    NodeInfoList node_info_list = 1;
-    InstanceList instance_list = 2;
-    MapList map_list = 3;
-    ConnectionList connrction_list = 4;
+    NodeInfo this_node_info = 5;
+    NodeInfoList node_infos = 1;
+    InstanceList instances = 2;
+    MapList maps = 3;
+    ConnectionList connections = 4;
 }
 
-message NodeProp
+message DeployConfigRequest
 {
-    NodeInfo node_info = 1;
+    DeployConfig config = 1;
 }
 
-message StatusPacket //возвращается после отсылки комманды getstatus, может пригодиться потом
+message DeployConfigResponse
 {
+    enum ErrType
+    {
+        NOERR = 0;
+        BADTHISNODE = 1;
+        BADNODEINFOS = 2;
+        BADINSTATCES = 3;
+        BADMAPS = 4;
+        BADCONNECTIONS = 5;
+    }
+
+    ErrType error = 1;
+}
+
+message StatusRequest
+{}
+
+message StatusResponse
+{
+    uint32 amoung_packets = 1;
 
 }
 
-message Error  //возвращается во время деплоя, апдейта или старта
+message StartRequest
+{}
+
+message StartResponse
 {
-    uint32 code = 1;
-    string text = 2;
+    enum ErrType
+    {
+        NOERR = 0;
+        GENERICERR = 1;
+    }
+   ErrType error = 1;
 }
 
-message CommandPacket //todo - переделать с использованием oneof
+message StopRequest
+{}
+
+message StopResponse
 {
-    CommandType command_type = 1;
-    DeployPacket deploy_body = 2;
-    NodeProp node_info = 3;
+    enum ErrType
+    {
+        NOERR = 0;
+        GENERICERR = 1;
+    }
+    ErrType error = 1;
+}
+
+message GetDeployCofigRequest
+{}
+
+message GetDeployConfigResponse
+{
+    enum ErrType
+    {
+        NOERR = 0;
+        GENERICERR = 1;
+    }
+    ErrType error = 1;
+    DeployConfig config = 2;
+}
+
+message DeployProtocolPacket
+{
+    RequestType request_type = 1;
+    oneof typed_messages
+    {
+        DeployConfigRequest deploy_config_request = 2;
+        DeployConfigResponse deploy_config_response = 3;
+        StatusRequest status_request = 4;
+        StatusResponse status_response = 5;
+        StartRequest start_request = 6;
+        StartResponse start_response = 7;
+        StopRequest stop_request = 8;
+        StopResponse stop_response = 9;
+        GetDeployCofigRequest get_deploy_config_request = 10;
+        GetDeployConfigResponse get_deploy_config_response = 11;
+    }
 }
