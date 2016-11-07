@@ -39,14 +39,12 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     destEndpoint.set_port(2);
 
     // Формируем пакет
-    Packet packet;
-    packet.set_id(1);
+    CommunicationProtocolPacket packet;
     packet.set_payload(payload);
     packet.mutable_source()->CopyFrom(sourceEndpoint);
     packet.mutable_destination()->CopyFrom(destEndpoint);
 
     // Проверяем корректность сформированного пакета
-    BOOST_CHECK_EQUAL(packet.id(), id);
     BOOST_CHECK_EQUAL(packet.source().component_kind(), sourceEndpoint.component_kind());
     BOOST_CHECK_EQUAL(packet.source().port(), sourceEndpoint.port());
     BOOST_CHECK_EQUAL(packet.destination().component_kind(), destEndpoint.component_kind());
@@ -57,11 +55,10 @@ BOOST_AUTO_TEST_CASE(test_serialize_parse)
     auto serializedPacket = packet.SerializeAsString();
 
     // Десериализуем пакет из строки
-    Packet deserializedPacket;
+    CommunicationProtocolPacket deserializedPacket;
     deserializedPacket.ParseFromString(serializedPacket);
 
     // Проверяем корректность десериализованного пакета
-    BOOST_CHECK_EQUAL(deserializedPacket.id(), id);
     BOOST_CHECK_EQUAL(deserializedPacket.source().component_kind(), sourceEndpoint.component_kind());
     BOOST_CHECK_EQUAL(deserializedPacket.source().port(), sourceEndpoint.port());
     BOOST_CHECK_EQUAL(deserializedPacket.destination().component_kind(), destEndpoint.component_kind());
