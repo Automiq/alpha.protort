@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+
     delete ui;
 }
 
@@ -31,28 +32,33 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    for (int i = ui->tabWidget->count(); i >= 0; --i)
+    if(!files->isEmpty())
     {
-        auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
-        if (!text_edit)
-            continue;
-        QFile file(ui->tabWidget->tabText(i));
-        if (file.open(QIODevice::WriteOnly))
+        for (int i = ui->tabWidget->count(); i >= 0; --i)
         {
-            file.write(text_edit->toPlainText().toUtf8());
-            file.close();
-        }
+            auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
+            if (!text_edit)
+                continue;
+            QFile file(ui->tabWidget->tabText(i));
+            if (file.open(QIODevice::WriteOnly))
+            {
+                file.write(text_edit->toPlainText().toUtf8());
+                file.close();
+            }
+         }
     }
 }
 
 void MainWindow::on_exit_triggered()
 {
-    close(); //добавить остановку приложения
+    ui->stop->triggered(true);
+    close();
 }
 
 void MainWindow::on_load_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
+    files->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
     {
@@ -101,8 +107,9 @@ void MainWindow::on_config_triggered()
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
+        ui->start->setDisabled(true);
+        ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
-        ui->start->setEnabled(true);
     }
 }
 
@@ -116,4 +123,10 @@ void MainWindow::on_stop_triggered()
 {
     ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
+}
+
+void MainWindow::on_deploy_triggered()
+{
+    ui->deploy->setDisabled(true);
+    ui->start->setEnabled(true);
 }

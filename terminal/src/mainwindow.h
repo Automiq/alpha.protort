@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QSyntaxHighlighter>
 #include "configdialog.h"
+#include <QMessageBox>
 
 class QTextEdit;
 
@@ -38,6 +39,8 @@ private slots:
     void on_start_triggered();
 
     void on_stop_triggered();
+
+    void on_deploy_triggered();
 
 private:
     QTextEdit* createNewTab(const QString &name);
