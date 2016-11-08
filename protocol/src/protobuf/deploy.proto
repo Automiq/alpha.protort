@@ -4,14 +4,14 @@ package alpha.protort.protocol.deploy;
 
 message NodeInfo
 {
-    string node_name = 1;
-    string node_addr = 2;
-    uint32 node_port = 3;
+    string name = 1;
+    string addr = 2;
+    uint32 port = 3;
 }
 
 message NodeInfoList
 {
-    repeated NodeInfo  nodeinfo = 1;
+    repeated NodeInfo node_info = 1;
 }
 
 message Instance
@@ -47,28 +47,28 @@ message ConnectionList
     repeated Connection connection = 1;
 }
 
-enum RequestKind
+enum PacketKind
 {
     DeployConfig = 0;   //деплой конфигурации
     Start = 1;          //старт ноды: старт роутера и компонентов
     Stop = 2;           //остановка ноды:
     GetNodeStatus = 3;  //запрос на статус ноды
     Update = 4;         //обновить схему развёрывания на лету
-    GetConfig = 6;
+    GetConfig = 5;
 }
 
-message DeployConfigMessage
+message Config
 {
-    NodeInfo this_node_info = 5;
-    NodeInfoList node_infos = 1;
-    InstanceList instances = 2;
-    MapList maps = 3;
-    ConnectionList connections = 4;
+    NodeInfo this_node_info = 1;
+    NodeInfoList node_infos = 2;
+    InstanceList instances = 3;
+    MapList maps = 4;
+    ConnectionList connections = 5;
 }
 
 message DeployConfigRequest
 {
-    DeployConfigMessage config = 1;
+    Config config = 1;
 }
 
 message DeployConfigResponse
@@ -99,12 +99,13 @@ message GetConfigRequest
 
 message GetConfigResponse
 {
-    DeployConfigMessage config = 2;
+    Config config = 1;
 }
 
 message Packet
 {
-    RequestKind request_kind = 1;
+    PacketKind packet_kind = 1;
+    //нельзя пихать оди oneof в другой, я решил оставит всё в одном, так удобнее потому, что мы не будем путаться с индексами полей
     oneof payload
     {
         DeployConfigRequest deploy_config_request = 2;
@@ -115,8 +116,14 @@ message Packet
         StartResponse start_response = 7;
         StopRequest stop_request = 8;
         StopResponse stop_response = 9;
-        GetConfigRequest get_deploy_config_request = 10;
-        GetConfigResponse get_deploy_config_response = 11;
+        GetConfigRequest get_config_request = 10;
+        GetConfigResponse get_config_response = 11;
     }
-    string err_str = 15;
+
+    message Err
+    {
+        string str = 1;
+    }
+
+    Err err= 15;
 }
