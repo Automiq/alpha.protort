@@ -10,6 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    files = new QString();
 }
 
 MainWindow::~MainWindow()
@@ -65,6 +66,7 @@ void MainWindow::on_load_file_triggered()
 void MainWindow::on_create_file_triggered()
 {
     QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
+    files->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadWrite))
     {
