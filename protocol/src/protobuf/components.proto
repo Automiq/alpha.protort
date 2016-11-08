@@ -1,5 +1,4 @@
 syntax = 'proto3';
-
 package alpha.protort.protocol;
 
 enum ComponentKind

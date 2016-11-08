@@ -1,7 +1,6 @@
 syntax = 'proto3';
 import "components.proto";
-package alpha.protort.protocol;
-
+package alpha.protort.protocol.deploy;
 
 message NodeInfo
 {
@@ -12,7 +11,7 @@ message NodeInfo
 
 message NodeInfoList
 {
-    repeated NodeInfo  nodeinfo= 1;
+    repeated NodeInfo  nodeinfo = 1;
 }
 
 message Instance
@@ -48,7 +47,7 @@ message ConnectionList
     repeated Connection connection = 1;
 }
 
-enum RequestType
+enum RequestKind
 {
     DeployConfig = 0;   //деплой конфигурации
     Start = 1;          //старт ноды: старт роутера и компонентов
@@ -73,19 +72,7 @@ message DeployConfigRequest
 }
 
 message DeployConfigResponse
-{
-    enum ErrType
-    {
-        NOERR = 0;
-        BADTHISNODE = 1;
-        BADNODEINFOS = 2;
-        BADINSTATCES = 3;
-        BADMAPS = 4;
-        BADCONNECTIONS = 5;
-    }
-
-    ErrType error = 1;
-}
+{}
 
 message StatusRequest
 {}
@@ -93,53 +80,32 @@ message StatusRequest
 message StatusResponse
 {
     uint32 amoung_packets = 1;
-
 }
 
 message StartRequest
 {}
 
 message StartResponse
-{
-    enum ErrType
-    {
-        NOERR = 0;
-        GENERICERR = 1;
-    }
-   ErrType error = 1;
-}
+{}
 
 message StopRequest
 {}
 
 message StopResponse
-{
-    enum ErrType
-    {
-        NOERR = 0;
-        GENERICERR = 1;
-    }
-    ErrType error = 1;
-}
-
-message GetDeployCofigRequest
 {}
 
-message GetDeployConfigResponse
+message GetCofigRequest
+{}
+
+message GetConfigResponse
 {
-    enum ErrType
-    {
-        NOERR = 0;
-        GENERICERR = 1;
-    }
-    ErrType error = 1;
     DeployConfigMessage config = 2;
 }
 
-message DeployProtocolPacket
+message Packet
 {
-    RequestType request_type = 1;
-    oneof typed_messages
+    RequestKind request_kind = 1;
+    oneof payload
     {
         DeployConfigRequest deploy_config_request = 2;
         DeployConfigResponse deploy_config_response = 3;
@@ -149,7 +115,8 @@ message DeployProtocolPacket
         StartResponse start_response = 7;
         StopRequest stop_request = 8;
         StopResponse stop_response = 9;
-        GetDeployCofigRequest get_deploy_config_request = 10;
-        GetDeployConfigResponse get_deploy_config_response = 11;
+        GetCofigRequest get_deploy_config_request = 10;
+        GetConfigResponse get_deploy_config_response = 11;
     }
+    string err_str = 15;
 }

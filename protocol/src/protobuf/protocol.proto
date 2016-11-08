@@ -15,12 +15,17 @@ message Packet
         Response = 2;
     }
 
+    message Transaction
+    {
+        uint32 id = 1;
+    }
+
     PacketType packet_type = 1;
-    uint32 transacion_id = 2;
+    Trensaction transaction = 2;
     oneof Payload
     {
-        CommunicationProtocolPacket communication_protocol_packet = 3;
-        DeployProtocolPacket deploy_protocol_packet = 4;
+        communication.Packet communication_protocol_packet = 3;
+        deploy.Packet deploy_protocol_packet = 4;
         bytes payload = 5;
         google.protobuf.Any any_payload = 6;
     }
