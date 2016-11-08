@@ -10,7 +10,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    files = new QString();
+    openFiles = new QString();
 }
 
 MainWindow::~MainWindow()
@@ -32,7 +32,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    if(!files->isEmpty())
+    if(!openFiles->isEmpty())
     {
         for (int i = ui->tabWidget->count(); i >= 0; --i)
         {
@@ -58,7 +58,7 @@ void MainWindow::on_exit_triggered()
 void MainWindow::on_load_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
-    files->push_back(file_name);
+    openFiles->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
     {
@@ -72,7 +72,7 @@ void MainWindow::on_load_file_triggered()
 void MainWindow::on_create_file_triggered()
 {
     QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
-    files->push_back(file_name);
+    openFiles->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadWrite))
     {

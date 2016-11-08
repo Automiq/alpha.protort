@@ -29,13 +29,6 @@
      <item>
       <widget class="QComboBox" name="appComboBox"/>
      </item>
-     <item>
-      <widget class="QToolButton" name="toolButton">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
-     </item>
     </layout>
    </item>
    <item row="2" column="0">
@@ -52,13 +45,6 @@
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
       <widget class="QComboBox" name="deploySchemaComboBox"/>
-     </item>
-     <item>
-      <widget class="QToolButton" name="toolButton_2">
-       <property name="text">
-        <string>...</string>
-       </property>
-      </widget>
      </item>
     </layout>
    </item>

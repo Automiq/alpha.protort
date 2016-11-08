@@ -43,13 +43,11 @@ private slots:
     void on_deploy_triggered();
 
 private:
-    QTextEdit* createNewTab(const QString &name);
-
     Ui::MainWindow *ui;
-
+    QTextEdit *createNewTab(const QString &name);
+    QString *openFiles;
     QString m_app;
     QString m_deploySchema;
-    QString *openFiles;
 };
 
 #endif // MAINWINDOW_H
