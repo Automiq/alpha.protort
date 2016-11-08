@@ -49,7 +49,7 @@ private:
 
     QString m_app;
     QString m_deploySchema;
-    QString *files;
+    QString *openFiles;
 };
 
 #endif // MAINWINDOW_H
