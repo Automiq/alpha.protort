@@ -22,3 +22,8 @@ QString ConfigDialog::deploySchema() const
 {
     return ui->deploySchemaComboBox->currentText();
 }
+
+void ConfigDialog::on_buttonBox_accepted()
+{
+    this->hide();
+}

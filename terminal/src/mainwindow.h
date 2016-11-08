@@ -35,6 +35,10 @@ private slots:
 
     void on_config_triggered();
 
+    void on_start_triggered();
+
+    void on_stop_triggered();
+
 private:
     QTextEdit* createNewTab(const QString &name);
 

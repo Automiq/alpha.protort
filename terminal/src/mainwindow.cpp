@@ -99,5 +99,19 @@ void MainWindow::on_config_triggered()
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
+        ui->deploy->setEnabled(true);
+        ui->start->setEnabled(true);
     }
+}
+
+void MainWindow::on_start_triggered()
+{
+    ui->start->setDisabled(true);
+    ui->stop->setEnabled(true);
+}
+
+void MainWindow::on_stop_triggered()
+{
+    ui->start->setEnabled(true);
+    ui->stop->setDisabled(true);
 }

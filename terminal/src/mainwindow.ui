@@ -80,6 +80,9 @@
    <addaction name="menu_project"/>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
@@ -91,6 +94,7 @@
    <addaction name="save_file"/>
    <addaction name="save_all"/>
    <addaction name="deploy"/>
+   <addaction name="start"/>
    <addaction name="stop"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
@@ -133,6 +137,9 @@
    </property>
   </action>
   <action name="deploy">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/deploy.png</normaloff>:/images/deploy.png</iconset>
@@ -145,6 +152,9 @@
    </property>
   </action>
   <action name="stop">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/stop.png</normaloff>:/images/stop.png</iconset>
@@ -219,6 +229,9 @@
    </property>
   </action>
   <action name="start">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/start.png</normaloff>:/images/start.png</iconset>

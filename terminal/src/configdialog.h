@@ -18,6 +18,9 @@ public:
     QString app() const;
     QString deploySchema() const;
 
+private slots:
+    void on_buttonBox_accepted();
+
 private:
     Ui::ConfigDialog *ui;
 };
