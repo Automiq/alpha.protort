@@ -21,7 +21,7 @@ message Packet
     }
 
     PacketType packet_type = 1;
-    Trensaction transaction = 2;
+    Transaction transaction = 2;
     oneof Payload
     {
         communication.Packet communication_protocol_packet = 3;

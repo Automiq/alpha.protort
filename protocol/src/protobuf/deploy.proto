@@ -54,7 +54,7 @@ enum RequestKind
     Stop = 2;           //остановка ноды:
     GetNodeStatus = 3;  //запрос на статус ноды
     Update = 4;         //обновить схему развёрывания на лету
-    GetDeployConfig = 6;
+    GetConfig = 6;
 }
 
 message DeployConfigMessage
@@ -94,7 +94,7 @@ message StopRequest
 message StopResponse
 {}
 
-message GetCofigRequest
+message GetConfigRequest
 {}
 
 message GetConfigResponse
@@ -115,7 +115,7 @@ message Packet
         StartResponse start_response = 7;
         StopRequest stop_request = 8;
         StopResponse stop_response = 9;
-        GetCofigRequest get_deploy_config_request = 10;
+        GetConfigRequest get_deploy_config_request = 10;
         GetConfigResponse get_deploy_config_response = 11;
     }
     string err_str = 15;
