@@ -75,7 +75,6 @@ public:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         std::string payload(buffer, nbytes);
-        std::cout << payload << std::endl;
         // Deploy
     }
 
@@ -85,7 +84,6 @@ public:
      */
     void on_new_connection(const boost::system::error_code& err)
     {
-        std::cout << err << std::endl;
         // TODO
     }
 
