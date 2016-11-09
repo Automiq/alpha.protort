@@ -133,7 +133,7 @@ private:
                 // Формируем и рассылаем пакеты по удаленным маршрутам
                 for (auto &remote_route : port_routes.remote_routes)
                 {
-                    alpha::protort::protocol::Packet packet;
+                    alpha::protort::protocol::communication::Packet packet;
 
                     // out endpoint
                     packet.mutable_source()->set_port(static_cast<uint32_t>(out_port));
