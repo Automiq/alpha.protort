@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>611</width>
-    <height>406</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,7 +51,7 @@
      <x>0</x>
      <y>0</y>
      <width>611</width>
-     <height>18</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -225,7 +225,7 @@
      <normaloff>:/images/config.png</normaloff>:/images/config.png</iconset>
    </property>
    <property name="text">
-    <string>Конфигурация...</string>
+    <string>&amp;Конфигурация...</string>
    </property>
   </action>
   <action name="start">

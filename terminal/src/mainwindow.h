@@ -5,6 +5,7 @@
 #include <QSyntaxHighlighter>
 #include "configdialog.h"
 #include <QMessageBox>
+#include "document.h"
 
 class QTextEdit;
 
@@ -41,6 +42,10 @@ private slots:
     void on_stop_triggered();
 
     void on_deploy_triggered();
+
+    void on_close_file_triggered();
+
+    void close_tab(int index);
 
 private:
     Ui::MainWindow *ui;

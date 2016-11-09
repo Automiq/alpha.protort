@@ -15,8 +15,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-
     delete ui;
+}
+
+void MainWindow::close_tab(int index)
+{
+    ui->tabWidget->currentWidget()->deleteLater();
+    ui->tabWidget->removeTab(index);
+    if (ui->tabWidget->count() == 0)
+        close();
 }
 
 void MainWindow::on_save_file_triggered()
@@ -86,10 +93,7 @@ void MainWindow::on_create_file_triggered()
 
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
 {
-    ui->tabWidget->currentWidget()->deleteLater();
-    ui->tabWidget->removeTab(index);
-    if (ui->tabWidget->count() == 0)
-        close();
+    close_tab(index);
 }
 
 QTextEdit* MainWindow::createNewTab(const QString &name)
@@ -130,3 +134,9 @@ void MainWindow::on_deploy_triggered()
     ui->deploy->setDisabled(true);
     ui->start->setEnabled(true);
 }
+
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
+}
+
