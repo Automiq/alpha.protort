@@ -5,7 +5,7 @@ package alpha.protort.protocol.deploy;
 message NodeInfo
 {
     string name = 1;
-    string addr = 2;
+    string address = 2;
     uint32 port = 3;
 }
 
@@ -105,25 +105,41 @@ message GetConfigResponse
 message Packet
 {
     PacketKind packet_kind = 1;
-    //нельзя пихать оди oneof в другой, я решил оставит всё в одном, так удобнее потому, что мы не будем путаться с индексами полей
-    oneof payload
+
+    message Request
     {
-        DeployConfigRequest deploy_config_request = 2;
-        DeployConfigResponse deploy_config_response = 3;
-        StatusRequest status_request = 4;
-        StatusResponse status_response = 5;
-        StartRequest start_request = 6;
-        StartResponse start_response = 7;
-        StopRequest stop_request = 8;
-        StopResponse stop_response = 9;
-        GetConfigRequest get_config_request = 10;
-        GetConfigResponse get_config_response = 11;
+        oneof Payload
+        {
+            DeployConfigRequest deploy_config_request = 1;
+            StatusRequest status_request = 2;
+            StartRequest start_request = 3;
+            StopRequest stop_request = 4;
+            GetConfigRequest get_config_request = 5;
+        }
     }
 
-    message Err
+    message Response
     {
-        string str = 1;
+        oneof Payload
+        {
+            DeployConfigResponse deploy_config_response = 1;
+            StatusResponse status_response = 2;
+            StartResponse start_response = 3;
+            StopResponse stop_response = 4;
+            GetConfigResponse get_config_response = 5;
+        }
     }
 
-    Err err= 15;
+    oneof Payload
+    {
+        Request request = 2;
+        Response response = 3;
+    }
+
+    message Error
+    {
+        string message = 1;
+    }
+
+    Error error= 4;
 }

@@ -83,14 +83,14 @@ BOOST_AUTO_TEST_CASE(test_serialize_trerminal_to_node_protocol){
     //пакет с информацией о ноде
     deploy::NodeInfo info;
     info.set_name(node_name);
-    info.set_addr(node_addr);
+    info.set_address(node_addr);
     info.set_port(node_port);
 
     deploy::NodeInfoList info_list;
     info_list.add_node_info()->CopyFrom(info);
 
     BOOST_CHECK_EQUAL(info_list.node_info(0).name(),node_name);
-    BOOST_CHECK_EQUAL(info_list.node_info(0).addr(),node_addr);
+    BOOST_CHECK_EQUAL(info_list.node_info(0).address(),node_addr);
     BOOST_CHECK_EQUAL(info_list.node_info(0).port(),node_port);
 
     deploy::Instance terminator, generator;
@@ -159,7 +159,7 @@ BOOST_AUTO_TEST_CASE(test_serialize_trerminal_to_node_protocol){
     deserialized_con_list.ParseFromString(serialized_con_list);
 
     BOOST_CHECK_EQUAL(deserialized_info_list.node_info(0).name(),node_name);
-    BOOST_CHECK_EQUAL(deserialized_info_list.node_info(0).addr(),node_addr);
+    BOOST_CHECK_EQUAL(deserialized_info_list.node_info(0).address(),node_addr);
     BOOST_CHECK_EQUAL(deserialized_info_list.node_info(0).port(),node_port);
 
     BOOST_CHECK_EQUAL(deserialized_inst_list.instance(0).kind(),terminator_kind);
