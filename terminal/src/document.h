@@ -3,7 +3,6 @@
 
 #include <QDialog>
 #include <QFile>
-#include <QTextStream>
 
 namespace UI {
 class Document;
