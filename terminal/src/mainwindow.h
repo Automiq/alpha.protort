@@ -5,6 +5,7 @@
 #include <QSyntaxHighlighter>
 #include "configdialog.h"
 #include <QMessageBox>
+#include <QList>
 #include "document.h"
 
 class QTextEdit;
@@ -50,7 +51,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QTextEdit *createNewTab(const QString &name);
-    QString *openFiles;
+    QList <Document> openApp;
+    QList <Document> openDeploy;
     QString m_app;
     QString m_deploySchema;
 };

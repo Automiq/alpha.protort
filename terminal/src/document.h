@@ -10,15 +10,18 @@ class Document;
 
 class Document
 {
-    QString name;
+    QFile file;
     int type;
-
+    void set_type();
 public:
     Document();
-    Document (QString name);
+    Document (QString fname);
+    Document (Document &doc);
+    Document operator=(Document &some);
     ~Document();
+    QString name();
+    QFile get_file();
     int get_type();
-    void parse_type();
 };
 
 #endif // DOCUMENT_H

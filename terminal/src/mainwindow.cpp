@@ -9,8 +9,9 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    openApp = new QList<Document>;
+   openDeploy = new QList<Document>;
     ui->setupUi(this);
-    openFiles = new QString();
 }
 
 MainWindow::~MainWindow()
@@ -39,20 +40,17 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    if(!openFiles->isEmpty())
+    for (int i = ui->tabWidget->count(); i >= 0; --i)
     {
-        for (int i = ui->tabWidget->count(); i >= 0; --i)
+        auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+        QFile file(ui->tabWidget->tabText(i));
+        if (file.open(QIODevice::WriteOnly))
         {
-            auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
-            if (!text_edit)
-                continue;
-            QFile file(ui->tabWidget->tabText(i));
-            if (file.open(QIODevice::WriteOnly))
-            {
-                file.write(text_edit->toPlainText().toUtf8());
-                file.close();
-            }
-         }
+            file.write(text_edit->toPlainText().toUtf8());
+            file.close();
+        }
     }
 }
 
@@ -62,11 +60,25 @@ void MainWindow::on_exit_triggered()
     close();
 }
 
+void addDoc(Document doc, QList <Document> &app, QList <Document> &deploy )
+{
+    if(doc.get_type() == 2)
+        app.push_back(doc);
+    if(doc.get_type() == 3)
+        deploy.push_back(doc);
+};
+
 void MainWindow::on_load_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
-    openFiles->push_back(file_name);
     QFile file(file_name);
+
+    Document doc(file_name);
+    if(doc.get_type() == 2)
+        openApp.push_back(doc);
+    if(doc.get_type() == 3)
+        openDeploy.push_back(doc);
+
     if (file.open(QIODevice::ReadOnly))
     {
         auto text_edit = createNewTab(QString(QFileInfo(file_name).fileName()));
@@ -79,8 +91,14 @@ void MainWindow::on_load_file_triggered()
 void MainWindow::on_create_file_triggered()
 {
     QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
-    openFiles->push_back(file_name);
     QFile file(file_name);
+
+    Document doc(file_name);
+    if(doc.get_type() == 2)
+        openApp.push_back(doc);
+    if(doc.get_type() == 3)
+        openDeploy.push_back(doc);
+
     if (file.open(QIODevice::ReadWrite))
     {
         if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")

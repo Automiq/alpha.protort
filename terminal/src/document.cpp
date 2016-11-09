@@ -7,13 +7,13 @@ enum doc_type
     app
 };
 
-void Document::parse_type()
+void Document::set_type()
 {
-    QFile file(name);
+    QFile tmp(name());
     QString type_str = "";
-    if (file.open(QIODevice::ReadOnly))
+    if (this->get_file().open(QIODevice::ReadOnly))
     {
-        type_str = file.readLine();
+        type_str = tmp.readLine();
         if (type_str == "<deploy>")
             type = deploy;
         else if (type_str == "<app>")
@@ -25,17 +25,33 @@ void Document::parse_type()
 
 Document::Document()
 {
-    name = "";
     type = undef;
 }
 
-Document::Document(QString name)
+Document::Document(QString fname)
 {
-    this->name = name;
-    parse_type();
+    file.setFileName(fname);
+    set_type();
 }
 
-int Document::get_type()
+Document::Document(Document &doc)
 {
-    return type;
+    file.setFileName(doc.file.fileName());
+    type = doc.type;
 }
+
+Document Document::operator=(Document &some)
+{
+    Document res(some);
+    return res;
+}
+
+Document::~Document()
+{
+    file.close();
+    file.~QFile();
+}
+
+int Document::get_type(){ return type; }
+
+QString Document::name(){ return file.fileName(); }
