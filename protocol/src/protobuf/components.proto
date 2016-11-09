@@ -1,4 +1,5 @@
 syntax = 'proto3';
+
 package alpha.protort.protocol;
 
 enum ComponentKind
@@ -10,7 +11,12 @@ enum ComponentKind
 
 message ComponentEndpoint
 {
+    // Тип компонента
     ComponentKind component_kind = 1;
-    uint32 port = 2; // Идентификатор входа или выхода
-    string name = 3; // Имя компонента
+    
+    // Идентификатор входа или выхода
+    uint32 port = 2;
+    
+    // Имя компонента
+    string name = 3;
 }
