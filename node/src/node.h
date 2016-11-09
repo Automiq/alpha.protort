@@ -36,16 +36,16 @@ public:
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM)
     {
-        server_for_conf_.listen(
-            boost::asio::ip::tcp::endpoint
-                (boost::asio::ip::tcp::v4(),
-                 default_port));
     }
 
     void start()
     {
-        //server_.listen(settings_.source);
-        //service_.run();
+        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
+        server_for_conf_.listen(
+            boost::asio::ip::tcp::endpoint
+                (boost::asio::ip::tcp::v4(),
+                 default_port));
+        service_.run();
     }
 
     /*!
@@ -75,14 +75,8 @@ public:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         std::string payload(buffer, nbytes);
-        std::string deserialized_string;
-        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
-        //deploy
-        server_for_conf_.listen(
-            boost::asio::ip::tcp::endpoint
-                (boost::asio::ip::tcp::v4(),
-                 atoi(deserialized_string.c_str())));
-        service_.run();
+        std::cout << payload << std::endl;
+        // Deploy
     }
 
     /*!
@@ -91,6 +85,7 @@ public:
      */
     void on_new_connection(const boost::system::error_code& err)
     {
+        std::cout << err << std::endl;
         // TODO
     }
 
@@ -107,6 +102,12 @@ public:
             std::string address;
             unsigned short port;
         };
+
+        // Начинаем прослушивать порт
+//        server_.listen(
+//            boost::asio::ip::tcp::endpoint
+//                (boost::asio::ip::tcp::v4(),
+//                 порт);
 
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;

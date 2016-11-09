@@ -8,8 +8,8 @@ int main(int argc, const char *argv[])
     if (!node_settings_.parse(argc, argv))
         return 1;
 
-//    node n(node_settings_);
-//    n.start();
+    node::node n(node_settings_);
+    n.start();
 
     return 0;
 }
