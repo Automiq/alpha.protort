@@ -55,7 +55,6 @@ public:
         : socket_(service),
           write_buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
-          ep_(ep),
           reconnect_timer(service)
     {
         async_connect(ep);
@@ -83,6 +82,7 @@ public:
      */
     void async_connect(boost::asio::ip::tcp::endpoint ep)
     {
+        ep_ = ep;
         do_connect(ep);
     }
 
@@ -152,8 +152,7 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes)
     {
-        if ((boost::asio::error::eof == err) ||
-            (boost::asio::error::connection_reset == err))
+        if (boost::asio::error::eof == err || boost::asio::error::connection_reset == err)
         {
             stop();
             do_connect(ep_);
