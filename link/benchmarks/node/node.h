@@ -31,7 +31,6 @@ using namespace alpha::protort::link;
  *  - Intel Celeron CPU B830 @ 1.80 GHz, loopback, Windows 10, 6.71 секунды =>
  *    ~2.22 GBit/s
  */
-
 class test_node
 {
 public:
