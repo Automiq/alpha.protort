@@ -4,6 +4,7 @@
 #include <QXmlStreamReader>
 #include <QMessageBox>
 #include <QTextStream>
+#include <QByteArray>
 
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
@@ -32,18 +33,17 @@ void Document::setFileName(const QString &fileName)
 {
     name = fileName;
 }
-/*
- Document::kind() const
+
+Document::Kind Document::kind() const
 {
-    QString *device = "<app>"; // вот эту строку надо читать из таба
-    QXmlStreamReader xml.setDevice(device);
-    if (xml.readNextStartElement())
-    {
-        if (xml.name() == "app")
-        return 0;
-        if (xml.name() == "deploy")
-        return 1;
-    return 2;
-    }
-    return !xml.error();
-}*/
+    QXmlStreamReader xml(toPlainText());
+
+    if (!xml.readNextStartElement())
+        return Kind::Unknown;
+
+    if (xml.name() == "app")
+        return Kind::App;
+
+    if (xml.name() == "deploy")
+        return Kind::Deploy;
+}

@@ -26,7 +26,7 @@ public:
     void load();
     QString fileName() const;
     void setFileName(const QString &fileName);
-    int kind() const;
+    Kind kind() const;
     void save();
 
 private:
