@@ -48,9 +48,12 @@ private slots:
 
     void close_tab(int index);
 
+    void addDocument(Document *doc);
+
+    QString fixedWindowTitle(const Document *doc) const;
+
 private:
     Ui::MainWindow *ui;
-    QTextEdit *createNewTab(const QString &name);
     QList <Document> openApp;
     QList <Document> openDeploy;
     QString m_app;

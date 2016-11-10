@@ -9,8 +9,6 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    openApp = new QList<Document>;
-   openDeploy = new QList<Document>;
     ui->setupUi(this);
 }
 
@@ -60,44 +58,74 @@ void MainWindow::on_exit_triggered()
     close();
 }
 
-void addDoc(Document doc, QList <Document> &app, QList <Document> &deploy )
-{
-    if(doc.get_type() == 2)
-        app.push_back(doc);
-    if(doc.get_type() == 3)
-        deploy.push_back(doc);
-};
-
 void MainWindow::on_load_file_triggered()
 {
-    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
-    QFile file(file_name);
+    QString fileName = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
 
-    Document doc(file_name);
-    if(doc.get_type() == 2)
-        openApp.push_back(doc);
-    if(doc.get_type() == 3)
-        openDeploy.push_back(doc);
+    if (fileName.isEmpty())
+        return;
 
-    if (file.open(QIODevice::ReadOnly))
-    {
-        auto text_edit = createNewTab(QString(QFileInfo(file_name).fileName()));
-        QByteArray file_text = file.readAll();
-        text_edit->setText(file_text);
-        file.close();
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        QMessageBox::warning(this,
+                            tr("File error"),
+                            tr("Failed to open\n%1").arg(fileName));
+        return;
     }
+    Document *tmp = new Document();
+    tmp->setText(file.readAll());
+    tmp->setFileName(fileName);
+    addDocument(tmp);
 }
+
+void MainWindow::addDocument(Document *doc)
+{
+    if (ui->tabWidget->indexOf(doc) != -1)
+        return;
+    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+}
+
+QString MainWindow::fixedWindowTitle(const Document *doc) const
+{
+    QString title = doc->fileName();
+
+    if (title.isEmpty())
+        title = tr("Unnamed");
+    else
+        title = QFileInfo(title).fileName();
+
+    QString result;
+
+    for (int i = 0; ; ++i)
+    {
+        result = title;
+        if (i > 0)
+            result += QString::number(i);
+
+        bool unique = true;
+        for (int j = 0; j < ui->tabWidget->count(); ++j)
+        {
+            const QWidget *widget = ui->tabWidget->widget(j);
+            if (widget == doc)
+                continue;
+            if (result == ui->tabWidget->tabText(j))
+            {
+                unique = false;
+                break;
+            }
+        }
+
+        if (unique)
+            break;
+    }
+    return result;
+}
+
 
 void MainWindow::on_create_file_triggered()
 {
     QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
     QFile file(file_name);
-
-    Document doc(file_name);
-    if(doc.get_type() == 2)
-        openApp.push_back(doc);
-    if(doc.get_type() == 3)
-        openDeploy.push_back(doc);
 
     if (file.open(QIODevice::ReadWrite))
     {
@@ -112,14 +140,6 @@ void MainWindow::on_create_file_triggered()
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
 {
     close_tab(index);
-}
-
-QTextEdit* MainWindow::createNewTab(const QString &name)
-{
-    QTextEdit *text_edit = new QTextEdit();
-    ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
-    ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
-    return text_edit;
 }
 
 void MainWindow::on_config_triggered()
@@ -157,4 +177,11 @@ void MainWindow::on_close_file_triggered()
 {
     close_tab(ui->tabWidget->currentIndex());
 }
-
+/*
+QTextEdit MainWindow::createNewTab(QString path)
+{
+    QTextEdit text_edit = new QTextEdit();
+    tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
+    ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
+    return text_edit;
+}*/

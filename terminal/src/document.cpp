@@ -1,4 +1,7 @@
 #include "document.h"
+#include <QWidget>
+#include <QFileDialog>
+#include <QXmlStreamReader>
 
 enum doc_type
 {
@@ -7,51 +10,41 @@ enum doc_type
     app
 };
 
-void Document::set_type()
+Document::Document(QWidget *parent)
+    : QTextEdit(parent)
 {
-    QFile tmp(name());
-    QString type_str = "";
-    if (this->get_file().open(QIODevice::ReadOnly))
+}
+
+//QByteArray Document::txt(){return text;}
+
+void Document::load()
+{
+
+}
+
+QString Document::fileName() const
+{
+    return name;
+}
+
+void Document::setFileName(const QString &fileName)
+{
+    name = fileName;
+}
+/*
+int Document::kind() const
+{
+
+    QString *device = "<app>"; // вот эту строку надо читать из таба
+    QXmlStreamReader xml.setDevice(device);
+    if (xml.readNextStartElement())
     {
-        type_str = tmp.readLine();
-        if (type_str == "<deploy>")
-            type = deploy;
-        else if (type_str == "<app>")
-            type = app;
-        else
-            type = undef;
+        if (xml.name() == "app")
+        return 0;
+        if (xml.name() == "deploy")
+        return 1;
+    return 2;
     }
+    return !xml.error();
 }
-
-Document::Document()
-{
-    type = undef;
-}
-
-Document::Document(QString fname)
-{
-    file.setFileName(fname);
-    set_type();
-}
-
-Document::Document(Document &doc)
-{
-    file.setFileName(doc.file.fileName());
-    type = doc.type;
-}
-
-Document Document::operator=(Document &some)
-{
-    Document res(some);
-    return res;
-}
-
-Document::~Document()
-{
-    file.close();
-    file.~QFile();
-}
-
-int Document::get_type(){ return type; }
-
-QString Document::name(){ return file.fileName(); }
+*/

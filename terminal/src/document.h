@@ -3,25 +3,27 @@
 
 #include <QDialog>
 #include <QFile>
+#include <QTextEdit>
+#include <QByteArray>
 
-namespace UI {
+namespace Ui {
 class Document;
 }
 
-class Document
+class Document: public QTextEdit
 {
-    QFile file;
-    int type;
-    void set_type();
+    Q_OBJECT
+
 public:
-    Document();
-    Document (QString fname);
-    Document (Document &doc);
-    Document operator=(Document &some);
-    ~Document();
-    QString name();
-    QFile get_file();
-    int get_type();
+    Document(QWidget *parent = 0);
+    void load();
+    void save();
+    QString fileName() const;
+    void setFileName(const QString &fileName);
+    int kind() const;
+
+private:
+    QString name;
 };
 
 #endif // DOCUMENT_H
