@@ -55,7 +55,6 @@ public:
             server_.listen(settings_.source);
             break;
         case alpha::protort::protocol::Generator:
-            signals_.async_wait(boost::bind(&boost::asio::io_service::stop,&service));
             client_.async_connect(settings_.destination);
             break;
         default:
@@ -79,8 +78,7 @@ public:
 
     void on_connected(const boost::system::error_code& err)
     {
-        if(!err)
-            client_.async_send(msg_);
+        client_.async_send(msg_);
     }
 
     void on_new_packet(char const *buffer, size_t nbytes)

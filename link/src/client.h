@@ -133,9 +133,8 @@ private:
         callback_.on_connected(err);
         if (err)
         {
-            reconnect_timer.cancel();
             reconnect_timer.expires_from_now(boost::posix_time::milliseconds(time_to_reconnect));
-            reconnect_timer.async_wait(boost::bind(&client::do_connect,this,ep_));
+            reconnect_timer.async_wait(boost::bind(&client::do_connect, this, ep_));
         }
     }
 
@@ -147,12 +146,14 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes)
     {
-        if (boost::asio::error::connection_reset == err)
+        if ((boost::asio::error::eof == err) ||
+            (boost::asio::error::connection_reset == err))
         {
             stop();
             do_connect(ep_);
         }
-        callback_.on_packet_sent(err, bytes);
+        else
+            callback_.on_packet_sent(err, bytes);
     }
 
     //! Сокет
@@ -168,7 +169,7 @@ private:
     boost::asio::ip::tcp::endpoint ep_;
 
     //! Таймер для переподключения
-    boost::asio::deadline_timer reconnect_timer;
+    boost::asio::deadline_timer reconnect_timer_;
 };
 
 } // namespace link
