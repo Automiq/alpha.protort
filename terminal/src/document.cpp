@@ -2,13 +2,8 @@
 #include <QWidget>
 #include <QFileDialog>
 #include <QXmlStreamReader>
-
-enum doc_type
-{
-    undef,
-    deploy,
-    app
-};
+#include <QMessageBox>
+#include <QTextStream>
 
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
@@ -17,9 +12,15 @@ Document::Document(QWidget *parent)
 
 //QByteArray Document::txt(){return text;}
 
-void Document::load()
+void Document::save()
 {
-
+    QFile sfile(this->name);
+    if ( sfile.open(QIODevice::ReadWrite) )
+    {
+        QTextStream stream( &sfile );
+        stream << this->toPlainText() << endl;
+        sfile.close();
+    }
 }
 
 QString Document::fileName() const
@@ -32,9 +33,8 @@ void Document::setFileName(const QString &fileName)
     name = fileName;
 }
 /*
-int Document::kind() const
+ Document::kind() const
 {
-
     QString *device = "<app>"; // вот эту строку надо читать из таба
     QXmlStreamReader xml.setDevice(device);
     if (xml.readNextStartElement())
@@ -46,5 +46,4 @@ int Document::kind() const
     return 2;
     }
     return !xml.error();
-}
-*/
+}*/

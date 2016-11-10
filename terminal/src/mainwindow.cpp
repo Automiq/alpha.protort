@@ -4,6 +4,7 @@
 #include <QFileDialog>
 #include <QTextEdit>
 #include <QObject>
+#include <QTextStream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,6 +29,7 @@ void MainWindow::close_tab(int index)
 void MainWindow::on_save_file_triggered()
 {
     auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->currentWidget());
+
     QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
     if (file.open(QIODevice::ReadWrite))
     {
@@ -176,6 +178,19 @@ void MainWindow::on_deploy_triggered()
 void MainWindow::on_close_file_triggered()
 {
     close_tab(ui->tabWidget->currentIndex());
+}
+
+Document *MainWindow::currentDocument() const
+{
+    return qobject_cast<Document*>(ui->tabWidget->currentWidget());
+}
+
+void MainWindow::saveDocument()
+{
+    Document *doc = currentDocument();
+    if (doc == 0)
+        return;
+    doc->save();
 }
 /*
 QTextEdit MainWindow::createNewTab(QString path)

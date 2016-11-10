@@ -48,7 +48,11 @@ private slots:
 
     void close_tab(int index);
 
+    void saveDocument();
+
     void addDocument(Document *doc);
+
+    Document* currentDocument() const;
 
     QString fixedWindowTitle(const Document *doc) const;
 

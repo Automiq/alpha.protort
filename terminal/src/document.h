@@ -4,7 +4,6 @@
 #include <QDialog>
 #include <QFile>
 #include <QTextEdit>
-#include <QByteArray>
 
 namespace Ui {
 class Document;
@@ -15,12 +14,20 @@ class Document: public QTextEdit
     Q_OBJECT
 
 public:
+
+    enum Kind
+    {
+        Unknown,
+        Deploy,
+        App
+    };
+
     Document(QWidget *parent = 0);
     void load();
-    void save();
     QString fileName() const;
     void setFileName(const QString &fileName);
     int kind() const;
+    void save();
 
 private:
     QString name;
