@@ -55,7 +55,7 @@ public:
         : socket_(service),
           write_buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
-          reconnect_timer(service)
+          reconnect_timer_(service)
     {
         async_connect(ep);
     }
