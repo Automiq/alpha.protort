@@ -130,7 +130,6 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        std::cout << ep_ <<std::endl;
         callback_.on_connected(err);
         if (err)
         {
