@@ -5,12 +5,15 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "packet_header.h"
 
 namespace alpha {
 namespace protort {
 namespace link {
+
+static const int time_to_reconnect = 5000;
 
 /*!
  * Шаблонный класс клиента
@@ -29,8 +32,9 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service)
         : socket_(service),
+          write_buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
-          write_buffer_(new char[max_packet_size + header_size])
+          reconnect_timer(service)
     {
     }
 
@@ -43,8 +47,10 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
+          write_buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
-          write_buffer_(new char[header_size + max_packet_size])
+          ep_(ep),
+          reconnect_timer(service)
     {
         async_connect(ep);
     }
@@ -124,13 +130,14 @@ private:
      */
     void on_connect(const error_code& err)
     {
+        std::cout << ep_ <<std::endl;
+        callback_.on_connected(err);
         if (err)
         {
-            stop();
-            return;
+            reconnect_timer.cancel();
+            reconnect_timer.expires_from_now(boost::posix_time::milliseconds(time_to_reconnect));
+            reconnect_timer.async_wait(boost::bind(&client::do_connect,this,ep_));
         }
-
-        callback_.on_connected(err);
     }
 
     /*!
@@ -141,6 +148,11 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes)
     {
+        if (boost::asio::error::connection_reset == err)
+        {
+            stop();
+            do_connect(ep_);
+        }
         callback_.on_packet_sent(err, bytes);
     }
 
@@ -152,6 +164,12 @@ private:
 
     //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
+
+    //! Эндпоинт, используется при повторном подключении
+    boost::asio::ip::tcp::endpoint ep_;
+
+    //! Таймер для переподключения
+    boost::asio::deadline_timer reconnect_timer;
 };
 
 } // namespace link
