@@ -13,7 +13,13 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-static const int time_to_reconnect = 5000;
+/*!
+ * \brief Временной интервал для повторного подключения
+ *
+ * Временной интервал, через который будет выполнена повторная попытка подключения
+ * если предыдущая попытка не увенчалась успехом.
+ */
+static const int reconnect_interval = 5000;
 
 /*!
  * Шаблонный класс клиента
@@ -34,7 +40,7 @@ public:
         : socket_(service),
           write_buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
-          reconnect_timer(service)
+          reconnect_timer_(service)
     {
     }
 
@@ -133,8 +139,8 @@ private:
         callback_.on_connected(err);
         if (err)
         {
-            reconnect_timer.expires_from_now(boost::posix_time::milliseconds(time_to_reconnect));
-            reconnect_timer.async_wait(boost::bind(&client::do_connect, this, ep_));
+            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(reconnect_interval));
+            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
         }
     }
 
