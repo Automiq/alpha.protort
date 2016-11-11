@@ -3,24 +3,28 @@
 
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
-    ui(new Ui::ConfigDialog)
+    cd(new Ui::ConfigDialog)
 {
-    ui->setupUi(this);
-}
-
-ConfigDialog::~ConfigDialog()
-{
-    delete ui;
+    cd->setupUi(this);
 }
 
 QString ConfigDialog::app() const
 {
-    return ui->appComboBox->currentText();
+    return cd->appComboBox->currentText();
 }
 
 QString ConfigDialog::deploySchema() const
 {
-    return ui->deploySchemaComboBox->currentText();
+    return cd->deploySchemaComboBox->currentText();
+}
+
+void ConfigDialog::loadApp(QList<QString> c_app)
+{
+    cd->appComboBox->addItems(c_app);
+}
+void ConfigDialog::loadDeploy(QList<QString> c_deploy)
+{
+    cd->deploySchemaComboBox->addItems(c_deploy);
 }
 
 void ConfigDialog::on_buttonBox_accepted()
