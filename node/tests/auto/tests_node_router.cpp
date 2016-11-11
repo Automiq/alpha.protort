@@ -2,10 +2,10 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <vector>
 
+#define private public
+
 #include "node.h"
 #include "components.h"
-
-#define private public
 #include "router.h"
 
 namespace alpha {

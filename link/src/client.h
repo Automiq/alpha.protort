@@ -5,12 +5,21 @@
 
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "packet_header.h"
 
 namespace alpha {
 namespace protort {
 namespace link {
+
+/*!
+ * \brief Временной интервал для повторного подключения
+ *
+ * Временной интервал, через который будет выполнена повторная попытка подключения
+ * если предыдущая попытка не увенчалась успехом.
+ */
+static const int reconnect_interval = 5000;
 
 /*!
  * Шаблонный класс клиента
@@ -29,8 +38,9 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service)
         : socket_(service),
+          write_buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
-          write_buffer_(new char[max_packet_size + header_size])
+          reconnect_timer_(service)
     {
     }
 
@@ -43,8 +53,9 @@ public:
      */
     client(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
+          write_buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
-          write_buffer_(new char[header_size + max_packet_size])
+          reconnect_timer_(service)
     {
         async_connect(ep);
     }
@@ -71,6 +82,7 @@ public:
      */
     void async_connect(boost::asio::ip::tcp::endpoint ep)
     {
+        ep_ = ep;
         do_connect(ep);
     }
 
@@ -124,13 +136,12 @@ private:
      */
     void on_connect(const error_code& err)
     {
+        callback_.on_connected(err);
         if (err)
         {
-            stop();
-            return;
+            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(reconnect_interval));
+            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
         }
-
-        callback_.on_connected(err);
     }
 
     /*!
@@ -141,7 +152,13 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes)
     {
-        callback_.on_packet_sent(err, bytes);
+        if (boost::asio::error::eof == err || boost::asio::error::connection_reset == err)
+        {
+            stop();
+            do_connect(ep_);
+        }
+        else
+            callback_.on_packet_sent(err, bytes);
     }
 
     //! Сокет
@@ -152,6 +169,12 @@ private:
 
     //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
+
+    //! Эндпоинт, используется при повторном подключении
+    boost::asio::ip::tcp::endpoint ep_;
+
+    //! Таймер для переподключения
+    boost::asio::deadline_timer reconnect_timer_;
 };
 
 } // namespace link

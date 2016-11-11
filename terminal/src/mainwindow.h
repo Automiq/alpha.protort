@@ -57,6 +57,8 @@ private slots:
     QString fixedWindowTitle(const Document *doc) const;
 
 private:
+    QTextEdit* createNewTab(const QString &name);
+
     Ui::MainWindow *ui;
     QList <Document> openApp;
     QList <Document> openDeploy;

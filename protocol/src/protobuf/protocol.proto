@@ -1,0 +1,47 @@
+syntax = 'proto3';
+
+import "google/protobuf/any.proto";
+import "components.proto";
+import "deploy.proto";
+import "packet.proto";
+
+package alpha.protort.protocol;
+
+message Packet
+{
+    // Тип пакета
+    enum Kind
+    {
+        // Сообщение
+        Message = 0;
+        // Запрос
+        Request = 1;
+        // Ответ на запрос
+        Response = 2;
+    }
+
+    // Транзакция (в рамках запрос/ответ)
+    message Transaction
+    {
+        uint32 id = 1;
+    }
+
+    // Тип пакета
+    Kind kind = 1;
+    
+    // Транзакция (только для типа пакета запрос/ответ)
+    Transaction transaction = 2;
+    
+    // Содержимое пакета
+    oneof Payload
+    {
+        // Пакет протокола коммуникации
+        communication.Packet communication_packet = 3;
+        // Пакет протокола развертывания
+        deploy.Packet deploy_packet = 4;
+        // Произвольное содержимое
+        bytes payload = 5;
+        // Произвольное содержимое в виде protobuf::Any
+        google.protobuf.Any any_payload = 6;
+    }
+}
