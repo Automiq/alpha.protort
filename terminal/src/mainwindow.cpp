@@ -68,16 +68,17 @@ void MainWindow::on_load_file_triggered()
         return;
 
     QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)) {
+    if (!file.open(QIODevice::ReadOnly))
+    {
         QMessageBox::warning(this,
                             tr("File error"),
                             tr("Failed to open\n%1").arg(fileName));
         return;
     }
-    Document *tmp = new Document();
-    tmp->setText(file.readAll());
-    tmp->setFileName(fileName);
-    addDocument(tmp);
+    Document *doc = new Document();
+    doc->setText(file.readAll());
+    doc->setFileName(fileName);
+    addDocument(doc);
 }
 
 void MainWindow::addDocument(Document *doc)
@@ -126,17 +127,8 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
 
 void MainWindow::on_create_file_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
-    QFile file(file_name);
-
-    if (file.open(QIODevice::ReadWrite))
-    {
-        if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
-            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
-        else
-            ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName())));
-        file.close();
-    }
+    Document *tmp = new Document();
+    addDocument(tmp);
 }
 
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
@@ -146,7 +138,27 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::on_config_triggered()
 {
+    QList<QString> confApp;
+    QList<QString> confDeploy;
+
+    for (int i = ui->tabWidget->count(); i >= 0; --i)
+    {
+        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+
+        int tmp = text_edit->kind();
+        QString nname = text_edit->fileName();
+        if(tmp == 2)
+            confApp.push_back(nname);
+        if(tmp == 1)
+            confDeploy.push_back(nname);
+    }
+
     ConfigDialog dlg(this);
+        dlg.loadApp(confApp);
+        dlg.loadDeploy(confDeploy);
+
     if (dlg.exec())
     {
         m_app = dlg.app();
@@ -192,11 +204,3 @@ void MainWindow::saveDocument()
         return;
     doc->save();
 }
-/*
-QTextEdit MainWindow::createNewTab(QString path)
-{
-    QTextEdit text_edit = new QTextEdit();
-    tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
-    ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
-    return text_edit;
-}*/
