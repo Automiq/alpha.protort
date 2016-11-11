@@ -11,8 +11,6 @@ Document::Document(QWidget *parent)
 {
 }
 
-//QByteArray Document::txt(){return text;}
-
 void Document::save()
 {
     QFile sfile(this->name);
@@ -38,12 +36,11 @@ Document::Kind Document::kind() const
 {
     QXmlStreamReader xml(toPlainText());
 
-    if (!xml.readNextStartElement())
-        return Kind::Unknown;
-
     if (xml.name() == "app")
         return Kind::App;
 
     if (xml.name() == "deploy")
         return Kind::Deploy;
+
+    return Kind::Unknown;
 }

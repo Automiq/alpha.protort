@@ -62,7 +62,7 @@ void MainWindow::on_exit_triggered()
 
 void MainWindow::on_load_file_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
 
     if (fileName.isEmpty())
         return;
@@ -138,26 +138,21 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::on_config_triggered()
 {
-    QList<QString> confApp;
-    QList<QString> confDeploy;
 
+    ConfigDialog dlg(this);
     for (int i = ui->tabWidget->count(); i >= 0; --i)
     {
         auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
         if (!text_edit)
             continue;
 
-        int tmp = text_edit->kind();
+        Document::Kind tmp = text_edit->kind();
         QString nname = text_edit->fileName();
-        if(tmp == 2)
-            confApp.push_back(nname);
-        if(tmp == 1)
-            confDeploy.push_back(nname);
+        if(text_edit->Kind::App == tmp)
+            dlg.loadApp(nname);
+        if(text_edit->Kind::Deploy == tmp)
+            dlg.loadDeploy(nname);
     }
-
-    ConfigDialog dlg(this);
-        dlg.loadApp(confApp);
-        dlg.loadDeploy(confDeploy);
 
     if (dlg.exec())
     {

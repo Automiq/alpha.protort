@@ -18,16 +18,16 @@ QString ConfigDialog::deploySchema() const
     return cd->deploySchemaComboBox->currentText();
 }
 
-void ConfigDialog::loadApp(QList<QString> c_app)
+void ConfigDialog::loadApp(QString &c_app)
 {
-    cd->appComboBox->addItems(c_app);
+    cd->appComboBox->addItem("11111");
 }
-void ConfigDialog::loadDeploy(QList<QString> c_deploy)
+
+void ConfigDialog::loadDeploy(QString &c_deploy)
 {
-    cd->deploySchemaComboBox->addItems(c_deploy);
+    cd->deploySchemaComboBox->addItem(c_deploy);
 }
 
 void ConfigDialog::on_buttonBox_accepted()
 {
-    this->hide();
 }
