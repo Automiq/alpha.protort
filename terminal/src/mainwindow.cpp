@@ -167,6 +167,13 @@ void MainWindow::on_config_triggered()
         ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
     }
+    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
+                             "\n" +"Описание загружено" + "\n" +
+                             "Загрузка схемы развёртывания..." +
+                             "\n" + m_deploySchema +
+                             "\n" + "Схема загружена" +
+                             "\n" + "Упс! Не могу развернуть." +
+                             "\n Требуются доработки.");
 }
 
 void MainWindow::on_start_triggered()
