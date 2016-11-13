@@ -10,13 +10,20 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-//    createNewTab("New");
+    openFiles = new QString();
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::close_tab(int index)
+{
+    ui->tabWidget->currentWidget()->deleteLater();
+    ui->tabWidget->removeTab(index);
+    if (ui->tabWidget->count() == 0)
+        close();
 }
 
 void MainWindow::on_save_file_triggered()
@@ -32,28 +39,33 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    for (int i = ui->tabWidget->count(); i >= 0; --i)
+    if(!openFiles->isEmpty())
     {
-        auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
-        if (!text_edit)
-            continue;
-        QFile file(ui->tabWidget->tabText(i));
-        if (file.open(QIODevice::WriteOnly))
+        for (int i = ui->tabWidget->count(); i >= 0; --i)
         {
-            file.write(text_edit->toPlainText().toUtf8());
-            file.close();
-        }
+            auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
+            if (!text_edit)
+                continue;
+            QFile file(ui->tabWidget->tabText(i));
+            if (file.open(QIODevice::WriteOnly))
+            {
+                file.write(text_edit->toPlainText().toUtf8());
+                file.close();
+            }
+         }
     }
 }
 
 void MainWindow::on_exit_triggered()
 {
-    close(); //добавить остановку приложения
+    ui->stop->triggered(true);
+    close();
 }
 
 void MainWindow::on_load_file_triggered()
 {
     QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
+    openFiles->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadOnly))
     {
@@ -67,6 +79,7 @@ void MainWindow::on_load_file_triggered()
 void MainWindow::on_create_file_triggered()
 {
     QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
+    openFiles->push_back(file_name);
     QFile file(file_name);
     if (file.open(QIODevice::ReadWrite))
     {
@@ -80,10 +93,7 @@ void MainWindow::on_create_file_triggered()
 
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
 {
-    ui->tabWidget->currentWidget()->deleteLater();
-    ui->tabWidget->removeTab(index);
-    if (ui->tabWidget->count() == 0)
-        close();
+    close_tab(index);
 }
 
 QTextEdit* MainWindow::createNewTab(const QString &name)
@@ -92,4 +102,45 @@ QTextEdit* MainWindow::createNewTab(const QString &name)
     ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
     ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
     return text_edit;
+}
+
+void MainWindow::on_config_triggered()
+{
+    ConfigDialog dlg(this);
+    if (dlg.exec())
+    {
+        m_app = dlg.app();
+        m_deploySchema = dlg.deploySchema();
+        ui->start->setDisabled(true);
+        ui->stop->setDisabled(true);
+        ui->deploy->setEnabled(true);
+    }
+}
+
+void MainWindow::on_start_triggered()
+{
+    ui->start->setDisabled(true);
+    ui->stop->setEnabled(true);
+}
+
+void MainWindow::on_stop_triggered()
+{
+    ui->start->setEnabled(true);
+    ui->stop->setDisabled(true);
+}
+
+void MainWindow::on_deploy_triggered()
+{
+    ui->deploy->setDisabled(true);
+    ui->start->setEnabled(true);
+}
+
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
+}
+
+void MainWindow::on_Status_request_triggered()
+{
+
 }
