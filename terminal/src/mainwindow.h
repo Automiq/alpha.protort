@@ -6,6 +6,7 @@
 #include "configdialog.h"
 #include <QMessageBox>
 #include "document.h"
+#include "deploy.pb.h"
 
 class QTextEdit;
 
@@ -50,8 +51,6 @@ private slots:
     void on_Status_request_triggered();
 
 private:
-    QTextEdit* createNewTab(const QString &name);
-
     Ui::MainWindow *ui;
     QTextEdit *createNewTab(const QString &name);
     QString *openFiles;

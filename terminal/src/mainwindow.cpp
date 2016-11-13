@@ -5,6 +5,10 @@
 #include <QTextEdit>
 #include <QObject>
 
+using namespace alpha::protort::protocol::deploy;
+
+StatusResponse stat_out;
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
@@ -142,5 +146,18 @@ void MainWindow::on_close_file_triggered()
 
 void MainWindow::on_Status_request_triggered()
 {
+    ui->text_browser_status->clear();
+    ui->text_browser_status->insertPlainText("<Название узла - " + QString::fromStdString(stat_out.node_name()) + ">\n");
+    ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " + QString::number(stat_out.counter_in_packets()) +
+                                             " (" + QString::number(stat_out.counter_in_bytes()/1000) + " кб)" + ">\n");
+    ui->text_browser_status->insertPlainText("<Количество переданных пакетов - " + QString::number(stat_out.counter_out_packets()) + " ("
+                                             + QString::number(stat_out.counter_out_bytes()/1000) + " кб)"+ ">\n");
+    ui->text_browser_status->insertPlainText("<Информация о компонентах>\n");
+    for (int i = 0; i < stat_out.component_status_list_size(); i++)
+    {
+        ui->text_browser_status->insertPlainText("<Название компонента - " + QString::fromStdString(stat_out.component_status_list(i).name()) + ">\n");
+        ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " + QString::number(stat_out.component_status_list(i).counter_in_packets()) + ">\n");
+        ui->text_browser_status->insertPlainText("<Количетво переданных пакетов - " + QString::number(stat_out.component_status_list(i).counter_out_packets()) + ">\n\n");
 
+    }
 }

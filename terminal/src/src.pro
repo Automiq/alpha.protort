@@ -13,6 +13,9 @@ CONFIG += c++11
 TARGET = src
 TEMPLATE = app
 
+LIBS += \
+    # Путь в рамках shadow build
+    -L$$OUT_PWD/../../protocol/lib
 
 SOURCES += main.cpp\
         mainwindow.cpp \
@@ -26,8 +29,12 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     configdialog.ui
 
+
 # Линкуемся с парсером
 include(../../parser/parser.pri)
+
+#Линкуемся с протоколом
+include(../../protocol/protocol.pri)
 
 RESOURCES += \
     images.qrc

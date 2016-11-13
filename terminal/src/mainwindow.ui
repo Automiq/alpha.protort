@@ -118,9 +118,9 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidget_statistic">
+  <widget class="QDockWidget" name="dockWidget_status">
    <property name="windowTitle">
-    <string>Статус работы</string>
+    <string>Статус узлов</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -128,7 +128,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QTextBrowser" name="text_browser_statistic"/>
+      <widget class="QTextBrowser" name="text_browser_status"/>
      </item>
     </layout>
    </widget>
