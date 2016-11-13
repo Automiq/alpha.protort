@@ -176,10 +176,6 @@ BOOST_AUTO_TEST_CASE(test_serialize_trerminal_to_node_protocol){
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).source().port(),generator_port_out);
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).destination().name(),terminator_name);
     BOOST_CHECK_EQUAL(deserialized_con_list.connection(0).destination().port(),terminator_port_in);
-<<<<<<< HEAD
-
-=======
->>>>>>> master
 }
 
 BOOST_AUTO_TEST_SUITE_END()
