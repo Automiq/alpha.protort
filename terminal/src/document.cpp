@@ -35,6 +35,7 @@ void Document::setFileName(const QString &fileName)
 Document::Kind Document::kind() const
 {
     QXmlStreamReader xml(toPlainText());
+    xml.readNextStartElement();
 
     if (xml.name() == "app")
         return Kind::App;

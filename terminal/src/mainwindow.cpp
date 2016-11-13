@@ -146,11 +146,11 @@ void MainWindow::on_config_triggered()
         if (!text_edit)
             continue;
 
-        Document::Kind tmp = text_edit->kind();
         QString nname = text_edit->fileName();
-        if(text_edit->Kind::App == tmp)
+
+        if(text_edit->Kind::App == text_edit->kind())
             dlg.loadApp(nname);
-        if(text_edit->Kind::Deploy == tmp)
+        if(text_edit->Kind::Deploy == text_edit->kind())
             dlg.loadDeploy(nname);
     }
 

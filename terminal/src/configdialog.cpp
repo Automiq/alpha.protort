@@ -20,7 +20,7 @@ QString ConfigDialog::deploySchema() const
 
 void ConfigDialog::loadApp(QString &c_app)
 {
-    cd->appComboBox->addItem("11111");
+    cd->appComboBox->addItem(c_app);
 }
 
 void ConfigDialog::loadDeploy(QString &c_deploy)
