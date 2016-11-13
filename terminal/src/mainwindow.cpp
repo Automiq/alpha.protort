@@ -5,10 +5,6 @@
 #include <QTextEdit>
 #include <QObject>
 
-using namespace alpha::protort::protocol::deploy;
-
-StatusResponse stat_out;
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)

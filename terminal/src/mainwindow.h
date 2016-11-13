@@ -14,6 +14,8 @@ namespace Ui {
 class MainWindow;
 }
 
+using namespace alpha::protort::protocol::deploy;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -56,6 +58,7 @@ private:
     QString *openFiles;
     QString m_app;
     QString m_deploySchema;
+    StatusResponse stat_out;
 };
 
 #endif // MAINWINDOW_H
