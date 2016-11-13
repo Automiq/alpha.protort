@@ -140,3 +140,7 @@ void MainWindow::on_close_file_triggered()
     close_tab(ui->tabWidget->currentIndex());
 }
 
+void MainWindow::on_Status_request_triggered()
+{
+
+}

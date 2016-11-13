@@ -47,6 +47,8 @@ private slots:
 
     void close_tab(int index);
 
+    void on_Status_request_triggered();
+
 private:
     Ui::MainWindow *ui;
     QTextEdit *createNewTab(const QString &name);
