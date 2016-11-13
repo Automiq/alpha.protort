@@ -20,15 +20,20 @@ message Packet
         uint32 id = 1;
     }
 
+    message Payload
+    {
+        oneof Payload
+        {
+            communication.Packet communication_packet = 1;
+            deploy.Packet deploy_packet = 2;
+            bytes payload = 3;
+            google.protobuf.Any any_payload = 4;
+        }
+    }
+
     Kind kind = 1;
     Transaction transaction = 2;
-    oneof Payload
-    {
-        communication.Packet communication_packet = 3;
-        deploy.Packet deploy_packet = 4;
-        bytes payload = 5;
-        google.protobuf.Any any_payload = 6;
-    }
+    Payload payload = 3;
 }
 
 
