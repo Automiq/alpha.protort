@@ -14,12 +14,14 @@
 #include "parser.h"
 #include "components.h"
 #include "factory.h"
+#include "protocol.pb.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
 using namespace alpha::protort::link;
+using payload = alpha::protort::protocol::Packet::Payload;
 
 static const int default_port = 100;
 
@@ -87,6 +89,11 @@ public:
         // TODO
     }
 
+    void on_new_request(const payload& _payload)
+    {
+        process_request(_payload);
+    }
+
     /*!
      * \brief Разворачивает узел
      * \param conf Конфигурация полученная парсером из xml
@@ -146,7 +153,7 @@ public:
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
-                    auto client = router_.clients.find(conn.dest);
+                    auto client = router_.clients.find(dest_node_name);
                     if (client == router_.clients.end()) {
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
@@ -168,6 +175,12 @@ public:
     }
 
 private:
+    payload process_request(const payload& _payload)
+    {
+        //TODO
+        return {};
+    }
+
     //! I/O сервис
     boost::asio::io_service service_;
 
@@ -187,7 +200,7 @@ private:
     boost::asio::signal_set signals_;
 
 public:
-    //! Роутер пакетов
+    //! Роутер пакетов (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
     router<node> router_;
 };
 

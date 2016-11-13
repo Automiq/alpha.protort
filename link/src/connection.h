@@ -176,6 +176,8 @@ private:
 
     //! Ссылка на объект, предоставляющий callback-функции
     Callback& callback_;
+
+
 };
 
 } // namespace link
