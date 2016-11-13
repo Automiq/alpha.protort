@@ -79,7 +79,22 @@ message StatusRequest
 
 message StatusResponse
 {
-    uint32 amoung_packets = 1;
+    string node_name = 1;
+    uint32 counter_in_packets = 2;
+    uint32 counter_out_packets = 3;
+    uint32 counter_in_bytes = 4;
+    uint32 counter_out_bytes = 5;
+    uint32 uptime = 6;
+
+    message ComponentStatus
+    {
+        string name = 1;
+        uint32 counter_in_packets = 2;
+        uint32 counter_out_packets = 3;
+    }
+
+    repeated ComponetStatus component_status_list = 7;
+
 }
 
 message StartRequest
