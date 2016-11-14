@@ -120,12 +120,14 @@ void MainWindow::on_config_triggered()
 void MainWindow::on_start_triggered()
 {
     ui->start->setDisabled(true);
+    ui->status_request->setEnabled(true);
     ui->stop->setEnabled(true);
 }
 
 void MainWindow::on_stop_triggered()
 {
     ui->start->setEnabled(true);
+    ui->status_request->setDisabled(true);
     ui->stop->setDisabled(true);
 }
 
@@ -140,24 +142,15 @@ void MainWindow::on_close_file_triggered()
     close_tab(ui->tabWidget->currentIndex());
 }
 
-void MainWindow::on_Status_request_triggered()
+void MainWindow::on_status_request_triggered()
 {
     ui->text_browser_status->clear();
-//    StatusResponse asd;
-//    asd.set_counter_in_bytes(9);
-//    asd.set_counter_in_packets(3);
-//    auto m = asd.add_component_status_list();
-//    m->set_name("ASDSASDZ");
-//    m->set_counter_in_packets(1000);
-//    m->set_counter_out_packets(322);
-//    stat_out.push_back(asd);
-//    stat_out.push_back(StatusResponse());
-
     for (int i = 0; i < stat_out.size(); ++i)
     {
         ui->text_browser_status->insertPlainText("<Название узла - " +
                                                  QString::fromStdString(stat_out[i].node_name())
                                                  + ">\n");
+        ui->text_browser_status->insertPlainText("<Время работы - " + QString::number(stat_out[i].uptime()) + ">\n");
         ui->text_browser_status->insertPlainText("<Количество принятых пакетов - "
                                                  + QString::number(stat_out[i].counter_in_packets()) +
                                                  " (" + QString::number(stat_out[i].counter_in_bytes())
@@ -172,15 +165,10 @@ void MainWindow::on_Status_request_triggered()
             ui->text_browser_status->insertPlainText("<Название компонента - " +
                                                      QString::fromStdString(stat_out[i].component_status_list(i).name()) +
                                                      ">\n");
-            ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " +
-                                                     QString::number(stat_out[i].component_status_list(i).counter_in_packets()) +
+            ui->text_browser_status->insertPlainText("<Количество обработанных пакетов - " +
+                                                     QString::number(stat_out[i].component_status_list(i).counter_processed_packets()) +
                                                      ">\n");
-            ui->text_browser_status->insertPlainText("<Количетво переданных пакетов - " +
-                                                     QString::number(stat_out[i].component_status_list(i).counter_out_packets()) +
-                                                     ">\n\n");
-
         }
         ui->text_browser_status->insertPlainText("\n\n");
     }
-
 }

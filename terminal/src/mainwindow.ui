@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>611</width>
-    <height>450</height>
+    <width>693</width>
+    <height>469</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>611</width>
+     <width>693</width>
      <height>26</height>
     </rect>
    </property>
@@ -72,7 +72,7 @@
      <string>&amp;Проект</string>
     </property>
     <addaction name="config"/>
-    <addaction name="Status_request"/>
+    <addaction name="status_request"/>
     <addaction name="deploy"/>
     <addaction name="start"/>
     <addaction name="stop"/>
@@ -97,7 +97,7 @@
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
-   <addaction name="Status_request"/>
+   <addaction name="status_request"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
@@ -260,7 +260,14 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="Status_request">
+  <action name="status_request">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/status.png</normaloff>:/images/status.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Статус</string>
    </property>

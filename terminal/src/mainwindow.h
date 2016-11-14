@@ -50,7 +50,7 @@ private slots:
 
     void close_tab(int index);
 
-    void on_Status_request_triggered();
+    void on_status_request_triggered();
 
 private:
     Ui::MainWindow *ui;
