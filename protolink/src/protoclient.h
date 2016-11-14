@@ -93,15 +93,15 @@ public:
      * \brief Метод для отправки пакета данных
      * \param msg Строка для отправки
      */
-    void async_send_message(protocol::Packet::Payload const& payload)
+    void async_send_message(protocol::Packet_Payload* payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
-        packet.set_allocated_payload(&payload);
+        packet.set_allocated_payload(payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    template<class Request_callback> void async_send_request(protocol::Packet::Payload const& payload, Request_callback& req_callback)
+    template<class Request_callback> void async_send_request(protocol::Packet_Payload* payload, Request_callback& req_callback)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
@@ -109,7 +109,7 @@ public:
         boost::signals2::signal<void(std::string)> on_finished_;
         on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
         req_resp.emplace(request_id++, on_finished_);
-        packet.set_payload(payload);
+        packet.set_allocated_payload(payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 

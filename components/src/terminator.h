@@ -1,13 +1,13 @@
 #ifndef TERMINATOR_H
 #define TERMINATOR_H
 
-#include "i_component.h"
+#include "component.h"
 
 namespace alpha {
 namespace protort {
 namespace components {
 
-class terminator : public i_component
+class terminator : public component
 {
 public:
     output_list process(port_id input_port, std::string const & payload) final override
