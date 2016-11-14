@@ -87,6 +87,8 @@ message DeployConfigResponse
     //TODO
 }
 
+//Запрос статуса нод и их компонентов
+
 message StatusRequest
 {
     //TODO
@@ -109,8 +111,7 @@ message StatusResponse
     message ComponentStatus
     {
         string name = 1;
-        uint32 counter_in_packets = 2;
-        uint32 counter_out_packets = 3;
+        uint32 counter_processed_packets = 2;
     }
 
     repeated ComponentStatus component_status_list = 7;
