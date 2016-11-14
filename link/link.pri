@@ -4,4 +4,5 @@ HEADERS += \
     $$PWD/src/server.h \
     $$PWD/src/client.h \
     $$PWD/src/connection.h \
-    $$PWD/src/packet_header.h
+    $$PWD/src/packet_header.h \
+    $$PWD/src/protoclient.h
