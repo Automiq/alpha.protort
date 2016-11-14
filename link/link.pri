@@ -6,4 +6,5 @@ HEADERS += \
     $$PWD/src/connection.h \
     $$PWD/src/packet_header.h \
     $$PWD/src/protoserver.h \
-    $$PWD/src/protoconnection.h
+    $$PWD/src/protoconnection.h \
+    $$PWD/src/protoclient.h
