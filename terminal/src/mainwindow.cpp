@@ -28,29 +28,51 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_save_file_triggered()
 {
-    auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->currentWidget());
+    auto textEdit = dynamic_cast<Document*> (ui->tabWidget->currentWidget());
+    QString fname = textEdit->fileName();
 
-    QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
-    if (file.open(QIODevice::ReadWrite))
+    if(fname == "")
     {
-        file.write(text_edit->toPlainText().toUtf8());
-        file.close();
+        if(!textEdit->save())
+        {
+            fname = textEdit->fileName();
+
+            if(fname == "")
+                return;
+            else
+            {
+                ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(fname).fileName()));
+            }
+        }
     }
+    textEdit->save();
 }
 
 void MainWindow::on_save_all_triggered()
 {
     for (int i = ui->tabWidget->count(); i >= 0; --i)
     {
-        auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
-        if (!text_edit)
+        auto textEdit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
+
+        if (!textEdit)
             continue;
-        QFile file(ui->tabWidget->tabText(i));
-        if (file.open(QIODevice::WriteOnly))
+        QString fname = textEdit->fileName();
+
+        if(fname == "")
         {
-            file.write(text_edit->toPlainText().toUtf8());
-            file.close();
+            if(!textEdit->save())
+            {
+                fname = textEdit->fileName();
+
+                if(fname == "")
+                    return;
+                else
+                {
+                    ui->tabWidget->setTabText(i, QString(QFileInfo(fname).fileName()));
+                }
+            }
         }
+        textEdit->save();
     }
 }
 
@@ -62,7 +84,7 @@ void MainWindow::on_exit_triggered()
 
 void MainWindow::on_load_file_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
+    QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), QString(), tr("xml (*.xml);; любые типы (*.*)"));
 
     if (fileName.isEmpty())
         return;
@@ -75,6 +97,7 @@ void MainWindow::on_load_file_triggered()
                             tr("Failed to open\n%1").arg(fileName));
         return;
     }
+
     Document *doc = new Document();
     doc->setText(file.readAll());
     doc->setFileName(fileName);
@@ -162,6 +185,7 @@ void MainWindow::on_config_triggered()
         ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
     }
+
     ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
                              "\n" +"Описание загружено" + "\n" +
                              "Загрузка схемы развёртывания..." +

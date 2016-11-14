@@ -5,21 +5,32 @@
 #include <QMessageBox>
 #include <QTextStream>
 #include <QByteArray>
+#include <QTextCodec>
+#include <QDebug>
 
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
+    name = "";
 }
 
-void Document::save()
+bool Document::save()
 {
-    QFile sfile(this->name);
-    if ( sfile.open(QIODevice::ReadWrite) )
+    if(name == "")
+        name = getFileNameOFD();
+
+    if(name != "")
     {
-        QTextStream stream( &sfile );
-        stream << this->toPlainText() << endl;
-        sfile.close();
+        QFile sfile(name);
+
+        if ( sfile.open(QIODevice::WriteOnly | QIODevice::Text) )
+        {
+            sfile.write(toPlainText().toUtf8());
+            sfile.close();
+        }
+        return 0;
     }
+    return 1;
 }
 
 QString Document::fileName() const
@@ -44,4 +55,11 @@ Document::Kind Document::kind() const
         return Kind::Deploy;
 
     return Kind::Unknown;
+}
+
+QString Document::getFileNameOFD()
+{
+    return QFileDialog::getSaveFileName(this, tr("Сохранить файл как..."),
+                                        QString(),
+                                        tr("Описание приложения/схема развёртывания (*.xml);; Любой тип (*.*)"));
 }

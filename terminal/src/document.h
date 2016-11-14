@@ -24,10 +24,14 @@ public:
 
     Document(QWidget *parent = 0);
     void load();
-    QString fileName() const;
+    bool save();
+
     void setFileName(const QString &fileName);
+    QString getFileNameOFD();
+
+    QString fileName() const;
     Kind kind() const;
-    void save();
+
 
 private:
     QString name;
