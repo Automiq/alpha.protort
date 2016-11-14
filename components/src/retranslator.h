@@ -12,6 +12,7 @@ class retranslator : public i_component
 public:
     output_list process(port_id input_port, std::string const & payload) final override
     {
+        counter_processed_packets++;
         if (input_port == 0 || input_port == 1)
         {
             output_list result = { { payload, {0, 1} } };

@@ -25,6 +25,7 @@ public:
     virtual output_list process(port_id input_port, std::string const & payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
+    uint32_t counter_processed_packets = 0;
 };
 
 } // namespace components

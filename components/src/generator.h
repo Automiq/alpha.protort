@@ -12,6 +12,7 @@ class generator : public i_component
 public:
     output_list process(port_id input_port, std::string const & payload) final override
     {
+        counter_processed_packets++;
         std::string rand_str("Random_string");
         return { { rand_str, { 0, 1 } } };
     }
