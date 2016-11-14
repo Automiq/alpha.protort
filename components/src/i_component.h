@@ -25,12 +25,18 @@ public:
     virtual output_list process(port_id input_port, std::string const & payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
+
     output_list do_process(port_id input_port, std::string const & payload)
     {
         counter_processed_packets++;
-        return process(port_id input_port, std::string const & payload);
+        return process(input_port, payload);
     }
 
+    uint32_t get_counter_processed_packets() const
+    {
+        return counter_processed_packets;
+    }
+protected:
     uint32_t counter_processed_packets = 0;
 };
 
