@@ -25,9 +25,9 @@ public:
             assert(false);
     }
 
-    static std::unique_ptr<components::i_component> create(protocol::ComponentKind kind)
+    static std::unique_ptr<components::component> create(protocol::ComponentKind kind)
     {
-        std::unique_ptr<components::i_component> ptr;
+        std::unique_ptr<components::component> ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
@@ -47,7 +47,7 @@ public:
         return ptr;
     }
 
-    static std::unique_ptr<components::i_component> create(const std::string& kind)
+    static std::unique_ptr<components::component> create(const std::string& kind)
     {
         return create(get_component_kind(kind));
     }

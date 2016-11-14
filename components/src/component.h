@@ -19,7 +19,7 @@ struct output
 
 using output_list = std::vector<output>;
 
-class i_component
+class component
 {
 public:
     virtual output_list process(port_id input_port, std::string const & payload) = 0;
@@ -28,16 +28,25 @@ public:
 
     output_list do_process(port_id input_port, std::string const & payload)
     {
-        counter_processed_packets++;
-        return process(input_port, payload);
+        in_packet_count++;
+        output_list result = process(input_port, payload);
+        out_packet_count+=result.size();
+        return result;
     }
 
-    uint32_t get_counter_processed_packets() const
+    uint32_t get_in_packet_count() const
     {
-        return counter_processed_packets;
+        return in_packet_count;
     }
+
+    uint32_t get_out_packet_count() const
+    {
+        return out_packet_count;
+    }
+
 protected:
-    uint32_t counter_processed_packets = 0;
+    uint32_t in_packet_count = 0;
+    uint32_t out_packet_count = 0;
 };
 
 } // namespace components
