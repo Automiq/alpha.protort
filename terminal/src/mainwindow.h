@@ -58,7 +58,7 @@ private:
     QString *openFiles;
     QString m_app;
     QString m_deploySchema;
-    StatusResponse stat_out;
+    std::vector<StatusResponse> stat_out;
 };
 
 #endif // MAINWINDOW_H

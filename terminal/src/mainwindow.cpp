@@ -143,17 +143,44 @@ void MainWindow::on_close_file_triggered()
 void MainWindow::on_Status_request_triggered()
 {
     ui->text_browser_status->clear();
-    ui->text_browser_status->insertPlainText("<Название узла - " + QString::fromStdString(stat_out.node_name()) + ">\n");
-    ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " + QString::number(stat_out.counter_in_packets()) +
-                                             " (" + QString::number(stat_out.counter_in_bytes()/1000) + " кб)" + ">\n");
-    ui->text_browser_status->insertPlainText("<Количество переданных пакетов - " + QString::number(stat_out.counter_out_packets()) + " ("
-                                             + QString::number(stat_out.counter_out_bytes()/1000) + " кб)"+ ">\n");
-    ui->text_browser_status->insertPlainText("<Информация о компонентах>\n");
-    for (int i = 0; i < stat_out.component_status_list_size(); i++)
-    {
-        ui->text_browser_status->insertPlainText("<Название компонента - " + QString::fromStdString(stat_out.component_status_list(i).name()) + ">\n");
-        ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " + QString::number(stat_out.component_status_list(i).counter_in_packets()) + ">\n");
-        ui->text_browser_status->insertPlainText("<Количетво переданных пакетов - " + QString::number(stat_out.component_status_list(i).counter_out_packets()) + ">\n\n");
+//    StatusResponse asd;
+//    asd.set_counter_in_bytes(9);
+//    asd.set_counter_in_packets(3);
+//    auto m = asd.add_component_status_list();
+//    m->set_name("ASDSASDZ");
+//    m->set_counter_in_packets(1000);
+//    m->set_counter_out_packets(322);
+//    stat_out.push_back(asd);
+//    stat_out.push_back(StatusResponse());
 
+    for (int i = 0; i < stat_out.size(); ++i)
+    {
+        ui->text_browser_status->insertPlainText("<Название узла - " +
+                                                 QString::fromStdString(stat_out[i].node_name())
+                                                 + ">\n");
+        ui->text_browser_status->insertPlainText("<Количество принятых пакетов - "
+                                                 + QString::number(stat_out[i].counter_in_packets()) +
+                                                 " (" + QString::number(stat_out[i].counter_in_bytes())
+                                                 + " б)" + ">\n");
+        ui->text_browser_status->insertPlainText("<Количество переданных пакетов - "
+                                                 + QString::number(stat_out[i].counter_out_packets()) + " ("
+                                                 + QString::number(stat_out[i].counter_out_bytes())
+                                                 + " б)"+ ">\n\n");
+        ui->text_browser_status->insertPlainText("<Информация о компонентах>\n\n");
+        for (int j = 0; j < stat_out[i].component_status_list_size(); ++j)
+        {
+            ui->text_browser_status->insertPlainText("<Название компонента - " +
+                                                     QString::fromStdString(stat_out[i].component_status_list(i).name()) +
+                                                     ">\n");
+            ui->text_browser_status->insertPlainText("<Количество принятых пакетов - " +
+                                                     QString::number(stat_out[i].component_status_list(i).counter_in_packets()) +
+                                                     ">\n");
+            ui->text_browser_status->insertPlainText("<Количетво переданных пакетов - " +
+                                                     QString::number(stat_out[i].component_status_list(i).counter_out_packets()) +
+                                                     ">\n\n");
+
+        }
+        ui->text_browser_status->insertPlainText("\n\n");
     }
+
 }
