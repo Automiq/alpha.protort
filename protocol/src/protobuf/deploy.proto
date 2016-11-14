@@ -148,7 +148,8 @@ message StatusResponse
         //имя компонента
         string name = 1;
         //Счётчик обработанных пакетов
-        uint32 counter_processed_packets = 2;
+        uint32 in_packet_count = 2;
+        uint32 out_packet_count = 3;
     }
 
     repeated ComponentStatus component_status_list = 7;
