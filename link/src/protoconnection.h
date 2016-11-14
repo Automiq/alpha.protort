@@ -182,19 +182,23 @@ private:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
-        packet.ParseFromString(std::string(buffer, nbytes));
+        packet.ParseFromArray(buffer, nbytes);
 
         switch (packet.kind()) {
 
-        case (protocol::Packet::Kind::Packet_Kind_Response):
+        case protocol::Packet::Kind::Packet_Kind_Response:
             assert(false);
+            break;
 
-        case (protocol::Packet::Kind::Packet_Kind_Request):
+        case protocol::Packet::Kind::Packet_Kind_Request:
+            // TODO
             payload response_payload = callback_.on_new_request(packet.payload());
             send_response(response_payload, packet.transaction().id());
+            break;
 
         case (protocol::Packet::Kind::Packet_Kind_Message):
             callback_.on_new_message(packet.payload());
+            break;
         }
     }
 
