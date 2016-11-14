@@ -1,13 +1,13 @@
 #ifndef RETRANSLATOR_H
 #define RETRANSLATOR_H
 
-#include "i_component.h"
+#include "component.h"
 
 namespace alpha {
 namespace protort {
 namespace components {
 
-class retranslator : public i_component
+class retranslator : public component
 {
 public:
     output_list process(port_id input_port, std::string const & payload) final override

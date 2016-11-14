@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(test_node_router)
     int retranslator_count = 0;
     int terminator_count = 0;
 
-    std::vector<alpha::protort::components::i_component *> components;
+    std::vector<alpha::protort::components::component *> components;
 
     // Создаем объекты outport_ (1 outport_ - 1 выходной порт)
 

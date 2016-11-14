@@ -1,13 +1,13 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "i_component.h"
+#include "component.h"
 
 namespace alpha {
 namespace protort {
 namespace components {
 
-class generator : public i_component
+class generator : public component
 {
 public:
     output_list process(port_id input_port, std::string const & payload) final override

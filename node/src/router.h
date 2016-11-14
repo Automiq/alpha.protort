@@ -7,15 +7,15 @@
 
 #include "packet.pb.h"
 #include "client.h"
-#include "i_component.h"
+#include "component.h"
 #include "node.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
-using component_ptr = alpha::protort::components::i_component *;
-using component_unique_ptr = std::unique_ptr<alpha::protort::components::i_component>;
+using component_ptr = alpha::protort::components::component *;
+using component_unique_ptr = std::unique_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
