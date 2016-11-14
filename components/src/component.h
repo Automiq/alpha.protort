@@ -1,5 +1,5 @@
-#ifndef I_COMPONENT_H
-#define I_COMPONENT_H
+#ifndef ALPHA_PROTORT_COMPONENT_H
+#define ALPHA_PROTORT_COMPONENT_H
 
 #include <iostream>
 #include <vector>
@@ -22,35 +22,35 @@ using output_list = std::vector<output>;
 class component
 {
 public:
-    virtual output_list process(port_id input_port, std::string const & payload) = 0;
+    virtual output_list process(port_id input_port, std::string const& payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
 
-    output_list do_process(port_id input_port, std::string const & payload)
+    output_list do_process(port_id input_port, std::string const& payload)
     {
-        in_packet_count++;
+        ++in_packet_count_;
         output_list result = process(input_port, payload);
-        out_packet_count+=result.size();
+        out_packet_count_ += result.size();
         return result;
     }
 
-    uint32_t get_in_packet_count() const
+    uint32_t in_packet_count() const
     {
-        return in_packet_count;
+        return in_packet_count_;
     }
 
-    uint32_t get_out_packet_count() const
+    uint32_t out_packet_count() const
     {
-        return out_packet_count;
+        return out_packet_count_;
     }
 
 protected:
-    uint32_t in_packet_count = 0;
-    uint32_t out_packet_count = 0;
+    uint32_t in_packet_count_ = 0;
+    uint32_t out_packet_count_ = 0;
 };
 
 } // namespace components
 } // namespace protort
 } // namespace alpha
 
-#endif // I_COMPONENT_H
+#endif // ALPHA_PROTORT_COMPONENT_H
