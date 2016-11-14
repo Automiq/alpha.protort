@@ -84,7 +84,9 @@ void MainWindow::on_exit_triggered()
 
 void MainWindow::on_load_file_triggered()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Открыть файл"), QString(), tr("xml (*.xml);; любые типы (*.*)"));
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Открыть файл"), QString(),
+                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*.*)"));
 
     if (fileName.isEmpty())
         return;

@@ -61,5 +61,5 @@ QString Document::getFileNameOFD()
 {
     return QFileDialog::getSaveFileName(this, tr("Сохранить файл как..."),
                                         QString(),
-                                        tr("Описание приложения/схема развёртывания (*.xml);; Любой тип (*.*)"));
+                                        tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*.*)"));
 }
