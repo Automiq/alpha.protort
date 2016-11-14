@@ -22,9 +22,9 @@ LIBS += \
 
 # Файлы описания протокола
 PROTOS += \
-    protobuf/components.proto\
-    protobuf/packet.proto\
-    protobuf/deploy.proto\
+    protobuf/components.proto \
+    protobuf/packet.proto \
+    protobuf/deploy.proto \
     protobuf/protocol.proto
 
 

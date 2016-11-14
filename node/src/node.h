@@ -21,6 +21,8 @@ namespace node {
 
 using namespace alpha::protort::link;
 
+static const int default_port = 100;
+
 /*!
  * \brief Класс сетевого узла
  */
@@ -30,6 +32,7 @@ public:
     node(const node_settings &settings)
         : client_(*this, service_),
           server_(*this, service_),
+          server_for_conf_(*this,service_),
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM)
     {
@@ -37,17 +40,11 @@ public:
 
     void start()
     {
-        switch (settings_.component_kind)
-        {
-        case alpha::protort::protocol::Terminator:
-            signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
-            server_.listen(settings_.source);
-            break;
-
-        case alpha::protort::protocol::Generator:
-            client_.async_connect(settings_.destination);
-            break;
-        }
+        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
+        server_for_conf_.listen(
+            boost::asio::ip::tcp::endpoint
+                (boost::asio::ip::tcp::v4(),
+                 default_port));
         service_.run();
     }
 
@@ -77,7 +74,8 @@ public:
      */
     void on_new_packet(char const *buffer, size_t nbytes)
     {
-        // TODO
+        std::string payload(buffer, nbytes);
+        // Deploy
     }
 
     /*!
@@ -102,6 +100,12 @@ public:
             std::string address;
             unsigned short port;
         };
+
+        // Начинаем прослушивать порт
+//        server_.listen(
+//            boost::asio::ip::tcp::endpoint
+//                (boost::asio::ip::tcp::v4(),
+//                 порт);
 
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
@@ -168,6 +172,9 @@ private:
     boost::asio::io_service service_;
 
     //! Сервер
+    link::server<node> server_for_conf_;
+
+    //! Сервер
     link::server<node> server_;
 
     //! Клиент
@@ -178,7 +185,7 @@ private:
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
-    
+
 public:
     //! Роутер пакетов
     router<node> router_;
