@@ -96,6 +96,7 @@
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
+   <addaction name="config"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
