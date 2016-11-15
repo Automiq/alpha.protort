@@ -255,7 +255,6 @@ private:
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
 
-
 public:
     //! Роутер пакетов
     //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
