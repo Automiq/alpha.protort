@@ -1,10 +1,8 @@
-INCLUDEPATH += $$PWD/src
+INCLUDEPATH += \
+    $$PWD/src
 
 HEADERS += \
     $$PWD/../link/src/packet_header.h \
-    $$PWD/src/protoserver.h \
-    $$PWD/src/protoconnection.h \
-    $$PWD/src/protoclient.h
-
-# Линкуемся с boost
-include(../../../boost.pri)
+    $$PWD/src/client.h \
+    $$PWD/src/server.h \
+    $$PWD/src/connection.h

@@ -10,11 +10,14 @@
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
-#include "packet_header.h"
+#include "../../link/src/packet_header.h"
 
 namespace alpha {
 namespace protort {
-namespace link {
+namespace protolink {
+
+using alpha::protort::link::header_size;
+using alpha::protort::link::max_packet_size;
 
 /*!
  * \brief Временной интервал для повторного подключения
@@ -28,7 +31,7 @@ static const int proto_reconnect_interval = 5000;
  * Шаблонный класс клиента
  */
 template<class Callback>
-class protoclient
+class client
 {
     using error_code = boost::system::error_code;
 
@@ -39,7 +42,7 @@ public:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    protoclient(Callback &callback, boost::asio::io_service& service)
+    client(Callback &callback, boost::asio::io_service& service)
         : socket_(service),
           buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
@@ -54,7 +57,7 @@ public:
      * \param service Ссылка на объект, реализующий концепцию Callback
      * \param ep Объект класса endpoint
      */
-    protoclient(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
+    client(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
           buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
@@ -66,7 +69,7 @@ public:
     /*!
      * \brief Деструктор
      */
-    ~protoclient()
+    ~client()
     {
         stop();
     }
@@ -93,15 +96,15 @@ public:
      * \brief Метод для отправки пакета данных
      * \param msg Строка для отправки
      */
-    void async_send_message(protocol::Packet_Payload* payload)
+    void async_send_message(const protocol::Packet_Payload& payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
-        packet.set_allocated_payload(payload);
+        packet.CopyFrom(payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    template<class Request_callback> void async_send_request(protocol::Packet_Payload* payload, Request_callback& req_callback)
+    template<class Request_callback> void async_send_request(protocol::Packet_Payload& payload, Request_callback& req_callback)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
@@ -109,7 +112,7 @@ public:
         boost::signals2::signal<void(std::string)> on_finished_;
         on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
         req_resp.emplace(request_id++, on_finished_);
-        packet.set_allocated_payload(payload);
+        packet.set_allocated_payload(&payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
@@ -121,7 +124,7 @@ private:
     void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
         socket_.async_connect(
-            ep, boost::bind(&protoclient::on_connect, this,
+            ep, boost::bind(&client::on_connect, this,
                             boost::asio::placeholders::error));
     }
 
@@ -142,7 +145,7 @@ private:
         async_write(
             socket_,
             boost::asio::buffer(buffer_.get(), header_size + packet.size()),
-            boost::bind(&protoclient::on_packet_sent, this,
+            boost::bind(&client::on_packet_sent, this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred,
                         kind_));
@@ -159,7 +162,7 @@ private:
         if (err)
         {
             reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
-            reconnect_timer_.async_wait(boost::bind(&protoclient::do_connect, this, ep_));
+            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
         }
     }
 
@@ -200,7 +203,7 @@ private:
             socket_,
             boost::asio::buffer(&packet_header_, header_size),
             boost::asio::transfer_exactly(header_size),
-            boost::bind(&protoclient::on_header_read,
+            boost::bind(&client::on_header_read,
                         this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
@@ -219,7 +222,7 @@ private:
             socket_,
             boost::asio::buffer(buffer_.get(), packet_size),
             boost::asio::transfer_exactly(packet_size),
-            boost::bind(&protoclient::on_packet_read,
+            boost::bind(&client::on_packet_read,
                         this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
@@ -297,14 +300,14 @@ private:
     boost::asio::deadline_timer reconnect_timer_;
 
     //! Заголовок текущего пакета
-    packet_header packet_header_;
+    link::packet_header packet_header_;
 
     std::map<int, boost::signals2::signal<void(std::string)>> req_resp;
 
     int request_id = 0;
 };
 
-} // namespace link
+} // namespace protolink
 } // namespace protort
 } // namespace alpha
 

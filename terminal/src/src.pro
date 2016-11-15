@@ -29,7 +29,7 @@ LIBS += \
 include(../../parser/parser.pri)
 
 # Линкуемся с protolink
-include(../../link/link.pri)
+include(../../protolink/protolink.pri)
 
 # Линкуемся с boost
 include(../../boost.pri)

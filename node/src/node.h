@@ -22,7 +22,7 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using namespace alpha::protort::link;
+using namespace alpha::protort::protolink;
 
 static const int default_port = 100;
 
@@ -92,9 +92,14 @@ public:
         // TODO
     }
 
-    void on_new_request(const protocol_payload& payload)
+    void on_new_message(const protocol_payload& payload)
     {
-        process_request(payload);
+        // TODO
+    }
+
+    protocol_payload on_new_request(const protocol_payload& payload)
+    {
+        return process_request(payload);
     }
 
     /*!
@@ -161,7 +166,7 @@ public:
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
+                        std::unique_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
                                     );
@@ -241,13 +246,13 @@ private:
     boost::asio::io_service service_;
 
     //! Сервер
-    link::server<node> server_for_conf_;
+    protolink::server<node> server_for_conf_;
 
     //! Сервер
-    link::server<node> server_;
+    protolink::server<node> server_;
 
     //! Клиент
-    link::client<node> client_;
+    protolink::client<node> client_;
 
     //! Настройки узла
     node_settings settings_;

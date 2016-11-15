@@ -29,11 +29,11 @@ public:
     {
         switch (kind) {
         case protocol::ComponentKind::Generator:
-            return {"generator"};
+            return "generator";
         case protocol::ComponentKind::Retranslator:
-            return {"retranslator"};
+            return "retranslator";
         case protocol::ComponentKind::Terminator:
-            return {"terminator"};
+            return "terminator";
         default:
             assert(false);
             return {};

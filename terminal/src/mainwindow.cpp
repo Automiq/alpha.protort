@@ -1,6 +1,6 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "protoclient.h"
+#include "client.h"
 #include "parser.h"
 
 #include <QFileDialog>

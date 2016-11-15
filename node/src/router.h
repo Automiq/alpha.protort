@@ -56,7 +56,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        link::client<app> * client;
+        protolink::client<app> * client;
     };
 
     /*!
@@ -133,20 +133,21 @@ private:
                 // Формируем и рассылаем пакеты по удаленным маршрутам
                 for (auto &remote_route : port_routes.remote_routes)
                 {
-                    alpha::protort::protocol::communication::Packet packet;
+                    alpha::protort::protocol::Packet_Payload payload;
+                    auto packet = payload.mutable_communication_packet();
 
                     // out endpoint
-                    packet.mutable_source()->set_port(static_cast<uint32_t>(out_port));
-                    packet.mutable_source()->set_name(this_component->name);
+                    packet->mutable_source()->set_port(static_cast<uint32_t>(out_port));
+                    packet->mutable_source()->set_name(this_component->name);
 
                     // in endpoint
-                    packet.mutable_destination()->set_port(static_cast<uint32_t>(remote_route.in_port));
-                    packet.mutable_destination()->set_name(remote_route.name);
+                    packet->mutable_destination()->set_port(static_cast<uint32_t>(remote_route.in_port));
+                    packet->mutable_destination()->set_name(remote_route.name);
 
                     // payload
-                    packet.set_payload(output.payload);
+                    packet->set_payload(output.payload);
 
-                    remote_route.client->async_send(packet.SerializeAsString());
+                    remote_route.client->async_send_message(payload);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
                 }
             }
@@ -155,7 +156,7 @@ private:
 
     std::vector<component_unique_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
-    std::map<std::string, std::unique_ptr<link::client<app>>> clients;
+    std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
 };
 
 } // namespae node

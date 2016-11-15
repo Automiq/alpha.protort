@@ -7,28 +7,29 @@
 #include <boost/bind.hpp>
 #include <iostream>
 
-#include "packet_header.h"
+#include "../../link/src/packet_header.h"
 #include "packet.pb.h"
 #include "protocol.pb.h"
 
 namespace alpha {
 namespace protort {
-namespace link {
+namespace protolink {
 
 using protocol_payload = alpha::protort::protocol::Packet::Payload;
+using alpha::protort::link::packet_header;
 
 /*!
  * \brief Класс входящего соединения
  *
  * \tparam Callback
  */
-template<class Callback> class protoconnection :
-        public boost::enable_shared_from_this<protoconnection<Callback>>,
+template<class Callback> class connection :
+        public boost::enable_shared_from_this<connection<Callback>>,
         boost::noncopyable
 {
 public:
     using error_code = boost::system::error_code;
-    using ptr = boost::shared_ptr<protoconnection<Callback>>;
+    using ptr = boost::shared_ptr<connection<Callback>>;
 
     /*!
      * \brief Создать новое соединение
@@ -39,7 +40,7 @@ public:
      */
     static ptr new_(Callback& callback, boost::asio::io_service& service)
     {
-        return ptr(new protoconnection(callback, service));
+        return ptr(new connection(callback, service));
     }
 
     /*!
@@ -57,7 +58,6 @@ public:
     void stop()
     {
         // Закрываем сокет
-        socket_.shutdown_both();
         socket_.close();
     }
 
@@ -72,16 +72,16 @@ public:
     /*!
      * \brief Деструктор
      */
-    ~protoconnection()
+    ~connection()
     {
         stop();
     }
 
-    void send_response(const protocol_payload& payload, int id)
+    void send_response(protocol_payload& payload, int id)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Response);
-        packet.transaction().set_id(id);
+        packet.mutable_transaction()->set_id(id);
         packet.set_allocated_payload(&payload);
         async_send(packet.SerializeAsString());
     }
@@ -93,7 +93,7 @@ private:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    protoconnection(Callback& callback, boost::asio::io_service& service)
+    connection(Callback& callback, boost::asio::io_service& service)
         : socket_(service),
           callback_(callback),
           packet_buffer_(new char[max_packet_size])
@@ -112,7 +112,7 @@ private:
                     socket_,
                     boost::asio::buffer(&packet_header_, header_size),
                     boost::asio::transfer_exactly(header_size),
-                    boost::bind(&protoconnection::on_header_read,
+                    boost::bind(&connection::on_header_read,
                                 this->shared_from_this(),
                                 boost::asio::placeholders::error,
                                 boost::asio::placeholders::bytes_transferred));
@@ -155,7 +155,7 @@ private:
                     socket_,
                     boost::asio::buffer(packet_buffer_.get(), packet_size),
                     boost::asio::transfer_exactly(packet_size),
-                    boost::bind(&protoconnection::on_packet_read,
+                    boost::bind(&connection::on_packet_read,
                                 this->shared_from_this(),
                                 boost::asio::placeholders::error,
                                 boost::asio::placeholders::bytes_transferred));
@@ -196,9 +196,9 @@ private:
             send_response(response_payload, packet.transaction().id());
             break;
 
-        case (protocol::Packet::Kind::Packet_Kind_Message):
-            callback_.on_new_message(packet.payload());
-            break;
+//        case protocol::Packet::Kind::Packet_Kind_Message:
+//            callback_.on_new_message(packet.payload());
+//            break;
         }
     }
 
@@ -215,7 +215,7 @@ private:
         async_write(
                     socket_,
                     boost::asio::buffer(packet_buffer_.get(), header_size + packet.size()),
-                    boost::bind(&protoconnection::on_packet_sent, this,
+                    boost::bind(&connection::on_packet_sent, this,
                                 boost::asio::placeholders::error,
                                 boost::asio::placeholders::bytes_transferred));
     }
@@ -235,7 +235,7 @@ private:
     boost::asio::ip::tcp::socket socket_;
 
     //! Заголовок текущего пакета
-    packet_header packet_header_;
+    link::packet_header packet_header_;
 
     //! Буфер для текущего пакета
     std::unique_ptr<char> packet_buffer_;
@@ -244,7 +244,7 @@ private:
     Callback& callback_;
 };
 
-} // namespace link
+} // namespace protolink
 } // namespace protort
 } // namespace alpha
 

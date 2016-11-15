@@ -6,11 +6,11 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 
-#include "protoconnection.h"
+#include "connection.h"
 
 namespace alpha {
 namespace protort {
-namespace link {
+namespace protolink {
 
 /*!
  * \brief Класс сервера
@@ -18,7 +18,7 @@ namespace link {
  * Концепция описывающая набор колбеков для приема событий от сервера
  */
 template<class Callback>
-class protoserver
+class server
 {
 public:
     /*!
@@ -26,7 +26,7 @@ public:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на I/O сервис
      */
-    protoserver(Callback& callback, boost::asio::io_service& service):
+    server(Callback& callback, boost::asio::io_service& service):
         acceptor_(service),
         callback_(callback)
     {
@@ -38,7 +38,7 @@ public:
      * \param service Ссылка на I/O сервис
      * \param ep Адрес для прослушивания входящих подключений
      */
-    protoserver(Callback& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
+    server(Callback& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : acceptor_(service),
           callback_(callback)
     {
@@ -64,7 +64,7 @@ public:
 private:
 
     //! Тип указателя для входящего соединения
-    using connection_ptr = boost::shared_ptr<protoconnection<Callback>>;
+    using connection_ptr = boost::shared_ptr<connection<Callback>>;
 
     /*!
      * \brief Асинхронно принять новое входящее подключение
@@ -72,13 +72,13 @@ private:
     void do_accept_connection()
     {
         // Создаем объект будущего подключения
-        connection_ptr client = protoconnection<Callback>::new_(
+        connection_ptr client = connection<Callback>::new_(
             callback_, acceptor_.get_io_service());
 
         // Принимаем подключение
         acceptor_.async_accept(
             client->sock(),
-            boost::bind(&protoserver::on_connection_accepted, this, client,
+            boost::bind(&server::on_connection_accepted, this, client,
                         boost::asio::placeholders::error));
     }
 
@@ -110,7 +110,7 @@ private:
     Callback& callback_;
 };
 
-} // namespace link
+} // namespace protolink
 } // namespace protort
 } // namespace alpha
 

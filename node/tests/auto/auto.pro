@@ -23,21 +23,6 @@ LIBS += \
     # Путь в рамках shadow build
     -L$$OUT_PWD/../../../protocol/lib
 
-# Линкуемся с boost
-include(../../../boost.pri)
-
-# Подключаем библиотеку link
-include(../../../link/link.pri)
-
-# Линкуемся с библиотекой бинарного протокола
-include(../../../protocol/protocol.pri)
-
-# Библиотека alpha.protort.components
-include(../../../components/components.pri)
-
-# Линкуемся с парсером xml
-include(../../../parser/parser.pri)
-
 include(../../node.pri)
 
 # Копируем файлы в зависимости от наличия shadow build
