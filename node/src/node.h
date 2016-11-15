@@ -214,26 +214,25 @@ private:
     alpha::protort::parser::configuration convert_config(protocol::deploy::Config config)
     {
         parser::configuration pconf;
-//        std::vector<component> components;
-//        std::vector<connection> connections;
-//        std::vector<node> nodes;
-//        std::vector<mapping> mappings;
 
-        for (auto & inst : config.instances().instance()) {
+        for (auto & inst : config.instances()) {
             pconf.components.push_back({inst.name(), components::factory::get_component_kind(inst.kind())});
         }
 
-        for (auto & conn : config.connections().connection()) {
-            pconf.connections.push_back({conn.source().name(),
-                                         conn.source().port(),
-                                         conn.destination().name(),
-                                         conn.destination().port()
-                                        });
+        for (auto & conn : config.connections()) {
+            pconf.connections.push_back({conn.source().name(), conn.source().port(),
+                                         conn.destination().name(), conn.destination().port()});
         }
 
+        for (auto & node : config.node_infos()) {
+            pconf.nodes.push_back({node.name(), node.address(), node.port()});
+        }
 
+        for (auto & map : config.maps()) {
+            pconf.mappings.push_back({map.instance_name(), node_name()});
+        }
 
-
+        return pconf;
     }
 
 
@@ -256,8 +255,10 @@ private:
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
 
+
 public:
-    //! Роутер пакетов (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
+    //! Роутер пакетов
+    //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
     router<node> router_;
 };
 

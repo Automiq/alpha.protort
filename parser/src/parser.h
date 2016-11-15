@@ -33,9 +33,9 @@ struct component
 struct connection
 {
     std::string source;
-    uint32_t source_out;
+    port_id source_out;
     std::string dest;
-    uint32_t dest_in;
+    port_id dest_in;
 };
 
 /*!
@@ -47,7 +47,7 @@ struct node
 {
     std::string name;
     std::string address;
-    uint32_t port;
+    port_id port;
 };
 
 /*!
@@ -101,9 +101,9 @@ struct configuration
                 else if( v.first == "connection" ) {
                     connection conn;
                     conn.source = v.second.get<std::string>("<xmlattr>.source");
-                    conn.source_out = v.second.get<uint32_t>("<xmlattr>.source_out");
+                    conn.source_out = v.second.get<port_id>("<xmlattr>.source_out");
                     conn.dest = v.second.get<std::string>("<xmlattr>.dest");
-                    conn.dest_in = v.second.get<uint32_t>("<xmlattr>.dest_in");
+                    conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");
                     connections.push_back(conn);
                 }
                 else
@@ -140,7 +140,7 @@ struct configuration
                     node n;
                     n.name = v.second.get<std::string>("<xmlattr>.name");
                     n.address = v.second.get<std::string>("<xmlattr>.address");
-                    n.port = v.second.get<uint32_t>("<xmlattr>.port");
+                    n.port = v.second.get<port_id>("<xmlattr>.port");
                     nodes.push_back(n);
                 }
                 else if( v.first == "map" ) {
