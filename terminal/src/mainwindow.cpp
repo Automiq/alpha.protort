@@ -1,5 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "protoclient.h"
+#include "parser.h"
 
 #include <QFileDialog>
 #include <QTextEdit>
@@ -92,4 +94,9 @@ QTextEdit* MainWindow::createNewTab(const QString &name)
     ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
     ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
     return text_edit;
+}
+
+void MainWindow::on_deploy_triggered()
+{
+
 }

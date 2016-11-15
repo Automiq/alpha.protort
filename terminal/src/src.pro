@@ -24,5 +24,14 @@ FORMS    += mainwindow.ui
 # Линкуемся с парсером
 include(../../parser/parser.pri)
 
+# Линкуемся с protolink
+include(../../link/link.pri)
+
+# Линкуемся с boost
+include(../../boost.pri)
+
+# Линкуемся с библиотекой бинарного протокола
+include(../../protocol/protocol.pri)
+
 RESOURCES += \
     images.qrc

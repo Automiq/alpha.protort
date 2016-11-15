@@ -2,12 +2,11 @@
 #define PROTOCLIENT_H
 
 #include <iostream>
-
-#include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/signals2.hpp>
 #include <map>
+#include <boost/asio.hpp>
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
@@ -94,15 +93,15 @@ public:
      * \brief Метод для отправки пакета данных
      * \param msg Строка для отправки
      */
-    void async_send_message(std::string const& payload)
+    void async_send_message(protocol::Packet::Payload const& payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
-        packet.set_payload(payload);
+        packet.set_allocated_payload(&payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    template<class Request_callback> void async_send_request(std::string const& payload, Request_callback& req_callback)
+    template<class Request_callback> void async_send_request(protocol::Packet::Payload const& payload, Request_callback& req_callback)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);

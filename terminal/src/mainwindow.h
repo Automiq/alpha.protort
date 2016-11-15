@@ -32,6 +32,8 @@ private slots:
 
     void on_tabWidget_tabCloseRequested(int index);
 
+    void on_deploy_triggered();
+
 private:
     QTextEdit* createNewTab(const QString &name);
 

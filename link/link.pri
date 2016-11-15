@@ -8,3 +8,6 @@ HEADERS += \
     $$PWD/src/protoserver.h \
     $$PWD/src/protoconnection.h \
     $$PWD/src/protoclient.h
+
+# Линкуемся с boost
+include(../../../boost.pri)

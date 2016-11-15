@@ -229,7 +229,7 @@ private:
         }
 
         for (auto & map : config.maps()) {
-            pconf.mappings.push_back({map.instance_name(), node_name()});
+            pconf.mappings.push_back({map.instance_name(), map.node_name()});
         }
 
         return pconf;

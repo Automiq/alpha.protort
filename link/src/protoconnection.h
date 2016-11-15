@@ -15,7 +15,7 @@ namespace alpha {
 namespace protort {
 namespace link {
 
-using payload = alpha::protort::protocol::Packet::Payload;
+using protocol_payload = alpha::protort::protocol::Packet::Payload;
 
 /*!
  * \brief Класс входящего соединения
@@ -77,12 +77,12 @@ public:
         stop();
     }
 
-    void send_response(const payload& _payload, int id)
+    void send_response(const protocol_payload& payload, int id)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Response);
         packet.transaction().set_id(id);
-
+        packet.set_allocated_payload(&payload);
         async_send(packet.SerializeAsString());
     }
 
@@ -192,7 +192,7 @@ private:
 
         case protocol::Packet::Kind::Packet_Kind_Request:
             // TODO
-            payload response_payload = callback_.on_new_request(packet.payload());
+            protocol_payload response_payload = callback_.on_new_request(packet.payload());
             send_response(response_payload, packet.transaction().id());
             break;
 
