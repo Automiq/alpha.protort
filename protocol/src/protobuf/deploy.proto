@@ -134,11 +134,11 @@ message StatusResponse
     //Имя ноды, что предоставила свой статус
     string node_name = 1;
     //Счётчик входящих/исходящих пакетов ноды
-    uint32 counter_in_packets = 2;
-    uint32 counter_out_packets = 3;
+    uint32 in_packets_count = 2;
+    uint32 out_packets_count = 3;
     //Количество входящих/исходящих байт
-    uint32 counter_in_bytes = 4;
-    uint32 counter_out_bytes = 5;
+    uint32 in_bytes_count = 4;
+    uint32 out_bytes_count = 5;
     //Аптайм ноды
     uint32 uptime = 6;
 
