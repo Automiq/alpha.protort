@@ -1,7 +1,7 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
 #include "generator.h"
-#include "i_component.h"
+#include "component.h"
 #include "retranslator.h"
 
 namespace alpha {

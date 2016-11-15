@@ -1,7 +1,7 @@
 #ifndef COMPONENTS_H
 #define COMPONENTS_H
 
-#include "i_component.h"
+#include "component.h"
 #include "generator.h"
 #include "retranslator.h"
 #include "terminator.h"
