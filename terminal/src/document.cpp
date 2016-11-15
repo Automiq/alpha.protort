@@ -27,9 +27,9 @@ bool Document::save()
             sfile.write(toPlainText().toUtf8());
             sfile.close();
         }
-        return 0;
+        return true;
     }
-    return 1;
+    return false;
 }
 
 QString Document::fileName() const

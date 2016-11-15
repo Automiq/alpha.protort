@@ -14,11 +14,13 @@ class ConfigDialog : public QDialog
 
 public:
     explicit ConfigDialog(QWidget *parent = 0);
+    ~ConfigDialog();
+
     QString app() const;
     QString deploySchema() const;
 
     void loadApp(const QString &c_app);
-    void loadDeploy(QString &c_deploy);
+    void loadDeploy(const QString &c_deploy);
 
 private slots:
     void on_buttonBox_accepted();

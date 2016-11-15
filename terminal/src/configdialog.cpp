@@ -8,6 +8,13 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     cd->setupUi(this);
 }
 
+
+ConfigDialog::~ConfigDialog()
+{
+    delete cd;
+}
+
+
 QString ConfigDialog::app() const
 {
     return cd->appComboBox->currentText();
@@ -23,7 +30,7 @@ void ConfigDialog::loadApp(const QString &c_app)
     cd->appComboBox->addItem(c_app);
 }
 
-void ConfigDialog::loadDeploy(QString &c_deploy)
+void ConfigDialog::loadDeploy(const QString &c_deploy)
 {
     cd->deploySchemaComboBox->addItem(c_deploy);
 }

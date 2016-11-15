@@ -29,23 +29,15 @@ void MainWindow::close_tab(int index)
 void MainWindow::on_save_file_triggered()
 {
     auto textEdit = dynamic_cast<Document*> (ui->tabWidget->currentWidget());
+
     QString fname = textEdit->fileName();
 
-    if(fname.isEmpty())
-    {
-        if(!textEdit->save())
+        if(textEdit->save())
         {
-            fname = textEdit->fileName();
-
-            if(fname.isEmpty())
-                return;
-            else
-            {
-                ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(fname).fileName()));
-            }
+            QString nfname = textEdit->fileName();
+            if(nfname != fname)
+                ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(nfname).fileName()));
         }
-    }
-    textEdit->save();
 }
 
 void MainWindow::on_save_all_triggered()
@@ -58,21 +50,12 @@ void MainWindow::on_save_all_triggered()
             continue;
         QString fname = textEdit->fileName();
 
-        if(fname.isEmpty())
+        if(textEdit->save())
         {
-            if(!textEdit->save())
-            {
-                fname = textEdit->fileName();
-
-                if(fname.isEmpty())
-                    return;
-                else
-                {
-                    ui->tabWidget->setTabText(i, QString(QFileInfo(fname).fileName()));
-                }
-            }
+            QString nfname = textEdit->fileName();
+            if(nfname != fname)
+                ui->tabWidget->setTabText(i, QString(QFileInfo(nfname).fileName()));
         }
-        textEdit->save();
     }
 }
 
@@ -165,7 +148,7 @@ void MainWindow::on_config_triggered()
 {
 
     ConfigDialog dlg(this);
-    for (int i = ui->tabWidget->count(); i >= 0; --i)
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
         if (!text_edit)
