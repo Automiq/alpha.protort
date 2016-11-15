@@ -50,7 +50,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    for (int i = 0; i < ui->tabWidget->count() -1; ++i)
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         auto textEdit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
 
@@ -95,8 +95,8 @@ void MainWindow::on_load_file_triggered()
     if (!file.open(QIODevice::ReadOnly))
     {
         QMessageBox::warning(this,
-                            tr("File error"),
-                            tr("Failed to open\n%1").arg(fileName));
+                            tr("Ошибка"),
+                            tr("Ошибка открытия файла\n%1").arg(fileName));
         return;
     }
 
@@ -118,7 +118,7 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
     QString title = doc->fileName();
 
     if (title.isEmpty())
-        title = tr("Unnamed");
+        title = tr("Безымянный");
     else
         title = QFileInfo(title).fileName();
 
