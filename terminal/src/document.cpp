@@ -26,8 +26,8 @@ bool Document::save()
         {
             sfile.write(toPlainText().toUtf8());
             sfile.close();
+            return true;
         }
-        return true;
     }
     return false;
 }
