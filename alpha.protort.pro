@@ -3,6 +3,7 @@ TEMPLATE = subdirs
 SUBDIRS += \
     protocol \
     link \
+    protolink \
     node \
     terminal \
     designer \
@@ -10,6 +11,8 @@ SUBDIRS += \
     components
 
 link.depends = protocol
-node.depends = link
-terminal.depends = link
-designer.depends = link
+protolink.depends = protocol
+node.depends = link protolink
+terminal.depends = link protolink
+designer.depends = link protolink
+

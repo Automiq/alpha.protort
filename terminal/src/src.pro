@@ -21,6 +21,10 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
+LIBS += \
+    # Путь в рамках shadow build
+    -L$$OUT_PWD/../../protocol/lib
+
 # Линкуемся с парсером
 include(../../parser/parser.pri)
 

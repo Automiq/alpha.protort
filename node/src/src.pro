@@ -22,6 +22,9 @@ include(../../boost.pri)
 # Подключаем библиотеку link
 include(../../link/link.pri)
 
+# Подключаем библиотеку protolink
+include(../../protolink/protolink.pri)
+
 # Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
 
