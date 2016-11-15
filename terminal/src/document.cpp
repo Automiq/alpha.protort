@@ -11,14 +11,15 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
+    m_name = "";
 }
 
 bool Document::save()
 {
-    if(m_name == "")
+    if(m_name.isEmpty())
         m_name = getFileNameOFD();
 
-    if(m_name.isEmpty())
+    if(!m_name.isEmpty())
     {
         QFile sfile(m_name);
 
