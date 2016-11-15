@@ -26,12 +26,13 @@ public:
     void load();
     bool save();
 
+    void setFileName(const QString &fileName);
+
     QString fileName() const;
     Kind kind() const;
     void setFileName(const QString &fileName);
 
 private:
-
     QString getFileNameOFD();
     QString m_name;
 };
