@@ -93,7 +93,7 @@ public:
      * \brief Метод для отправки пакета данных
      * \param msg Строка для отправки
      */
-    void async_send_message(protocol::Packet::Payload const& payload)
+    void async_send_message(protocol::Packet::Payload & payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
@@ -101,15 +101,15 @@ public:
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    template<class Request_callback> void async_send_request(protocol::Packet::Payload const& payload, Request_callback& req_callback)
+    template<class Request_callback> void async_send_request(protocol::Packet::Payload & payload, Request_callback& req_callback)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
-        packet.transaction().set_id(request_id);
+        packet.mutable_transaction()->set_id(request_id);
         boost::signals2::signal<void(std::string)> on_finished_;
         on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
         req_resp.emplace(request_id++, on_finished_);
-        packet.set_payload(payload);
+        packet.set_allocated_payload(&payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
@@ -270,7 +270,7 @@ private:
         switch(packet.kind())
         {
         case protocol::Packet::Kind::Packet_Kind_Message:
-            callback_.on_new_packet(packet.payload(), bytes);
+            callback_.on_new_packet(packet.payload(), nbytes);
             break;
         case protocol::Packet::Kind::Packet_Kind_Request:
             break;
@@ -299,7 +299,7 @@ private:
     //! Заголовок текущего пакета
     packet_header packet_header_;
 
-    std::map<int, boost::signals2::signal<void(std::string)>> req_resp;
+    std::map<int, boost::signals2::signal<void(protocol::Packet::Payload)>> req_resp;
 
     int request_id = 0;
 };

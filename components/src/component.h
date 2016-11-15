@@ -8,7 +8,7 @@ namespace alpha {
 namespace protort {
 namespace components {
 
-using port_id = unsigned short;
+using port_id = uint32_t;
 using port_list = std::vector<port_id>;
 
 struct output
