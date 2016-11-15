@@ -31,13 +31,13 @@ void MainWindow::on_save_file_triggered()
     auto textEdit = dynamic_cast<Document*> (ui->tabWidget->currentWidget());
     QString fname = textEdit->fileName();
 
-    if(fname == "")
+    if(fname.isEmpty())
     {
         if(!textEdit->save())
         {
             fname = textEdit->fileName();
 
-            if(fname == "")
+            if(fname.isEmpty())
                 return;
             else
             {
@@ -58,7 +58,7 @@ void MainWindow::on_save_all_triggered()
             continue;
         QString fname = textEdit->fileName();
 
-        if(fname == "")
+        if(fname.isEmpty())
         {
             if(!textEdit->save())
             {
