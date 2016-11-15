@@ -17,7 +17,7 @@ public:
     QString app() const;
     QString deploySchema() const;
 
-    void loadApp(QString &c_app);
+    void loadApp(const QString &c_app);
     void loadDeploy(QString &c_deploy);
 
 private slots:

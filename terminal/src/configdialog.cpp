@@ -18,7 +18,7 @@ QString ConfigDialog::deploySchema() const
     return cd->deploySchemaComboBox->currentText();
 }
 
-void ConfigDialog::loadApp(QString &c_app)
+void ConfigDialog::loadApp(const QString &c_app)
 {
     cd->appComboBox->addItem(c_app);
 }

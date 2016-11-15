@@ -50,7 +50,7 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    for (int i = ui->tabWidget->count(); i >= 0; --i)
+    for (int i = 0; i < ui->tabWidget->count() -1; ++i)
     {
         auto textEdit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
 
@@ -64,7 +64,7 @@ void MainWindow::on_save_all_triggered()
             {
                 fname = textEdit->fileName();
 
-                if(fname == "")
+                if(fname.isEmpty())
                     return;
                 else
                 {
@@ -102,7 +102,7 @@ void MainWindow::on_load_file_triggered()
 
     Document *doc = new Document();
     doc->setText(file.readAll());
-    doc->setFileName(fileName);
+    doc->Document::setFileName(fileName);
     addDocument(doc);
 }
 
