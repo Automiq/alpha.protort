@@ -11,17 +11,17 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
-    name = "";
+    m_name = "";
 }
 
 bool Document::save()
 {
-    if(name == "")
-        name = getFileNameOFD();
+    if(m_name.isEmpty())
+        m_name = getFileNameOFD();
 
-    if(name != "")
+    if(!m_name.isEmpty())
     {
-        QFile sfile(name);
+        QFile sfile(m_name);
 
         if ( sfile.open(QIODevice::WriteOnly | QIODevice::Text) )
         {
@@ -35,12 +35,12 @@ bool Document::save()
 
 QString Document::fileName() const
 {
-    return name;
+    return m_name;
 }
 
 void Document::setFileName(const QString &fileName)
 {
-    name = fileName;
+    m_name = fileName;
 }
 
 Document::Kind Document::kind() const

@@ -27,14 +27,14 @@ public:
     bool save();
 
     void setFileName(const QString &fileName);
-    QString getFileNameOFD();
 
     QString fileName() const;
     Kind kind() const;
 
 
 private:
-    QString name;
+    QString getFileNameOFD();
+    QString m_name;
 };
 
 #endif // DOCUMENT_H

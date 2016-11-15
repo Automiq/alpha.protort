@@ -60,8 +60,7 @@ private:
     QTextEdit* createNewTab(const QString &name);
 
     Ui::MainWindow *ui;
-    QList <Document> openApp;
-    QList <Document> openDeploy;
+
     QString m_app;
     QString m_deploySchema;
 };

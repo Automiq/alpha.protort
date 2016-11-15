@@ -29,3 +29,9 @@ PROTOS += \
 
 # Для компиляции протокола с помощью protoc налету
 include(protobuf/compiler.pri)
+
+DISTFILES += \
+    protobuf/components.proto \
+    protobuf/deploy.proto \
+    protobuf/packet.proto \
+    protobuf/protocol.proto

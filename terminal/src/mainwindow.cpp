@@ -95,8 +95,8 @@ void MainWindow::on_load_file_triggered()
     if (!file.open(QIODevice::ReadOnly))
     {
         QMessageBox::warning(this,
-                            tr("File error"),
-                            tr("Failed to open\n%1").arg(fileName));
+                            tr("Ошибка!"),
+                            tr("Невозможно открыть файл\n%1").arg(fileName));
         return;
     }
 
@@ -118,7 +118,7 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
     QString title = doc->fileName();
 
     if (title.isEmpty())
-        title = tr("Unnamed");
+        title = tr("Безымянный");
     else
         title = QFileInfo(title).fileName();
 
