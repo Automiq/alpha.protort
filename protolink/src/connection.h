@@ -192,15 +192,17 @@ private:
             assert(false);
             break;
 
-        case protocol::Packet::Kind::Packet_Kind_Request:
+        case protocol::Packet::Kind::Packet_Kind_Request:            
+        {
             // TODO
             protocol_payload response_payload = callback_.on_new_request(packet.payload());
             send_response(response_payload, packet.transaction().id());
             break;
+        }
 
-//        case protocol::Packet::Kind::Packet_Kind_Message:
-//            callback_.on_new_message(packet.payload());
-//            break;
+        case protocol::Packet::Kind::Packet_Kind_Message:
+            callback_.on_new_message(packet.payload());
+            break;
         }
     }
 

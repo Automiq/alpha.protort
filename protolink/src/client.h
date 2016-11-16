@@ -88,6 +88,7 @@ public:
      */
     void async_connect(boost::asio::ip::tcp::endpoint ep)
     {
+        std::cout << "client::async_connect" << std::endl;
         ep_ = ep;
         do_connect(ep);
     }
@@ -123,9 +124,27 @@ private:
      */
     void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
+        std::cout << "client::do_connect to " << ep << std::endl;
         socket_.async_connect(
             ep, boost::bind(&client::on_connect, this,
                             boost::asio::placeholders::error));
+    }
+
+    /*!
+     * \brief Колбек, вызываемый по окончании попытки соединения
+     *
+     * \param err Ошибка соединения (если есть)
+     */
+    void on_connect(const error_code& err)
+    {
+        std::cout << "client::on_connect" << std::endl;
+        std::cout << "client::on_connect error: " << err <<std::endl << err.message() << std::endl;
+        callback_.on_connected(err);
+        if (err)
+        {
+            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
+            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
+        }
     }
 
     /*!
@@ -149,21 +168,6 @@ private:
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred,
                         kind_));
-    }
-
-    /*!
-     * \brief Колбек, вызываемый по окончании попытки соединения
-     *
-     * \param err Ошибка соединения (если есть)
-     */
-    void on_connect(const error_code& err)
-    {
-        callback_.on_connected(err);
-        if (err)
-        {
-            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
-            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
-        }
     }
 
     /*!

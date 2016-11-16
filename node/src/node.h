@@ -60,7 +60,8 @@ public:
      */
     void on_packet_sent(const boost::system::error_code& err, size_t bytes)
     {
-        // TODO
+        if (!err)
+            router_.route("A", 0, "smth");
     }
 
     /*!
@@ -69,7 +70,8 @@ public:
      */
     void on_connected(const boost::system::error_code& err)
     {
-        // TODO
+        if (!err)
+            router_.route("A", 0, "smth");
     }
 
     /*!
@@ -94,7 +96,10 @@ public:
 
     void on_new_message(const protocol_payload& payload)
     {
-        // TODO
+        std::cout << "comp name is " << payload.communication_packet().destination().name() << std::endl;
+        router_.route(payload.communication_packet().destination().name(),
+                      payload.communication_packet().destination().port(),
+                      payload.communication_packet().payload());
     }
 
     protocol_payload on_new_request(const protocol_payload& payload)
