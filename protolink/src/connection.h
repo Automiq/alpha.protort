@@ -17,6 +17,8 @@ namespace protolink {
 
 using protocol_payload = alpha::protort::protocol::Packet::Payload;
 using alpha::protort::link::packet_header;
+using alpha::protort::link::max_packet_size;
+using alpha::protort::link::header_size;
 
 /*!
  * \brief Класс входящего соединения

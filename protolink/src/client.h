@@ -108,7 +108,7 @@ public:
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
-        packet.transaction().set_id(request_id);
+        packet.mutable_transaction()->set_id(request_id);
         boost::signals2::signal<void(protocol::Packet_Payload)> on_finished_;
         on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
         req_resp.emplace(request_id++, on_finished_);
