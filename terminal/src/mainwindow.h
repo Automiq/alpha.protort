@@ -5,14 +5,18 @@
 #include <QSyntaxHighlighter>
 #include "configdialog.h"
 #include <QMessageBox>
-#include <QList>
 #include "document.h"
+#include "deploy.pb.h"
+#include <QList>
+
 
 class QTextEdit;
 
 namespace Ui {
 class MainWindow;
 }
+
+using namespace alpha::protort::protocol::deploy;
 
 class MainWindow : public QMainWindow
 {
@@ -51,15 +55,16 @@ private slots:
 
     void close_tab(int index);
 
-    void addDocument(Document *doc);
-
-    QString fixedWindowTitle(const Document *doc) const;
+    void on_status_request_triggered();
 
 private:
     Ui::MainWindow *ui;
     QString m_app;
     QString m_deploySchema;
     void saveDocument(int index);
+    void addDocument(Document *doc);
+    QString fixedWindowTitle(const Document *doc) const;
+    std::vector<StatusResponse> stat_out;
 };
 
 #endif // MAINWINDOW_H

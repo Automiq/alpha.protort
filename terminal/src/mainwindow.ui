@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>611</width>
-    <height>450</height>
+    <width>693</width>
+    <height>469</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -50,7 +50,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>611</width>
+     <width>693</width>
      <height>26</height>
     </rect>
    </property>
@@ -72,6 +72,7 @@
      <string>&amp;Проект</string>
     </property>
     <addaction name="config"/>
+    <addaction name="status_request"/>
     <addaction name="deploy"/>
     <addaction name="start"/>
     <addaction name="stop"/>
@@ -93,14 +94,15 @@
    <addaction name="load_file"/>
    <addaction name="save_file"/>
    <addaction name="save_all"/>
+   <addaction name="config"/>
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
-   <addaction name="config"/>
+   <addaction name="status_request"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">
-    <string>    log</string>
+    <string>Журнал развёртывания</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>8</number>
@@ -113,6 +115,21 @@
         <bool>true</bool>
        </property>
       </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="dockWidget_status">
+   <property name="windowTitle">
+    <string>Статус узлов</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>8</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <item>
+      <widget class="QTextBrowser" name="text_browser_status"/>
      </item>
     </layout>
    </widget>
@@ -242,6 +259,18 @@
    </property>
    <property name="shortcut">
     <string>F5</string>
+   </property>
+  </action>
+  <action name="status_request">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset>
+     <normaloff>:/images/status.png</normaloff>:/images/status.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Статус</string>
    </property>
   </action>
  </widget>

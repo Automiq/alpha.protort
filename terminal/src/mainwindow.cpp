@@ -25,6 +25,7 @@ void MainWindow::close_tab(int index)
     if (ui->tabWidget->count() == 0)
         close();
 }
+
 void MainWindow::setTabName(int index, const QString &name)
 {
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
@@ -147,7 +148,6 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::on_config_triggered()
 {
-
     ConfigDialog dlg(this);
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
@@ -181,15 +181,22 @@ void MainWindow::on_config_triggered()
                              "\n Требуются доработки.");
 }
 
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
+}
+
 void MainWindow::on_start_triggered()
 {
     ui->start->setDisabled(true);
+    ui->status_request->setEnabled(true);
     ui->stop->setEnabled(true);
 }
 
 void MainWindow::on_stop_triggered()
 {
     ui->start->setEnabled(true);
+    ui->status_request->setDisabled(true);
     ui->stop->setDisabled(true);
 }
 
@@ -199,7 +206,31 @@ void MainWindow::on_deploy_triggered()
     ui->start->setEnabled(true);
 }
 
-void MainWindow::on_close_file_triggered()
+void MainWindow::on_status_request_triggered()
 {
-    close_tab(ui->tabWidget->currentIndex());
+    ui->text_browser_status->clear();
+    for (int i = 0; i < stat_out.size(); ++i)
+    {
+        ui->text_browser_status->insertPlainText("<Название узла - " +
+                                                 QString::fromStdString(stat_out[i].node_name())
+                                                 + ">\n<Время работы - " +
+                                                 QString::number(stat_out[i].uptime()) + ">\n<Количество принятых пакетов - "
+                                                 + QString::number(stat_out[i].in_packets_count()) +
+                                                 " (" + QString::number(stat_out[i].in_bytes_count())
+                                                 + " б)" + ">\n<Количество переданных пакетов - "
+                                                 + QString::number(stat_out[i].out_packets_count()) + " ("
+                                                 + QString::number(stat_out[i].out_bytes_count())
+                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
+        for (int j = 0; j < stat_out[i].component_statuses_size(); ++j)
+        {
+            ui->text_browser_status->insertPlainText("<Название компонента - " +
+                                                     QString::fromStdString(stat_out[i].component_statuses(i).name()) +
+                                                     "\n<Количество принятых пакетов - >"
+                                                     + QString::number(stat_out[i].component_statuses(i).in_packet_count()) +
+                                                     ">\n<Количество переданных пакетов - >" +
+                                                     QString::number(stat_out[i].component_statuses(i).out_packet_count()) +
+                                                     "\n\n");
+        }
+        ui->text_browser_status->insertPlainText("\n\n");
+    }
 }

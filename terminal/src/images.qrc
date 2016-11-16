@@ -12,5 +12,6 @@
         <file>images/stop.png</file>
         <file>images/config.png</file>
         <file>images/start.png</file>
+        <file>images/status.png</file>
     </qresource>
 </RCC>
