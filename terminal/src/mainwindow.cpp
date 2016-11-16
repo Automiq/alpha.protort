@@ -149,27 +149,24 @@ void MainWindow::on_status_request_triggered()
     {
         ui->text_browser_status->insertPlainText("<Название узла - " +
                                                  QString::fromStdString(stat_out[i].node_name())
-                                                 + ">\n");
-        ui->text_browser_status->insertPlainText("<Время работы - " + QString::number(stat_out[i].uptime()) + ">\n");
-        ui->text_browser_status->insertPlainText("<Количество принятых пакетов - "
+                                                 + ">\n<Время работы - " +
+                                                 QString::number(stat_out[i].uptime()) + ">\n<Количество принятых пакетов - "
                                                  + QString::number(stat_out[i].in_packets_count()) +
                                                  " (" + QString::number(stat_out[i].in_bytes_count())
-                                                 + " б)" + ">\n");
-        ui->text_browser_status->insertPlainText("<Количество переданных пакетов - "
+                                                 + " б)" + ">\n<Количество переданных пакетов - "
                                                  + QString::number(stat_out[i].out_packets_count()) + " ("
                                                  + QString::number(stat_out[i].out_bytes_count())
-                                                 + " б)"+ ">\n\n");
-        ui->text_browser_status->insertPlainText("<Информация о компонентах>\n\n");
+                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
         for (int j = 0; j < stat_out[i].component_statuses_size(); ++j)
         {
             ui->text_browser_status->insertPlainText("<Название компонента - " +
                                                      QString::fromStdString(stat_out[i].component_statuses(i).name()) +
-                                                     ">\n");
-            ui->text_browser_status->insertPlainText("<Количество принятых пакетов : >\n <Количество принятых пакетов - >"
+                                                     "\n<Количество принятых пакетов - >"
                                                      + QString::number(stat_out[i].component_statuses(i).in_packet_count()) +
                                                      ">\n<Количество переданных пакетов - >" +
                                                      QString::number(stat_out[i].component_statuses(i).out_packet_count()) +
                                                      "\n\n");
         }
+        ui->text_browser_status->insertPlainText("\n\n");
     }
 }
