@@ -63,6 +63,7 @@ private:
     Ui::MainWindow *ui;
     QString m_app;
     QString m_deploySchema;
+    void saving(Document* textEdit);
 };
 
 #endif // MAINWINDOW_H

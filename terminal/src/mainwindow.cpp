@@ -30,38 +30,36 @@ void MainWindow::setTabName(int index, QString name)
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
 }
 
+void MainWindow::saving(Document* textEdit)
+{
+    if(textEdit->save())
+    {
+        QString nfname = textEdit->fileName();
+        int index = ui->tabWidget->currentIndex();
+
+        if(nfname != ui->tabWidget->tabText(index))
+            setTabName(index, nfname);
+    }
+}
+
 void MainWindow::on_save_file_triggered()
 {
     auto textEdit = dynamic_cast<Document*> (ui->tabWidget->currentWidget());
-
-        if(textEdit->save())
-        {
-            QString nfname = textEdit->fileName();
-            int index = ui->tabWidget->currentIndex();
-
-            if(nfname != ui->tabWidget->tabText(index))
-                setTabName(index, nfname);
-        }
+    saving(textEdit);
 }
 
 void MainWindow::on_save_all_triggered()
 {
-    int index;
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
+        ui->tabWidget->setCurrentIndex(i);
+
         auto textEdit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
 
         if (!textEdit)
             continue;
 
-        if(textEdit->save())
-        {
-            index = ui->tabWidget->currentIndex();
-            QString nfname = textEdit->fileName();
-
-            if(nfname != ui->tabWidget->tabText(index))
-                setTabName(i, nfname);
-        }
+    saving(textEdit);
     }
 }
 
@@ -75,7 +73,7 @@ void MainWindow::on_load_file_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Открыть файл"), QString(),
-                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*.*)"));
+                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
 
     if (fileName.isEmpty())
         return;
