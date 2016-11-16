@@ -8,12 +8,10 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     cd->setupUi(this);
 }
 
-
 ConfigDialog::~ConfigDialog()
 {
     delete cd;
 }
-
 
 QString ConfigDialog::app() const
 {
@@ -25,14 +23,14 @@ QString ConfigDialog::deploySchema() const
     return cd->deploySchemaComboBox->currentText();
 }
 
-void ConfigDialog::loadApp(const QString &c_app)
+void ConfigDialog::loadApp(const QString &app)
 {
-    cd->appComboBox->addItem(c_app);
+    cd->appComboBox->addItem(app);
 }
 
-void ConfigDialog::loadDeploy(const QString &c_deploy)
+void ConfigDialog::loadDeploy(const QString &deploy)
 {
-    cd->deploySchemaComboBox->addItem(c_deploy);
+    cd->deploySchemaComboBox->addItem(deploy);
 }
 
 void ConfigDialog::on_buttonBox_accepted()
