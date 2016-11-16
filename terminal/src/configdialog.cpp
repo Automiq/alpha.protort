@@ -35,5 +35,4 @@ void ConfigDialog::loadDeploy(const QString &deploy)
 
 void ConfigDialog::on_buttonBox_accepted()
 {
-
 }
