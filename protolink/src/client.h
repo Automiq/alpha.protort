@@ -109,7 +109,7 @@ public:
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
         packet.transaction().set_id(request_id);
-        boost::signals2::signal<void(std::string)> on_finished_;
+        boost::signals2::signal<void(protocol::Packet_Payload)> on_finished_;
         on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
         req_resp.emplace(request_id++, on_finished_);
         packet.set_allocated_payload(&payload);
@@ -204,35 +204,11 @@ private:
             boost::asio::buffer(&packet_header_, header_size),
             boost::asio::transfer_exactly(header_size),
             boost::bind(&client::on_header_read,
-                        this->shared_from_this(),
+                        this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
 
-    /*!
-     * \brief Асинхронный метод чтения пакета
-     */
-    void do_read_packet()
-    {
-        // Размер пакета согласно заголовку
-        auto packet_size = packet_header_.packet_size;
-
-        // Добавим асинхронный таск чтения пакета заданного размера
-        async_read(
-            socket_,
-            boost::asio::buffer(buffer_.get(), packet_size),
-            boost::asio::transfer_exactly(packet_size),
-            boost::bind(&client::on_packet_read,
-                        this->shared_from_this(),
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::bytes_transferred));
-    }
-
-    /*!
-     * \brief Колбек, вызываемый по окончании чтения заголовка
-     * \param err Ошибка (если есть)
-     * \param bytes Прочитанный размер полученного заголовка пакета в байтах
-     */
     void on_header_read(const error_code& err, size_t bytes)
     {
         if (err)
@@ -250,6 +226,31 @@ private:
 
         do_read_packet();
     }
+
+    /*!
+     * \brief Асинхронный метод чтения пакета
+     */
+    void do_read_packet()
+    {
+        // Размер пакета согласно заголовку
+        auto packet_size = packet_header_.packet_size;
+
+        // Добавим асинхронный таск чтения пакета заданного размера
+        async_read(
+            socket_,
+            boost::asio::buffer(buffer_.get(), packet_size),
+            boost::asio::transfer_exactly(packet_size),
+            boost::bind(&client::on_packet_read,
+                        this,
+                        boost::asio::placeholders::error,
+                        boost::asio::placeholders::bytes_transferred));
+    }
+
+    /*!
+     * \brief Колбек, вызываемый по окончании чтения заголовка
+     * \param err Ошибка (если есть)
+     * \param bytes Прочитанный размер полученного заголовка пакета в байтах
+     */
 
     /*!
      * \brief Колбек, вызываемый по окончании чтения пакета
@@ -273,7 +274,7 @@ private:
         switch(packet.kind())
         {
         case protocol::Packet::Kind::Packet_Kind_Message:
-            callback_.on_new_packet(packet.payload(), bytes);
+            assert(false);
             break;
         case protocol::Packet::Kind::Packet_Kind_Request:
             break;
@@ -302,7 +303,7 @@ private:
     //! Заголовок текущего пакета
     link::packet_header packet_header_;
 
-    std::map<int, boost::signals2::signal<void(std::string)>> req_resp;
+    std::map<int, boost::signals2::signal<void(protocol::Packet_Payload)>> req_resp;
 
     int request_id = 0;
 };

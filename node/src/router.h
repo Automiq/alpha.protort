@@ -13,6 +13,16 @@
 namespace alpha {
 namespace protort {
 namespace node {
+namespace tests {
+void test_node_router();
+}
+}
+}
+}
+
+namespace alpha {
+namespace protort {
+namespace node {
 
 using component_ptr = alpha::protort::components::component *;
 using component_unique_ptr = std::unique_ptr<alpha::protort::components::component>;
@@ -25,6 +35,7 @@ template<class app>
 class router
 {
     friend class node;
+    friend void alpha::protort::node::tests::test_node_router();
 private:
     class component_instance;
 

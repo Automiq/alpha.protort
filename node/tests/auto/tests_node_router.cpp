@@ -2,8 +2,6 @@
 #include <boost/test/unit_test_suite.hpp>
 #include <vector>
 
-#define private public
-
 #include "node.h"
 #include "components.h"
 #include "router.h"
@@ -13,17 +11,7 @@ namespace protort {
 namespace node {
 namespace tests {
 
-struct fixture
-{
-    ~fixture()
-    {
-        google::protobuf::ShutdownProtobufLibrary();
-    }
-};
-
-BOOST_FIXTURE_TEST_SUITE(tests_node_router,fixture)
-
-BOOST_AUTO_TEST_CASE(test_node_router)
+void test_node_router()
 {
     int retranslator_count = 0;
     int terminator_count = 0;
@@ -129,6 +117,21 @@ BOOST_AUTO_TEST_CASE(test_node_router)
 
 
     router_.route("g1",0,"string for generator");
+}
+
+struct fixture
+{
+    ~fixture()
+    {
+        google::protobuf::ShutdownProtobufLibrary();
+    }
+};
+
+BOOST_FIXTURE_TEST_SUITE(tests_node_router,fixture)
+
+BOOST_AUTO_TEST_CASE(test_node_router)
+{
+    test_node_router();
 }
 
 BOOST_AUTO_TEST_SUITE_END()
