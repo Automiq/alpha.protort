@@ -35,8 +35,7 @@ public:
     using protocol_payload = protocol::Packet::Payload;
 
     node(const node_settings &settings)
-        : client_(*this, service_),
-          server_(*this, service_),
+        : server_(*this, service_),
           server_for_conf_(*this,service_),
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM)
@@ -79,9 +78,8 @@ public:
      * \param buffer
      * \param nbytes
      */
-    void on_new_packet(char const *buffer, size_t nbytes)
+    void on_new_packet(protocol::Packet_Payload)
     {
-        std::string payload(buffer, nbytes);
         // Deploy
     }
 
@@ -255,9 +253,6 @@ private:
 
     //! Сервер
     protolink::server<node> server_;
-
-    //! Клиент
-    protolink::client<node> client_;
 
     //! Настройки узла
     node_settings settings_;

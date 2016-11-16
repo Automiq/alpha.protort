@@ -11,6 +11,7 @@
 #include "packet.pb.h"
 #include "protocol.pb.h"
 #include "../../link/src/packet_header.h"
+#include "request_callbacks.h"
 
 namespace alpha {
 namespace protort {
@@ -34,6 +35,7 @@ template<class Callback>
 class client
 {
     using error_code = boost::system::error_code;
+    using request_ptr = boost::shared_ptr<request_callbacks>;
 
 public:
 
@@ -88,7 +90,6 @@ public:
      */
     void async_connect(boost::asio::ip::tcp::endpoint ep)
     {
-        std::cout << "client::async_connect" << std::endl;
         ep_ = ep;
         do_connect(ep);
     }
@@ -105,16 +106,17 @@ public:
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    template<class Request_callback> void async_send_request(protocol::Packet_Payload& payload, Request_callback& req_callback)
+    request_ptr async_send_request(protocol::Packet_Payload& payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
-        packet.mutable_transaction()->set_id(request_id);
-        boost::signals2::signal<void(protocol::Packet_Payload)> on_finished_;
-        on_finished_.connect(boost::bind(&Request_callback::on_finished, &req_callback));
-        req_resp.emplace(request_id++, on_finished_);
-        packet.set_allocated_payload(&payload);
+        packet.mutable_transaction()->set_id(transaction_id_);
+        packet.mutable_payload()->CopyFrom(payload);
+
+        request_ptr ptr_(new request_ptr);
+        transactions_.emplace(transaction_id_++, ptr_);
         do_send_packet(packet.SerializeAsString(),packet.kind());
+        return ptr_;
     }
 
 private:
@@ -124,7 +126,6 @@ private:
      */
     void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
-        std::cout << "client::do_connect to " << ep << std::endl;
         socket_.async_connect(
             ep, boost::bind(&client::on_connect, this,
                             boost::asio::placeholders::error));
@@ -137,8 +138,6 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        std::cout << "client::on_connect" << std::endl;
-        std::cout << "client::on_connect error: " << err <<std::endl << err.message() << std::endl;
         callback_.on_connected(err);
         if (err)
         {
@@ -278,13 +277,19 @@ private:
         switch(packet.kind())
         {
         case protocol::Packet::Kind::Packet_Kind_Message:
-            assert(false);
+            callback_.on_new_packet(packet.payload());
             break;
         case protocol::Packet::Kind::Packet_Kind_Request:
             break;
         case protocol::Packet::Kind::Packet_Kind_Response:
-            req_resp[packet.transaction().id()](packet.payload());
-            req_resp.erase(packet.transaction().id()); // Надо ли удалять из map или нет?
+            auto iter = transactions_.find(packet.transaction().id());
+            if(iter == transactions_.end())
+            {
+                std::cout << "Wrong id" << "\n";
+                return;
+            }
+            iter->second->on_finished(packet.payload());
+            transactions_.erase(iter);
             break;
         }
     }
@@ -307,9 +312,11 @@ private:
     //! Заголовок текущего пакета
     link::packet_header packet_header_;
 
-    std::map<int, boost::signals2::signal<void(protocol::Packet_Payload)>> req_resp;
+    //! Мэп с идентификатором транзакции и транзакцией
+    std::map<int, request_ptr> transactions_;
 
-    int request_id = 0;
+    //! Идентификатор транзакции
+    int transaction_id_ = 0;
 };
 
 } // namespace protolink
