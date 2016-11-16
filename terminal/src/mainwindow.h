@@ -7,6 +7,8 @@
 #include <QMessageBox>
 #include "document.h"
 #include "deploy.pb.h"
+#include <QList>
+
 
 class QTextEdit;
 
@@ -22,7 +24,10 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+
     ~MainWindow();
+
+    void setTabName(int index, const QString& name);
 
 private slots:
 
@@ -54,10 +59,11 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    QTextEdit *createNewTab(const QString &name);
-    QString *openFiles;
     QString m_app;
     QString m_deploySchema;
+    void saveDocument(int index);
+    void addDocument(Document *doc);
+    QString fixedWindowTitle(const Document *doc) const;
     std::vector<StatusResponse> stat_out;
 };
 

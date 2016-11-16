@@ -2,6 +2,7 @@
 #define CONFIGDIALOG_H
 
 #include <QDialog>
+#include "document.h"
 
 namespace Ui {
 class ConfigDialog;
@@ -18,11 +19,14 @@ public:
     QString app() const;
     QString deploySchema() const;
 
+    void loadApp(const QString &app);
+    void loadDeploy(const QString &deploy);
+
 private slots:
     void on_buttonBox_accepted();
 
 private:
-    Ui::ConfigDialog *ui;
+    Ui::ConfigDialog *cd;
 };
 
 #endif // ConfigDialog_H

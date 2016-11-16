@@ -1,41 +1,64 @@
 #include "document.h"
+#include <QWidget>
+#include <QFileDialog>
+#include <QXmlStreamReader>
+#include <QMessageBox>
+#include <QTextStream>
+#include <QByteArray>
+#include <QTextCodec>
+#include <QDebug>
 
-enum doc_type
+Document::Document(QWidget *parent)
+    : QTextEdit(parent)
 {
-    undef,
-    deploy,
-    app
-};
+}
 
-void Document::parse_type()
+bool Document::save()
 {
-    QFile file(name);
-    QString type_str = "";
-    if (file.open(QIODevice::ReadOnly))
+    if(m_name.isEmpty())
+        m_name = getFileNameOFD();
+
+    if(!m_name.isEmpty())
     {
-        type_str = file.readLine();
-        if (type_str == "<deploy>")
-            type = deploy;
-        else if (type_str == "<app>")
-            type = app;
-        else
-            type = undef;
+        QFile file(m_name);
+
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            file.write(toPlainText().toUtf8());
+            file.close();
+            return true;
+       }
     }
+    return false;
 }
 
-Document::Document()
+QString Document::fileName() const
 {
-    name = "";
-    type = undef;
+    return m_name;
 }
 
-Document::Document(QString name)
+void Document::setFileName(const QString &fileName)
 {
-    this->name = name;
-    parse_type();
+    m_name = fileName;
 }
 
-int Document::get_type()
+Document::Kind Document::kind() const
 {
-    return type;
+    QXmlStreamReader xml(toPlainText());
+    xml.readNextStartElement();
+
+    if (xml.name() == "app")
+        return Kind::App;
+
+    if (xml.name() == "deploy")
+        return Kind::Deploy;
+
+    return Kind::Unknown;
+}
+
+QString Document::getFileNameOFD()
+{
+    return QFileDialog::getSaveFileName(this, tr("Сохранить файл как..."),
+                                        QString(),
+                                        tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*.*)"));
 }

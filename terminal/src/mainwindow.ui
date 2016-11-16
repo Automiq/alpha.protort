@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>alpha.protort.terminal</string>
+   <string>Терминал Alpha.ProtoRt</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
@@ -94,6 +94,7 @@
    <addaction name="load_file"/>
    <addaction name="save_file"/>
    <addaction name="save_all"/>
+   <addaction name="config"/>
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
@@ -265,7 +266,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset resource="images.qrc">
+    <iconset>
      <normaloff>:/images/status.png</normaloff>:/images/status.png</iconset>
    </property>
    <property name="text">

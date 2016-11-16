@@ -4,13 +4,13 @@
 #include <QFileDialog>
 #include <QTextEdit>
 #include <QObject>
+#include <QTextStream>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    openFiles = new QString();
 }
 
 MainWindow::~MainWindow()
@@ -20,40 +20,45 @@ MainWindow::~MainWindow()
 
 void MainWindow::close_tab(int index)
 {
-    ui->tabWidget->currentWidget()->deleteLater();
+    ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
     if (ui->tabWidget->count() == 0)
         close();
 }
 
+void MainWindow::setTabName(int index, const QString &name)
+{
+    ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
+}
+
+void MainWindow::saveDocument(int index)
+{
+    if(index == -1)
+        return;
+
+    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+
+    if(!doc)
+        return;
+
+    if(!doc->save())
+        return;
+
+    QString nfname = doc->fileName();
+    if(nfname != ui->tabWidget->tabText(index))
+        setTabName(index, nfname);
+
+}
+
 void MainWindow::on_save_file_triggered()
 {
-    auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->currentWidget());
-    QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
-    if (file.open(QIODevice::ReadWrite))
-    {
-        file.write(text_edit->toPlainText().toUtf8());
-        file.close();
-    }
+    saveDocument(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_save_all_triggered()
 {
-    if(!openFiles->isEmpty())
-    {
-        for (int i = ui->tabWidget->count(); i >= 0; --i)
-        {
-            auto text_edit = dynamic_cast<QTextEdit*> (ui->tabWidget->widget(i));
-            if (!text_edit)
-                continue;
-            QFile file(ui->tabWidget->tabText(i));
-            if (file.open(QIODevice::WriteOnly))
-            {
-                file.write(text_edit->toPlainText().toUtf8());
-                file.close();
-            }
-         }
-    }
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        saveDocument(i);
 }
 
 void MainWindow::on_exit_triggered()
@@ -64,31 +69,77 @@ void MainWindow::on_exit_triggered()
 
 void MainWindow::on_load_file_triggered()
 {
-    QString file_name = QFileDialog::getOpenFileName(this, QString ("Открыть файл"), QString(), QString("xml (*.xml);; all (*)"));
-    openFiles->push_back(file_name);
-    QFile file(file_name);
-    if (file.open(QIODevice::ReadOnly))
+
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Открыть файл"), QString(),
+                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
+
+    if (fileName.isEmpty())
+        return;
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
     {
-        auto text_edit = createNewTab(QString(QFileInfo(file_name).fileName()));
-        QByteArray file_text = file.readAll();
-        text_edit->setText(file_text);
-        file.close();
+        QMessageBox::warning(this,
+                             tr("Ошибка"),
+                             tr("Ошибка открытия файла\n%1").arg(fileName));
+        return;
     }
+
+    Document *doc = new Document();
+    doc->setText(file.readAll());
+    doc->setFileName(fileName);
+    addDocument(doc);
 }
+
+void MainWindow::addDocument(Document *doc)
+{
+    if (ui->tabWidget->indexOf(doc) != -1)
+        return;
+    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+}
+
+QString MainWindow::fixedWindowTitle(const Document *doc) const
+{
+    QString title = doc->fileName();
+
+    if (title.isEmpty())
+        title = tr("Безымянный");
+    else
+        title = QFileInfo(title).fileName();
+
+    QString result;
+
+    for (int i = 0; ; ++i)
+    {
+        result = title;
+        if (i > 0)
+            result += QString::number(i);
+
+        bool unique = true;
+        for (int j = 0; j < ui->tabWidget->count(); ++j)
+        {
+            const QWidget *widget = ui->tabWidget->widget(j);
+            if (widget == doc)
+                continue;
+            if (result == ui->tabWidget->tabText(j))
+            {
+                unique = false;
+                break;
+            }
+        }
+
+        if (unique)
+            break;
+    }
+    return result;
+}
+
 
 void MainWindow::on_create_file_triggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, QString ("Создать файл"), QString(), QString("xml (*.xml);; all (*)"));
-    openFiles->push_back(file_name);
-    QFile file(file_name);
-    if (file.open(QIODevice::ReadWrite))
-    {
-        if (ui->tabWidget->tabText(ui->tabWidget->currentIndex()) == "Tab 1")
-            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), QString(QFileInfo(file_name).fileName()));
-        else
-            ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(new QTextEdit(), QString(QFileInfo(file_name).fileName())));
-        file.close();
-    }
+    Document *tmp = new Document();
+    addDocument(tmp);
 }
 
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
@@ -96,17 +147,23 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
     close_tab(index);
 }
 
-QTextEdit* MainWindow::createNewTab(const QString &name)
-{
-    QTextEdit *text_edit = new QTextEdit();
-    ui->tabWidget->setCurrentIndex(ui->tabWidget->addTab(text_edit, name));
-    ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), name);
-    return text_edit;
-}
-
 void MainWindow::on_config_triggered()
 {
     ConfigDialog dlg(this);
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+
+        QString nname = text_edit->fileName();
+
+        if(text_edit->Kind::App == text_edit->kind())
+            dlg.loadApp(nname);
+        if(text_edit->Kind::Deploy == text_edit->kind())
+            dlg.loadDeploy(nname);
+    }
+
     if (dlg.exec())
     {
         m_app = dlg.app();
@@ -115,6 +172,19 @@ void MainWindow::on_config_triggered()
         ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
     }
+
+    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
+                             "\n" +"Описание загружено" + "\n" +
+                             "Загрузка схемы развёртывания..." +
+                             "\n" + m_deploySchema +
+                             "\n" + "Схема загружена" +
+                             "\n" + "Упс! Не могу развернуть." +
+                             "\n Требуются доработки.");
+}
+
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_start_triggered()
@@ -135,11 +205,6 @@ void MainWindow::on_deploy_triggered()
 {
     ui->deploy->setDisabled(true);
     ui->start->setEnabled(true);
-}
-
-void MainWindow::on_close_file_triggered()
-{
-    close_tab(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_status_request_triggered()

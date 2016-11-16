@@ -29,7 +29,6 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     configdialog.ui
 
-
 # Линкуемся с парсером
 include(../../parser/parser.pri)
 
