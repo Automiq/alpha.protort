@@ -19,8 +19,8 @@ public:
     QString app() const;
     QString deploySchema() const;
 
-    void loadApp(const QString &c_app);
-    void loadDeploy(const QString &c_deploy);
+    void loadApp(const QString &app);
+    void loadDeploy(const QString &deploy);
 
 private slots:
     void on_buttonBox_accepted();
