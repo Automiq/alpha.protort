@@ -23,7 +23,7 @@ public:
 
     ~MainWindow();
 
-    void setTabName(int index, QString name);
+    void setTabName(int index, QString& name);
 
 private slots:
 
@@ -63,7 +63,7 @@ private:
     Ui::MainWindow *ui;
     QString m_app;
     QString m_deploySchema;
-    void saving(Document* textEdit);
+    void saving(int index);
 };
 
 #endif // MAINWINDOW_H

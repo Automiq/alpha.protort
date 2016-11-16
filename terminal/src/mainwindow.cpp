@@ -25,42 +25,39 @@ void MainWindow::close_tab(int index)
     if (ui->tabWidget->count() == 0)
         close();
 }
-void MainWindow::setTabName(int index, QString name)
+void MainWindow::setTabName(int index, QString& name)
 {
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
 }
 
-void MainWindow::saving(Document* textEdit)
+void MainWindow::saving(int index)
 {
-    if(textEdit->save())
-    {
-        QString nfname = textEdit->fileName();
-        int index = ui->tabWidget->currentIndex();
+    if(index == -1)
+        return;
 
+    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+
+    if(!doc)
+        return;
+
+    if(!doc->save())
+        return;
+
+        QString nfname = doc->fileName();
         if(nfname != ui->tabWidget->tabText(index))
             setTabName(index, nfname);
-    }
+
 }
 
 void MainWindow::on_save_file_triggered()
 {
-    auto textEdit = dynamic_cast<Document*> (ui->tabWidget->currentWidget());
-    saving(textEdit);
+    saving(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_save_all_triggered()
 {
     for (int i = 0; i < ui->tabWidget->count(); ++i)
-    {
-        ui->tabWidget->setCurrentIndex(i);
-
-        auto textEdit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
-
-        if (!textEdit)
-            continue;
-
-    saving(textEdit);
-    }
+        saving(i);
 }
 
 void MainWindow::on_exit_triggered()
