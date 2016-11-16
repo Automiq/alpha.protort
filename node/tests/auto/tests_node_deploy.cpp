@@ -23,7 +23,7 @@ BOOST_FIXTURE_TEST_SUITE(tests_node_deploy,fixture)
 BOOST_AUTO_TEST_CASE(test_node_deploy)
 {
     alpha::protort::node::node_settings node_settings_;
-    const char *argv[] = { "name_of_exe", "--name", "current_node" };
+    const char *argv[] = { "name_of_exe", "--name", "node1" };
     node_settings_.parse(3, argv);
 
     node n(node_settings_);

@@ -100,7 +100,7 @@ public:
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
-        packet.CopyFrom(payload);
+        packet.mutable_payload()->CopyFrom(payload);
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
