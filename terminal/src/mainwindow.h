@@ -3,6 +3,10 @@
 
 #include <QMainWindow>
 #include <QSyntaxHighlighter>
+#include "configdialog.h"
+#include <QMessageBox>
+#include <QList>
+#include "document.h"
 
 class QTextEdit;
 
@@ -16,7 +20,10 @@ class MainWindow : public QMainWindow
 
 public:
     explicit MainWindow(QWidget *parent = 0);
+
     ~MainWindow();
+
+    void setTabName(int index, const QString& name);
 
 private slots:
 
@@ -32,11 +39,27 @@ private slots:
 
     void on_tabWidget_tabCloseRequested(int index);
 
-private:
-    QTextEdit* createNewTab(const QString &name);
+    void on_config_triggered();
 
+    void on_start_triggered();
+
+    void on_stop_triggered();
+
+    void on_deploy_triggered();
+
+    void on_close_file_triggered();
+
+    void close_tab(int index);
+
+    void addDocument(Document *doc);
+
+    QString fixedWindowTitle(const Document *doc) const;
+
+private:
     Ui::MainWindow *ui;
-//    QList<QTextEdit*> text_editors;
+    QString m_app;
+    QString m_deploySchema;
+    void saveDocument(int index);
 };
 
 #endif // MAINWINDOW_H
