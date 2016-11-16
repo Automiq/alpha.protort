@@ -23,7 +23,7 @@ public:
 
     ~MainWindow();
 
-    void setTabName(int index, QString& name);
+    void setTabName(int index, const QString& name);
 
 private slots:
 
@@ -51,11 +51,7 @@ private slots:
 
     void close_tab(int index);
 
-    void saveDocument();
-
     void addDocument(Document *doc);
-
-    Document* currentDocument() const;
 
     QString fixedWindowTitle(const Document *doc) const;
 
@@ -63,7 +59,7 @@ private:
     Ui::MainWindow *ui;
     QString m_app;
     QString m_deploySchema;
-    void saving(int index);
+    void saveDocument(int index);
 };
 
 #endif // MAINWINDOW_H

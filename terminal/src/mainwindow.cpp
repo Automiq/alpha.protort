@@ -20,17 +20,17 @@ MainWindow::~MainWindow()
 
 void MainWindow::close_tab(int index)
 {
-    ui->tabWidget->currentWidget()->deleteLater();
+    ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
     if (ui->tabWidget->count() == 0)
         close();
 }
-void MainWindow::setTabName(int index, QString& name)
+void MainWindow::setTabName(int index, const QString &name)
 {
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
 }
 
-void MainWindow::saving(int index)
+void MainWindow::saveDocument(int index)
 {
     if(index == -1)
         return;
@@ -43,21 +43,21 @@ void MainWindow::saving(int index)
     if(!doc->save())
         return;
 
-        QString nfname = doc->fileName();
-        if(nfname != ui->tabWidget->tabText(index))
-            setTabName(index, nfname);
+    QString nfname = doc->fileName();
+    if(nfname != ui->tabWidget->tabText(index))
+        setTabName(index, nfname);
 
 }
 
 void MainWindow::on_save_file_triggered()
 {
-    saving(ui->tabWidget->currentIndex());
+    saveDocument(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_save_all_triggered()
 {
     for (int i = 0; i < ui->tabWidget->count(); ++i)
-        saving(i);
+        saveDocument(i);
 }
 
 void MainWindow::on_exit_triggered()
@@ -79,8 +79,8 @@ void MainWindow::on_load_file_triggered()
     if (!file.open(QIODevice::ReadOnly))
     {
         QMessageBox::warning(this,
-                            tr("Ошибка"),
-                            tr("Ошибка открытия файла\n%1").arg(fileName));
+                             tr("Ошибка"),
+                             tr("Ошибка открытия файла\n%1").arg(fileName));
         return;
     }
 
@@ -202,17 +202,4 @@ void MainWindow::on_deploy_triggered()
 void MainWindow::on_close_file_triggered()
 {
     close_tab(ui->tabWidget->currentIndex());
-}
-
-Document *MainWindow::currentDocument() const
-{
-    return qobject_cast<Document*>(ui->tabWidget->currentWidget());
-}
-
-void MainWindow::saveDocument()
-{
-    Document *doc = currentDocument();
-    if (doc == 0)
-        return;
-    doc->save();
 }
