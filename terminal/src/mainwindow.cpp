@@ -236,8 +236,3 @@ void MainWindow::on_status_request_triggered()
         ui->text_browser_status->insertPlainText("\n\n");
     }
 }
-
-void MainWindow::on_deploy_triggered()
-{
-
-}
