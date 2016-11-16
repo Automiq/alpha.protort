@@ -20,14 +20,14 @@ bool Document::save()
 
     if(!m_name.isEmpty())
     {
-        QFile sfile(m_name);
+        QFile file(m_name);
 
-        if ( sfile.open(QIODevice::WriteOnly | QIODevice::Text) )
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text))
         {
-            sfile.write(toPlainText().toUtf8());
-            sfile.close();
+            file.write(toPlainText().toUtf8());
+            file.close();
             return true;
-        }
+       }
     }
     return false;
 }
