@@ -17,6 +17,7 @@ namespace alpha {
 namespace protort {
 namespace protolink {
 
+using alpha::protort::link::packet_header;
 using alpha::protort::link::header_size;
 using alpha::protort::link::max_packet_size;
 
