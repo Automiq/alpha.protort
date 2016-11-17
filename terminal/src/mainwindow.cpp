@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "client.h"
+#include "server.h"
+#include "connection.h"
+#include "parser.h"
 
 #include <QFileDialog>
 #include <QTextEdit>

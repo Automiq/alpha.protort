@@ -14,12 +14,15 @@
 #include "parser.h"
 #include "components.h"
 #include "factory.h"
+#include "protocol.pb.h"
+#include "deploy.pb.h"
+#include "factory.h"
 
 namespace alpha {
 namespace protort {
 namespace node {
 
-using namespace alpha::protort::link;
+using namespace alpha::protort::protolink;
 
 static const int default_port = 100;
 
@@ -29,9 +32,10 @@ static const int default_port = 100;
 class node
 {
 public:
+    using protocol_payload = protocol::Packet::Payload;
+
     node(const node_settings &settings)
-        : client_(*this, service_),
-          server_(*this, service_),
+        : server_(*this, service_),
           server_for_conf_(*this,service_),
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM)
@@ -42,9 +46,9 @@ public:
     {
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
         server_for_conf_.listen(
-            boost::asio::ip::tcp::endpoint
-                (boost::asio::ip::tcp::v4(),
-                 default_port));
+                    boost::asio::ip::tcp::endpoint
+                    (boost::asio::ip::tcp::v4(),
+                     default_port));
         service_.run();
     }
 
@@ -55,7 +59,8 @@ public:
      */
     void on_packet_sent(const boost::system::error_code& err, size_t bytes)
     {
-        // TODO
+        if (!err)
+            router_.route("A", 0, "smth");
     }
 
     /*!
@@ -64,7 +69,8 @@ public:
      */
     void on_connected(const boost::system::error_code& err)
     {
-        // TODO
+        if (!err)
+            router_.route("A", 0, "smth");
     }
 
     /*!
@@ -72,9 +78,8 @@ public:
      * \param buffer
      * \param nbytes
      */
-    void on_new_packet(char const *buffer, size_t nbytes)
+    void on_new_packet(protocol::Packet_Payload)
     {
-        std::string payload(buffer, nbytes);
         // Deploy
     }
 
@@ -85,6 +90,19 @@ public:
     void on_new_connection(const boost::system::error_code& err)
     {
         // TODO
+    }
+
+    void on_new_message(const protocol_payload& payload)
+    {
+        std::cout << "comp name is " << payload.communication_packet().destination().name() << std::endl;
+        router_.route(payload.communication_packet().destination().name(),
+                      payload.communication_packet().destination().port(),
+                      payload.communication_packet().payload());
+    }
+
+    protocol_payload on_new_request(const protocol_payload& payload)
+    {
+        return process_request(payload);
     }
 
     /*!
@@ -98,14 +116,14 @@ public:
         {
             std::string name;
             std::string address;
-            unsigned short port;
+            uint32_t port;
         };
 
         // Начинаем прослушивать порт
-//        server_.listen(
-//            boost::asio::ip::tcp::endpoint
-//                (boost::asio::ip::tcp::v4(),
-//                 порт);
+        //        server_.listen(
+        //            boost::asio::ip::tcp::endpoint
+        //                (boost::asio::ip::tcp::v4(),
+        //                 порт);
 
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
@@ -146,39 +164,95 @@ public:
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
-                    auto client = router_.clients.find(conn.dest);
+                    auto client = router_.clients.find(dest_node_name);
                     if (client == router_.clients.end()) {
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::unique_ptr<link::client<node>> client_ptr(new link::client<node>(*this, service_, ep));
+                        std::unique_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                            router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
-                        );
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
+                                    );
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                            router<node>::remote_route{conn.dest_in, conn.dest, client->second.get()}
-                        );
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second.get()}
+                                    );
                     }
                 }
             }
         }
     }
 
+
+
 private:
+    protocol_payload process_request(const protocol_payload& payload)
+    {
+        using PayloadCase = alpha::protort::protocol::Packet_Payload::PayloadCase;
+
+        switch (payload.Payload_case()) {
+
+        case PayloadCase::kCommunicationPacket:
+            return process_deploy_request(payload.deploy_packet());
+
+        case PayloadCase::kDeployPacket:
+        case PayloadCase::kPayload:
+        case PayloadCase::kAnyPayload:
+        default:
+            assert(false);
+            return protocol_payload();
+        }
+    }
+
+    protocol_payload process_deploy_request(const protocol::deploy::Packet& packet)
+    {
+        switch (packet.kind()) {
+        case protocol::deploy::PacketKind::DeployConfig:
+            deploy(convert_config(packet.request().deploy_config().config()));
+            // TODO
+            return {};
+        case protocol::deploy::PacketKind::Start:
+        default:
+            assert(false);
+        }
+    }
+
+    alpha::protort::parser::configuration convert_config(protocol::deploy::Config config)
+    {
+        parser::configuration pconf;
+
+        for (auto & inst : config.instances()) {
+            pconf.components.push_back({inst.name(), components::factory::get_component_kind(inst.kind())});
+        }
+
+        for (auto & conn : config.connections()) {
+            pconf.connections.push_back({conn.source().name(), conn.source().port(),
+                                         conn.destination().name(), conn.destination().port()});
+        }
+
+        for (auto & node : config.node_infos()) {
+            pconf.nodes.push_back({node.name(), node.address(), node.port()});
+        }
+
+        for (auto & map : config.maps()) {
+            pconf.mappings.push_back({map.instance_name(), map.node_name()});
+        }
+
+        return pconf;
+    }
+
+
+
     //! I/O сервис
     boost::asio::io_service service_;
 
     //! Сервер
-    link::server<node> server_for_conf_;
+    protolink::server<node> server_for_conf_;
 
     //! Сервер
-    link::server<node> server_;
-
-    //! Клиент
-    link::client<node> client_;
+    protolink::server<node> server_;
 
     //! Настройки узла
     node_settings settings_;
@@ -188,6 +262,7 @@ private:
 
 public:
     //! Роутер пакетов
+    //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
     router<node> router_;
 };
 

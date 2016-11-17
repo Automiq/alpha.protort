@@ -5,3 +5,6 @@ HEADERS += \
     $$PWD/src/client.h \
     $$PWD/src/connection.h \
     $$PWD/src/packet_header.h
+
+# Линкуемся с boost
+include(../../../boost.pri)

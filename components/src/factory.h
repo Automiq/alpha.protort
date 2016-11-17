@@ -25,6 +25,21 @@ public:
             assert(false);
     }
 
+    static std::string get_component_kind(const protocol::ComponentKind& kind)
+    {
+        switch (kind) {
+        case protocol::ComponentKind::Generator:
+            return "generator";
+        case protocol::ComponentKind::Retranslator:
+            return "retranslator";
+        case protocol::ComponentKind::Terminator:
+            return "terminator";
+        default:
+            assert(false);
+            return {};
+        }
+    }
+
     static std::unique_ptr<components::component> create(protocol::ComponentKind kind)
     {
         std::unique_ptr<components::component> ptr;

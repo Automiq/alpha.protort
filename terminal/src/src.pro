@@ -32,7 +32,13 @@ FORMS    += mainwindow.ui \
 # Линкуемся с парсером
 include(../../parser/parser.pri)
 
-#Линкуемся с протоколом
+# Линкуемся с protolink
+include(../../protolink/protolink.pri)
+
+# Линкуемся с boost
+include(../../boost.pri)
+
+# Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
 
 RESOURCES += \

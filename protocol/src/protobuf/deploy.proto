@@ -69,10 +69,10 @@ enum PacketKind
 message Config
 {
     NodeInfo this_node_info = 1;
-    NodeInfoList node_infos = 2;
-    InstanceList instances = 3;
-    MapList maps = 4;
-    ConnectionList connections = 5;
+    repeated NodeInfo node_infos = 2;
+    repeated Instance instances = 3;
+    repeated Map maps = 4;
+    repeated Connection connections = 5;
 }
 
 // Деплой конфигурации узла
