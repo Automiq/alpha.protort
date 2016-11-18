@@ -35,11 +35,14 @@
       <property name="currentIndex">
        <number>-1</number>
       </property>
+      <property name="documentMode">
+       <bool>true</bool>
+      </property>
       <property name="tabsClosable">
        <bool>true</bool>
       </property>
       <property name="movable">
-       <bool>false</bool>
+       <bool>true</bool>
       </property>
      </widget>
     </item>
@@ -51,7 +54,7 @@
      <x>0</x>
      <y>0</y>
      <width>693</width>
-     <height>26</height>
+     <height>18</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_file">
@@ -60,11 +63,11 @@
     </property>
     <addaction name="create_file"/>
     <addaction name="load_file"/>
-    <addaction name="separator"/>
     <addaction name="save_file"/>
     <addaction name="save_all"/>
     <addaction name="separator"/>
     <addaction name="close_file"/>
+    <addaction name="separator"/>
     <addaction name="exit"/>
    </widget>
    <widget class="QMenu" name="menu_project">
@@ -72,10 +75,11 @@
      <string>&amp;Проект</string>
     </property>
     <addaction name="config"/>
-    <addaction name="status_request"/>
+    <addaction name="separator"/>
     <addaction name="deploy"/>
     <addaction name="start"/>
     <addaction name="stop"/>
+    <addaction name="status_request"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_project"/>
@@ -94,7 +98,9 @@
    <addaction name="load_file"/>
    <addaction name="save_file"/>
    <addaction name="save_all"/>
+   <addaction name="separator"/>
    <addaction name="config"/>
+   <addaction name="separator"/>
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
@@ -266,7 +272,7 @@
     <bool>false</bool>
    </property>
    <property name="icon">
-    <iconset>
+    <iconset resource="images.qrc">
      <normaloff>:/images/status.png</normaloff>:/images/status.png</iconset>
    </property>
    <property name="text">

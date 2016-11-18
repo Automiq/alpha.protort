@@ -13,5 +13,7 @@
         <file>images/config.png</file>
         <file>images/start.png</file>
         <file>images/status.png</file>
+        <file>images/app.ico</file>
+        <file>images/deployIco.png</file>
     </qresource>
 </RCC>

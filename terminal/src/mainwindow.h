@@ -61,9 +61,10 @@ private:
     Ui::MainWindow *ui;
     QString m_app;
     QString m_deploySchema;
+    QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
     void addDocument(Document *doc);
-    QString fixedWindowTitle(const Document *doc) const;
+    void setIcon(Document *doc);
     std::vector<StatusResponse> stat_out;
 };
 

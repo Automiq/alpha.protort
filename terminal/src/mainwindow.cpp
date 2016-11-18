@@ -9,6 +9,7 @@
 #include <QTextEdit>
 #include <QObject>
 #include <QTextStream>
+#include <QIcon>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,8 +27,6 @@ void MainWindow::close_tab(int index)
 {
     ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
-    if (ui->tabWidget->count() == 0)
-        close();
 }
 
 void MainWindow::setTabName(int index, const QString &name)
@@ -51,7 +50,7 @@ void MainWindow::saveDocument(int index)
     QString nfname = doc->fileName();
     if(nfname != ui->tabWidget->tabText(index))
         setTabName(index, nfname);
-
+    setIcon(doc);
 }
 
 void MainWindow::on_save_file_triggered()
@@ -93,13 +92,25 @@ void MainWindow::on_load_file_triggered()
     doc->setText(file.readAll());
     doc->setFileName(fileName);
     addDocument(doc);
+    setIcon(doc);
 }
 
 void MainWindow::addDocument(Document *doc)
 {
-    if (ui->tabWidget->indexOf(doc) != -1)
+    int index = ui->tabWidget->indexOf(doc);
+    if (index != -1)
         return;
     ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+    ui->tabWidget->setTabEnabled(index, true);
+}
+
+void MainWindow::setIcon(Document *doc)
+{
+    Document::Kind type = doc->kind();
+    if(type == Document::Kind::App)
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/app.ico"));
+    if(type == Document::Kind::Deploy)
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/deployIco.png"));
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const

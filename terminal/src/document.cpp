@@ -11,6 +11,7 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
+    setFontFamily(fontFamily());
 }
 
 bool Document::save()
