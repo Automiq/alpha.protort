@@ -51,7 +51,6 @@ void MainWindow::saveDocument(int index)
     QString nfname = doc->fileName();
     if(nfname != ui->tabWidget->tabText(index))
         setTabName(index, nfname);
-
 }
 
 void MainWindow::on_save_file_triggered()
