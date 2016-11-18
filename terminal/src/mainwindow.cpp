@@ -109,9 +109,9 @@ void MainWindow::setIcon(Document *doc)
 {
     Document::Kind type = doc->kind();
     if(type == Document::Kind::App)
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/app.ico"));
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
     if(type == Document::Kind::Deploy)
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/deployIco.png"));
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const

@@ -15,5 +15,11 @@
         <file>images/status.png</file>
         <file>images/app.ico</file>
         <file>images/deployIco.png</file>
+        <file>images/cog.png</file>
+        <file>images/greenPen.png</file>
+        <file>images/pen.png</file>
+        <file>images/radPen.png</file>
+        <file>images/greenCog.png</file>
+        <file>images/radCog.png</file>
     </qresource>
 </RCC>
