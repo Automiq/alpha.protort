@@ -103,9 +103,14 @@ private:
     };
 
 public:
-    router()
+    router(): on_off_state(false)
     {
 
+    }
+
+    void switch_state()
+    {
+        on_off_state = !on_off_state;
     }
 
     /*!
@@ -116,7 +121,8 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
-        do_route(&components[component_name], in_port, payload);
+        if (on_off_state)
+            do_route(&components[component_name], in_port, payload);
     }
 
 private:
@@ -168,6 +174,9 @@ private:
     std::vector<component_unique_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
+
+    //! on - true, off - false
+    bool on_off_state;
 };
 
 } // namespae node
