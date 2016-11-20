@@ -3,12 +3,16 @@
 
 #include <QMainWindow>
 #include <QSyntaxHighlighter>
-#include "configdialog.h"
 #include <QMessageBox>
+#include <QList>
+#include <map>
+#include <boost/thread.hpp>
+
 #include "document.h"
 #include "deploy.pb.h"
-#include <QList>
-
+#include "configdialog.h"
+#include "client.h"
+#include "parser.h"
 
 class QTextEdit;
 
@@ -28,6 +32,14 @@ public:
     ~MainWindow();
 
     void setTabName(int index, const QString& name);
+
+    void on_packet_sent(const boost::system::error_code& err, size_t bytes);
+
+    void on_connected(const boost::system::error_code& err, const std::string& node_name_);
+
+    void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
+
+    void on_finished(alpha::protort::protocol::Packet_Payload packet_);
 
 private slots:
 
@@ -65,6 +77,14 @@ private:
     void addDocument(Document *doc);
     QString fixedWindowTitle(const Document *doc) const;
     std::vector<StatusResponse> stat_out;
+
+    boost::asio::io_service service_;
+
+    std::map<std::string,std::unique_ptr<alpha::protort::protolink::client<MainWindow>>> clients_for_configuration;
+
+    alpha::protort::parser::configuration config;
+
+    boost::thread protoThread_;
 };
 
 #endif // MAINWINDOW_H

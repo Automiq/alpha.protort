@@ -114,11 +114,14 @@ public:
         packet.mutable_transaction()->set_id(transaction_id_);
         packet.mutable_payload()->CopyFrom(payload);
 
-        request_ptr ptr_(new request_ptr);
+        request_ptr ptr_(new request_callbacks);
         transactions_.emplace(transaction_id_++, ptr_);
         do_send_packet(packet.SerializeAsString(),packet.kind());
         return ptr_;
     }
+
+    //! Имя узла, с которым коннектится клиент
+    std::string node_name_;
 
 private:
 
@@ -139,7 +142,7 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        callback_.on_connected(err);
+        callback_.on_connected(err,node_name_);
         if (err)
         {
             reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));

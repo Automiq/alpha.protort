@@ -1,24 +1,25 @@
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "client.h"
-#include "server.h"
-#include "connection.h"
-#include "parser.h"
-
 #include <QFileDialog>
 #include <QTextEdit>
 #include <QObject>
 #include <QTextStream>
+#include <set>
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "factory.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
     ui->setupUi(this);
 }
 
 MainWindow::~MainWindow()
 {
+    service_.stop();
+    protoThread_.join();
     delete ui;
 }
 
@@ -195,6 +196,18 @@ void MainWindow::on_start_triggered()
     ui->start->setDisabled(true);
     ui->status_request->setEnabled(true);
     ui->stop->setEnabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload_;
+    payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
+
+    for (auto &client : clients_for_configuration)
+    {
+        client.second->async_send_request(payload_)->on_finished.connect(
+                    boost::bind(
+                        &MainWindow::on_finished,
+                        this,
+                        _1));
+    }
 }
 
 void MainWindow::on_stop_triggered()
@@ -202,12 +215,138 @@ void MainWindow::on_stop_triggered()
     ui->start->setEnabled(true);
     ui->status_request->setDisabled(true);
     ui->stop->setDisabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload_;
+    payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
+
+    for (auto &client : clients_for_configuration)
+    {
+        client.second->async_send_request(payload_)->on_finished.connect(
+                    boost::bind(
+                        &MainWindow::on_finished,
+                        this,
+                        _1));
+    }
 }
 
 void MainWindow::on_deploy_triggered()
 {
     ui->deploy->setDisabled(true);
     ui->start->setEnabled(true);
+
+    config.parse_app(m_app.toStdString());
+    config.parse_deploy(m_deploySchema.toStdString());
+
+    for (auto &node : config.nodes)
+    {
+        boost::asio::ip::tcp::endpoint ep(boost::asio::ip::address::from_string(node.address), node.port);
+        std::unique_ptr<alpha::protort::protolink::client<MainWindow>> client_(
+            new alpha::protort::protolink::client<MainWindow>(*this,service_));
+
+        client_->node_name_ = node.name;
+
+        clients_for_configuration.emplace(node.name,std::move(client_));
+        clients_for_configuration.begin()->second->async_connect(ep);
+    }
+}
+
+void MainWindow::on_connected(const boost::system::error_code& err, const std::string& current_node_)
+{
+    if (!err)
+    {
+        std::set<std::string> added_nodes_;
+        std::set<std::string> added_maps_;
+
+        alpha::protort::protocol::Packet_Payload payload_;
+
+        payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
+        alpha::protort::protocol::deploy::Config* configuration_ =
+            payload_.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
+
+        alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration_->add_node_infos();
+        node_info_->set_name(current_node_);
+        node_info_->set_port(config.map_node[current_node_]->port);
+        node_info_->set_address(config.map_node[current_node_]->address);
+
+        for (auto &component : config.map_node_with_components[current_node_])
+        {
+            alpha::protort::protocol::ComponentKind kind_ =
+                alpha::protort::components::factory::get_component_kind(config.map_components[component->comp_name]->kind);
+
+            // Добавляем компонент к конфигурации нода
+            alpha::protort::protocol::deploy::Instance* instance_ = configuration_->add_instances();
+
+            instance_->set_name(component->comp_name);
+            instance_->set_kind(kind_);
+
+            // Указываем, что компонент относится к текущему ноду
+            alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
+
+            components_map_->set_node_name(current_node_);
+            components_map_->set_instance_name(component->comp_name);
+
+            for (auto &connection : config.map_component_with_connections[component->comp_name])
+            {
+                // Добавляем коннекшион к конфигурации нода
+                alpha::protort::protocol::deploy::Connection* connection_ = configuration_->add_connections();
+
+                connection_->mutable_source()->set_name(connection->source);
+                connection_->mutable_source()->set_port(connection->source_out);
+
+                connection_->mutable_destination()->set_name(connection->dest);
+                connection_->mutable_destination()->set_port(connection->dest_in);
+
+                // Получаем имя нода компонента назначения
+                std::string node_name_ = config.map_component_node[connection->dest]->node_name;
+
+                if(node_name_ != current_node_)
+                {
+                    alpha::protort::parser::node* node_ = config.map_node[node_name_];
+
+                    if(added_nodes_.find(node_->name) != added_nodes_.end())
+                    {
+                        // Добавляем информацию о ноде в конфигурацию
+                        alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration_->add_node_infos();
+
+                        remote_node_info_->set_name(node_->name);
+                        remote_node_info_->set_port(node_->port);
+                        remote_node_info_->set_address(node_->address);
+                        added_nodes_.insert(node_->name);
+                    }
+
+                    if(added_maps_.find(connection->dest) != added_maps_.end())
+                    {
+                        // Добавляем информацию о мэпинге удаленного компонента
+                        alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
+
+                        components_map_->set_node_name(node_->name);
+                        components_map_->set_instance_name(connection->dest);
+                        added_maps_.insert(connection->dest);
+                    }
+                }
+            }
+        }
+        clients_for_configuration[current_node_]->async_send_request(payload_)->on_finished.connect(
+                    boost::bind(
+                        &MainWindow::on_finished,
+                        this,
+                        _1));
+    }
+}
+
+void MainWindow::on_packet_sent(const boost::system::error_code& err, size_t bytes)
+{
+
+}
+
+void MainWindow::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
+{
+
+}
+
+void MainWindow::on_finished(alpha::protort::protocol::Packet_Payload packet_)
+{
+
 }
 
 void MainWindow::on_status_request_triggered()

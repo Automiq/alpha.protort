@@ -67,7 +67,7 @@ public:
      * \brief Уведомление о подключении или безуспешном подключении
      * \param err
      */
-    void on_connected(const boost::system::error_code& err)
+    void on_connected(const boost::system::error_code& err, const std::string& node_name_)
     {
         if (!err)
             router_.route("A", 0, "smth");
@@ -78,7 +78,7 @@ public:
      * \param buffer
      * \param nbytes
      */
-    void on_new_packet(protocol::Packet_Payload)
+    void on_new_packet(protocol::Packet_Payload packet_)
     {
         // Deploy
     }
