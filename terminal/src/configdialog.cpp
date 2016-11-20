@@ -35,5 +35,6 @@ void ConfigDialog::loadDeploy(const QString &deploy)
 
 void ConfigDialog::on_buttonBox_accepted()
 {
-    //И что же здесь делать? Может ну её, эту функцию
+    //Здесь вызывается signal setupConfig(),который меняет текущую конфигурацию в тул баре на новую,
+    //+значки для соответствующей конфигурации меняются на активные
 }

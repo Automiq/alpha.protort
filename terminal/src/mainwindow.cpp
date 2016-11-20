@@ -84,27 +84,43 @@ void MainWindow::defineToAddConf(Document *doc)
         addConfig(name, m_deploys);
 }
 
+void MainWindow::deleteConfig(QComboBox *ptr, QString &nameD)
+{
+    int indx = ptr->findText(nameD);
+    if(indx != -1)
+        ptr->removeItem(indx);
+}
+
 void MainWindow::delConfig(Document *doc)
 {
     QString name = doc->fileName();
-    int indx;
 
     if(doc->isApp())
-    {
-        indx = m_apps->findText(name);
-        if(indx != -1)
-            m_apps->removeItem(indx);
-    }
+        deleteConfig(m_app, name);
+
     if(doc->isDeploy())
-    {
-        indx = m_deploys->findText(name);
-        if(indx != -1)
-            m_deploys->removeItem(indx);
-    }
+        deleteConfig(m_deploy, name);
 }
 
-void MainWindow::updateConfig(Document *doc)
+void MainWindow::updateConfig(Document *doc, Document::Kind before, Document::Kind after)
 {
+    if(after == before)
+        return;
+
+    if(before == Document::Kind::Unknown && after != Document::Kind::Unknown)
+        defineToAddConf(doc);
+
+    QString name = doc->fileName();
+    if(before == Document::Kind::App && after == Document::Kind::Deploy)
+    {
+        deleteApp(name);
+        addConfig(name, m_deploys);
+    }
+    if(before == Document::Kind::Deploy && after == Document::Kind::App)
+    {
+        deleteDeploy(name);
+        addConfig(name, m_apps);
+    }
 }
 
 void MainWindow::on_create_file_triggered()
@@ -273,14 +289,20 @@ void MainWindow::saveDocument(int index)
     if(!doc)
         return;
 
+    Document::Kind kindBeforeSave = doc->kind();
+
     if(!doc->save())
         return;
 
+    Document::Kind kindAfterSave = doc->kind();
+
+    updateConfig(doc, kindBeforeSave, kindAfterSave);
+
     QString nfname = doc->fileName();
+
     if(nfname != ui->tabWidget->tabText(index))
         setTabName(index, nfname);
     setIcon(doc);
-    defineToAddConf(doc);
 }
 
 void MainWindow::addDocument(Document *doc)
@@ -296,9 +318,18 @@ void MainWindow::addDocument(Document *doc)
 void MainWindow::setIcon(Document *doc)
 {
     if(doc->isApp())
+    {
         ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
+        return;
+    }
+
     if(doc->isDeploy())
+    {
         ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
+        return;
+    }
+
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/file.png"));
 }
 
 void MainWindow::setupWindowConfigurations()

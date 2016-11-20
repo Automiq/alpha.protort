@@ -30,7 +30,7 @@ public:
 
     ~MainWindow();
 
-    void setTabName(int index, const QString& name);
+    void setTabName(int index, const QString &name);
 
 private slots:
 
@@ -76,7 +76,8 @@ private:
     void addConfig(QString &name, QComboBox *ptr);
     void defineToAddConf(Document *doc);
     void delConfig(Document *doc);
-    void updateConfig(Document *doc);
+    void deleteConfig(QComboBox *ptr, QString &nameD);
+    void updateConfig(Document *doc, Document::Kind before, Document::Kind after);
 };
 
 #endif // MAINWINDOW_H

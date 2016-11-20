@@ -19,5 +19,6 @@
         <file>images/greenCog.png</file>
         <file>images/radCog.png</file>
         <file>images/configure.ico</file>
+        <file>images/file.png</file>
     </qresource>
 </RCC>
