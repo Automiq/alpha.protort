@@ -27,25 +27,25 @@ void test_node_router()
     router<node>::local_route mas_endpoint[7];
 
     // Создаем node_router
-
-    router<node> router_;
+    boost::asio::io_service service;
+    router<node> router_(service);
 
     // Создаем компоненты
-    components::generator generator1_;
+    components::generator generator1_(router_, "g1");
     components.push_back(&generator1_);
 
-    components::retranslator retranslator1_;
+    components::retranslator retranslator1_(router_, "r1");
     components.push_back(&retranslator1_);
-    components::retranslator retranslator2_;
+    components::retranslator retranslator2_(router_, "r2");
     components.push_back(&retranslator2_);
-    components::retranslator retranslator3_;
+    components::retranslator retranslator3_(router_, "r3");
     components.push_back(&retranslator3_);
 
-    components::terminator terminator1_;
+    components::terminator terminator1_(router_, "t1");
     components.push_back(&terminator1_);
-    components::terminator terminator2_;
+    components::terminator terminator2_(router_, "t2");
     components.push_back(&terminator2_);
-    components::terminator terminator3_;
+    components::terminator terminator3_(router_, "t3");
     components.push_back(&terminator3_);
 
     // Присваиваем каждому объекту component_with_connections указатель на компонент и имя компонента

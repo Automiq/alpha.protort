@@ -10,9 +10,9 @@
 #include "client.h"
 #include "node_settings.h"
 #include "packet.pb.h"
+#include "components.h"
 #include "router.h"
 #include "parser.h"
-#include "components.h"
 #include "factory.h"
 #include "protocol.pb.h"
 #include "deploy.pb.h"
@@ -38,7 +38,8 @@ public:
         : server_(*this, service_),
           server_for_conf_(*this,service_),
           settings_(settings),
-          signals_(service_, SIGINT, SIGTERM)
+          signals_(service_, SIGINT, SIGTERM),
+          router_(service_)
     {
     }
 
@@ -136,7 +137,8 @@ public:
         for (const auto& comp : conf.components) {
             if (comp_to_node[comp.name].name == node_name_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back(alpha::protort::components::factory::create(comp.kind));
+                router_.component_ptrs.push_back
+                        (alpha::protort::components::factory::create(comp.kind, router_, comp.name));
                 router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {}};
             }
         }

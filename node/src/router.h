@@ -4,11 +4,12 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <boost/bind.hpp>
 
 #include "packet.pb.h"
 #include "client.h"
-#include "component.h"
 #include "node.h"
+
 
 namespace alpha {
 namespace protort {
@@ -35,6 +36,7 @@ template<class app>
 class router
 {
     friend class node;
+    friend class alpha::protort::components::component;
     friend void alpha::protort::node::tests::test_node_router();
 private:
     class component_instance;
@@ -103,7 +105,7 @@ private:
     };
 
 public:
-    router(): on_off_state(false)
+    router(boost::asio::io_service& service): on_off_state(false), service(service)
     {
 
     }
@@ -121,16 +123,22 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
-        if (on_off_state)
-            do_route(&components[component_name], in_port, payload);
+        //        if (on_off_state)
+        //            do_route(&components[component_name], in_port, payload);
+        auto it = components.find(component_name);
+        if (it != components.end())
+            service.post(boost::bind(&protort::components::component::process,
+                                     it->second.component_,
+                                     in_port,
+                                     payload));
     }
 
-private:
-    void do_route(component_instance* this_component, port_id port, const std::string& payload)
+    void do_route(const std::string& component_name,
+                  std::vector<alpha::protort::components::output> outputs)
     {
-        std::vector<alpha::protort::components::output> output_result = this_component->component_->process(port,payload);
+        component_instance* this_component = &components[component_name];
 
-        for (auto &output : output_result)
+        for (auto &output : outputs)
         {
             for (auto const &out_port : output.ports)
             {
@@ -144,7 +152,10 @@ private:
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
                               << " in port " << local_route.in_port << std::endl;
-                    do_route(local_route.component, local_route.in_port, output.payload);
+                    service.post(boost::bind(&protort::components::component::process,
+                                             local_route.component->component_,
+                                             local_route.in_port,
+                                             output.payload));
                 }
 
                 // Формируем и рассылаем пакеты по удаленным маршрутам
@@ -171,9 +182,11 @@ private:
         }
     }
 
+private:
     std::vector<component_unique_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
+    boost::asio::io_service& service;
 
     //! on - true, off - false
     bool on_off_state;

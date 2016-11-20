@@ -6,6 +6,15 @@
 
 namespace alpha {
 namespace protort {
+namespace node {
+class node;
+template<class app> class router;
+}
+}
+}
+
+namespace alpha {
+namespace protort {
 namespace components {
 
 using port_id = uint32_t;
@@ -22,9 +31,15 @@ using output_list = std::vector<output>;
 class component
 {
 public:
+    component(node::router<node::node>& router, std::string name):
+        router_(router), name_(name)
+    {
+
+    }
     virtual output_list process(port_id input_port, std::string const& payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
+    virtual void start() = 0;
 
     output_list do_process(port_id input_port, std::string const& payload)
     {
@@ -47,6 +62,9 @@ public:
 protected:
     uint32_t in_packet_count_ = 0;
     uint32_t out_packet_count_ = 0;
+    node::router<node::node>& router_;
+    std::string name_;
+
 };
 
 } // namespace components

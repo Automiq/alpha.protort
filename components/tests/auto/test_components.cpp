@@ -1,8 +1,6 @@
 #include <boost/test/unit_test.hpp>
 #include <boost/test/unit_test_suite.hpp>
-#include "generator.h"
-#include "component.h"
-#include "retranslator.h"
+#include "node.h"
 
 namespace alpha {
 namespace protort {
@@ -13,7 +11,9 @@ BOOST_AUTO_TEST_SUITE(tests_components)
 
 BOOST_AUTO_TEST_CASE(test_generator)
 {
-    alpha::protort::components::generator gen;
+    boost::asio::io_service service;
+    node::router<node::node> r(service);
+    alpha::protort::components::generator gen(r, "");
     alpha::protort::components::output_list result = gen.process(1, "empty");    
     BOOST_CHECK(!result[0].payload.empty());
     BOOST_CHECK_EQUAL(0, result[0].ports[0]);    
@@ -21,7 +21,9 @@ BOOST_AUTO_TEST_CASE(test_generator)
 
 BOOST_AUTO_TEST_CASE(test_retranslator)
 {
-    alpha::protort::components::retranslator retr;
+    boost::asio::io_service service;
+    node::router<node::node> r(service);
+    alpha::protort::components::retranslator retr(r, "");
     alpha::protort::components::output_list result = retr.process(1, "smth");
     BOOST_CHECK_EQUAL("smth", result[0].payload);
     BOOST_CHECK_EQUAL(0, result[0].ports[0]);
