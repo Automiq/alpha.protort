@@ -1,13 +1,16 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QComboBox>
+#include <QList>
 #include <QMainWindow>
-#include <QSyntaxHighlighter>
-#include "configdialog.h"
 #include <QMessageBox>
+#include <QSyntaxHighlighter>
+
+#include "configdialog.h"
 #include "document.h"
 #include "deploy.pb.h"
-#include <QList>
+
 
 
 class QTextEdit;
@@ -59,13 +62,17 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
+    QComboBox *m_apps;
+    QComboBox *m_deploys;
     QString m_app;
     QString m_deploySchema;
+    std::vector<StatusResponse> m_statOut;
+
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
     void addDocument(Document *doc);
     void setIcon(Document *doc);
-    std::vector<StatusResponse> stat_out;
+    void setupWindowConfigurations();
 };
 
 #endif // MAINWINDOW_H

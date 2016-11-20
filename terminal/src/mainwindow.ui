@@ -105,6 +105,7 @@
    <addaction name="start"/>
    <addaction name="stop"/>
    <addaction name="status_request"/>
+   <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
    <property name="windowTitle">

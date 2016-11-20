@@ -4,18 +4,25 @@
 #include "server.h"
 #include "connection.h"
 #include "parser.h"
+#include "configdialog.h"
 
+#include <QComboBox>
+#include <QIcon>
+#include <QLabel>
 #include <QFileDialog>
 #include <QTextEdit>
-#include <QObject>
 #include <QTextStream>
-#include <QIcon>
+#include <QToolBar>
+#include <QObject>
+#include <QPushButton>
+#include <QWidget>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    setupWindowConfigurations();
 }
 
 MainWindow::~MainWindow()
@@ -25,6 +32,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::close_tab(int index)
 {
+
     ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
 }
@@ -103,6 +111,24 @@ void MainWindow::addDocument(Document *doc)
     ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
     ui->tabWidget->setTabEnabled(index, true);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
+}
+
+void MainWindow::setupWindowConfigurations()
+{
+    m_deploys = new QComboBox();
+    m_apps = new QComboBox();
+
+    QLabel *app = new QLabel("Описание: ");
+    ui->mainToolBar->addWidget(app);
+    ui->mainToolBar->addWidget(m_apps);
+
+    QLabel *sсhema = new QLabel("Схема: ");
+    ui->mainToolBar->addWidget(sсhema);
+    ui->mainToolBar->addWidget(m_deploys);
+
+    QPushButton *setupConfig = new QPushButton();
+    setupConfig->setText("Установить");
+    ui->mainToolBar->addWidget(setupConfig);
 }
 
 void MainWindow::setIcon(Document *doc)
@@ -225,26 +251,26 @@ void MainWindow::on_deploy_triggered()
 void MainWindow::on_status_request_triggered()
 {
     ui->text_browser_status->clear();
-    for (int i = 0; i < stat_out.size(); ++i)
+    for (int i = 0; i < m_statOut.size(); ++i)
     {
         ui->text_browser_status->insertPlainText("<Название узла - " +
-                                                 QString::fromStdString(stat_out[i].node_name())
+                                                 QString::fromStdString(m_statOut[i].node_name())
                                                  + ">\n<Время работы - " +
-                                                 QString::number(stat_out[i].uptime()) + ">\n<Количество принятых пакетов - "
-                                                 + QString::number(stat_out[i].in_packets_count()) +
-                                                 " (" + QString::number(stat_out[i].in_bytes_count())
+                                                 QString::number(m_statOut[i].uptime()) + ">\n<Количество принятых пакетов - "
+                                                 + QString::number(m_statOut[i].in_packets_count()) +
+                                                 " (" + QString::number(m_statOut[i].in_bytes_count())
                                                  + " б)" + ">\n<Количество переданных пакетов - "
-                                                 + QString::number(stat_out[i].out_packets_count()) + " ("
-                                                 + QString::number(stat_out[i].out_bytes_count())
+                                                 + QString::number(m_statOut[i].out_packets_count()) + " ("
+                                                 + QString::number(m_statOut[i].out_bytes_count())
                                                  + " б)"+ ">\n\n<Информация о компонентах>\n\n");
-        for (int j = 0; j < stat_out[i].component_statuses_size(); ++j)
+        for (int j = 0; j < m_statOut[i].component_statuses_size(); ++j)
         {
             ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                     QString::fromStdString(stat_out[i].component_statuses(i).name()) +
+                                                     QString::fromStdString(m_statOut[i].component_statuses(i).name()) +
                                                      "\n<Количество принятых пакетов - >"
-                                                     + QString::number(stat_out[i].component_statuses(i).in_packet_count()) +
+                                                     + QString::number(m_statOut[i].component_statuses(i).in_packet_count()) +
                                                      ">\n<Количество переданных пакетов - >" +
-                                                     QString::number(stat_out[i].component_statuses(i).out_packet_count()) +
+                                                     QString::number(m_statOut[i].component_statuses(i).out_packet_count()) +
                                                      "\n\n");
         }
         ui->text_browser_status->insertPlainText("\n\n");
