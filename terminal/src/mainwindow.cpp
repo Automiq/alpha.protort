@@ -92,13 +92,13 @@ void MainWindow::delConfig(Document *doc)
     if(doc->isApp())
     {
         indx = m_apps->findText(name);
-        if(indx == -1)
+        if(indx != -1)
             m_apps->removeItem(indx);
     }
     if(doc->isDeploy())
     {
         indx = m_deploys->findText(name);
-        if(indx == -1)
+        if(indx != -1)
             m_deploys->removeItem(indx);
     }
 }
@@ -191,6 +191,9 @@ void MainWindow::on_close_file_triggered()
 
 void MainWindow::close_tab(int index)
 {
+
+    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+    delConfig(doc);
     ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
 }
