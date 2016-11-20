@@ -29,6 +29,9 @@ public:
     QString fileName() const;
     Kind kind() const;
     void setFileName(const QString &fileName);
+    bool isApp();
+    bool isDeploy();
+    bool isUnknown();
 
 private:
     QString getFileNameOFD();

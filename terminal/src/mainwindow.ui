@@ -247,7 +247,7 @@
   <action name="config">
    <property name="icon">
     <iconset resource="images.qrc">
-     <normaloff>:/images/config.png</normaloff>:/images/config.png</iconset>
+     <normaloff>:/images/configure.ico</normaloff>:/images/configure.ico</iconset>
    </property>
    <property name="text">
     <string>&amp;Конфигурация...</string>

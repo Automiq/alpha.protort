@@ -10,7 +10,6 @@
         <file>images/fileSaveAll.png</file>
         <file>images/parse.png</file>
         <file>images/stop.png</file>
-        <file>images/config.png</file>
         <file>images/start.png</file>
         <file>images/status.png</file>
         <file>images/cog.png</file>
@@ -19,5 +18,6 @@
         <file>images/radPen.png</file>
         <file>images/greenCog.png</file>
         <file>images/radCog.png</file>
+        <file>images/configure.ico</file>
     </qresource>
 </RCC>

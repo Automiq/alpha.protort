@@ -35,4 +35,5 @@ void ConfigDialog::loadDeploy(const QString &deploy)
 
 void ConfigDialog::on_buttonBox_accepted()
 {
+    //И что же здесь делать? Может ну её, эту функцию
 }

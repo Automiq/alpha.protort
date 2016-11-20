@@ -73,6 +73,10 @@ private:
     void addDocument(Document *doc);
     void setIcon(Document *doc);
     void setupWindowConfigurations();
+    void addConfig(QString &name, QComboBox *ptr);
+    void defineToAddConf(Document *doc);
+    void delConfig(Document *doc);
+    void updateConfig(Document *doc);
 };
 
 #endif // MAINWINDOW_H

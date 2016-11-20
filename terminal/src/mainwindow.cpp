@@ -30,37 +30,6 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::close_tab(int index)
-{
-
-    ui->tabWidget->widget(index)->deleteLater();
-    ui->tabWidget->removeTab(index);
-}
-
-void MainWindow::setTabName(int index, const QString &name)
-{
-    ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
-}
-
-void MainWindow::saveDocument(int index)
-{
-    if(index == -1)
-        return;
-
-    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
-
-    if(!doc)
-        return;
-
-    if(!doc->save())
-        return;
-
-    QString nfname = doc->fileName();
-    if(nfname != ui->tabWidget->tabText(index))
-        setTabName(index, nfname);
-    setIcon(doc);
-}
-
 void MainWindow::on_save_file_triggered()
 {
     saveDocument(ui->tabWidget->currentIndex());
@@ -101,43 +70,158 @@ void MainWindow::on_load_file_triggered()
     doc->setFileName(fileName);
     addDocument(doc);
     setIcon(doc);
+    defineToAddConf(doc);
 }
 
-void MainWindow::addDocument(Document *doc)
+void MainWindow::defineToAddConf(Document *doc)
 {
-    int index = ui->tabWidget->indexOf(doc);
-    if (index != -1)
-        return;
-    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
-    ui->tabWidget->setTabEnabled(index, true);
-    ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
+    QString name = doc->fileName();
+
+    if(doc->isApp() && m_apps->findText(name) == -1)
+        addConfig(name, m_apps);
+
+    if(doc->isDeploy() && m_deploys->findText(name) == -1)
+        addConfig(name, m_deploys);
 }
 
-void MainWindow::setupWindowConfigurations()
+void MainWindow::delConfig(Document *doc)
 {
-    m_deploys = new QComboBox();
-    m_apps = new QComboBox();
+    QString name = doc->fileName();
+    int indx;
 
-    QLabel *app = new QLabel("Описание: ");
-    ui->mainToolBar->addWidget(app);
-    ui->mainToolBar->addWidget(m_apps);
-
-    QLabel *sсhema = new QLabel("Схема: ");
-    ui->mainToolBar->addWidget(sсhema);
-    ui->mainToolBar->addWidget(m_deploys);
-
-    QPushButton *setupConfig = new QPushButton();
-    setupConfig->setText("Установить");
-    ui->mainToolBar->addWidget(setupConfig);
+    if(doc->isApp())
+    {
+        indx = m_apps->findText(name);
+        if(indx == -1)
+            m_apps->removeItem(indx);
+    }
+    if(doc->isDeploy())
+    {
+        indx = m_deploys->findText(name);
+        if(indx == -1)
+            m_deploys->removeItem(indx);
+    }
 }
 
-void MainWindow::setIcon(Document *doc)
+void MainWindow::updateConfig(Document *doc)
 {
-    Document::Kind type = doc->kind();
-    if(type == Document::Kind::App)
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
-    if(type == Document::Kind::Deploy)
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
+}
+
+void MainWindow::on_create_file_triggered()
+{
+    Document *tmp = new Document();
+    addDocument(tmp);
+}
+
+void MainWindow::on_tabWidget_tabCloseRequested(int index)
+{
+    close_tab(index);
+}
+
+void MainWindow::addConfig(QString &name, QComboBox *ptr)
+{
+    ptr->addItem(name);
+}
+
+void MainWindow::on_config_triggered()
+{
+    ConfigDialog dlg(this);
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+
+        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+
+        QString nname = text_edit->fileName();
+
+        if(text_edit->isApp())
+            dlg.loadApp(nname);
+        if(text_edit->isDeploy())
+            dlg.loadDeploy(nname);
+    }
+
+    if (dlg.exec())
+    {
+        m_app = dlg.app();
+        m_deploySchema = dlg.deploySchema();
+        ui->start->setDisabled(true);
+        ui->stop->setDisabled(true);
+        ui->deploy->setEnabled(true);
+    }
+
+    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
+                             "\n" +"Описание загружено" + "\n" +
+                             "Загрузка схемы развёртывания..." +
+                             "\n" + m_deploySchema +
+                             "\n" + "Схема загружена" +
+                             "\n" + "Упс! Не могу развернуть." +
+                             "\n Требуются доработки.");
+}
+
+void MainWindow::setTabName(int index, const QString &name)
+{
+    ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
+}
+
+void MainWindow::on_start_triggered()
+{
+    ui->start->setDisabled(true);
+    ui->status_request->setEnabled(true);
+    ui->stop->setEnabled(true);
+}
+
+void MainWindow::on_stop_triggered()
+{
+    ui->start->setEnabled(true);
+    ui->status_request->setDisabled(true);
+    ui->stop->setDisabled(true);
+}
+
+void MainWindow::on_deploy_triggered()
+{
+    ui->deploy->setDisabled(true);
+    ui->start->setEnabled(true);
+}
+
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
+}
+
+void MainWindow::close_tab(int index)
+{
+    ui->tabWidget->widget(index)->deleteLater();
+    ui->tabWidget->removeTab(index);
+}
+
+void MainWindow::on_status_request_triggered()
+{
+    ui->text_browser_status->clear();
+    for (int i = 0; i < m_statOut.size(); ++i)
+    {
+        ui->text_browser_status->insertPlainText("<Название узла - " +
+                                                 QString::fromStdString(m_statOut[i].node_name())
+                                                 + ">\n<Время работы - " +
+                                                 QString::number(m_statOut[i].uptime()) + ">\n<Количество принятых пакетов - "
+                                                 + QString::number(m_statOut[i].in_packets_count()) +
+                                                 " (" + QString::number(m_statOut[i].in_bytes_count())
+                                                 + " б)" + ">\n<Количество переданных пакетов - "
+                                                 + QString::number(m_statOut[i].out_packets_count()) + " ("
+                                                 + QString::number(m_statOut[i].out_bytes_count())
+                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
+        for (int j = 0; j < m_statOut[i].component_statuses_size(); ++j)
+        {
+            ui->text_browser_status->insertPlainText("<Название компонента - " +
+                                                     QString::fromStdString(m_statOut[i].component_statuses(i).name()) +
+                                                     "\n<Количество принятых пакетов - >"
+                                                     + QString::number(m_statOut[i].component_statuses(i).in_packet_count()) +
+                                                     ">\n<Количество переданных пакетов - >" +
+                                                     QString::number(m_statOut[i].component_statuses(i).out_packet_count()) +
+                                                     "\n\n");
+        }
+        ui->text_browser_status->insertPlainText("\n\n");
+    }
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
@@ -176,103 +260,58 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
     return result;
 }
 
-
-void MainWindow::on_create_file_triggered()
+void MainWindow::saveDocument(int index)
 {
-    Document *tmp = new Document();
-    addDocument(tmp);
+    if(index == -1)
+        return;
+
+    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+
+    if(!doc)
+        return;
+
+    if(!doc->save())
+        return;
+
+    QString nfname = doc->fileName();
+    if(nfname != ui->tabWidget->tabText(index))
+        setTabName(index, nfname);
+    setIcon(doc);
+    defineToAddConf(doc);
 }
 
-void MainWindow::on_tabWidget_tabCloseRequested(int index)
+void MainWindow::addDocument(Document *doc)
 {
-    close_tab(index);
+    int index = ui->tabWidget->indexOf(doc);
+    if (index != -1)
+        return;
+    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+    ui->tabWidget->setTabEnabled(index, true);
+    ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
 }
 
-void MainWindow::on_config_triggered()
+void MainWindow::setIcon(Document *doc)
 {
-    ConfigDialog dlg(this);
-    for (int i = 0; i < ui->tabWidget->count(); ++i)
-    {
-        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
-        if (!text_edit)
-            continue;
-
-        QString nname = text_edit->fileName();
-
-        if(text_edit->Kind::App == text_edit->kind())
-            dlg.loadApp(nname);
-        if(text_edit->Kind::Deploy == text_edit->kind())
-            dlg.loadDeploy(nname);
-    }
-
-    if (dlg.exec())
-    {
-        m_app = dlg.app();
-        m_deploySchema = dlg.deploySchema();
-        ui->start->setDisabled(true);
-        ui->stop->setDisabled(true);
-        ui->deploy->setEnabled(true);
-    }
-
-    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
-                             "\n" +"Описание загружено" + "\n" +
-                             "Загрузка схемы развёртывания..." +
-                             "\n" + m_deploySchema +
-                             "\n" + "Схема загружена" +
-                             "\n" + "Упс! Не могу развернуть." +
-                             "\n Требуются доработки.");
+    if(doc->isApp())
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
+    if(doc->isDeploy())
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
 }
 
-void MainWindow::on_close_file_triggered()
+void MainWindow::setupWindowConfigurations()
 {
-    close_tab(ui->tabWidget->currentIndex());
-}
+    m_deploys = new QComboBox();
+    m_apps = new QComboBox();
 
-void MainWindow::on_start_triggered()
-{
-    ui->start->setDisabled(true);
-    ui->status_request->setEnabled(true);
-    ui->stop->setEnabled(true);
-}
+    QLabel *app = new QLabel("Описание: ");
+    ui->mainToolBar->addWidget(app);
+    ui->mainToolBar->addWidget(m_apps);
 
-void MainWindow::on_stop_triggered()
-{
-    ui->start->setEnabled(true);
-    ui->status_request->setDisabled(true);
-    ui->stop->setDisabled(true);
-}
+    QLabel *sсhema = new QLabel("Схема: ");
+    ui->mainToolBar->addWidget(sсhema);
+    ui->mainToolBar->addWidget(m_deploys);
 
-void MainWindow::on_deploy_triggered()
-{
-    ui->deploy->setDisabled(true);
-    ui->start->setEnabled(true);
-}
-
-void MainWindow::on_status_request_triggered()
-{
-    ui->text_browser_status->clear();
-    for (int i = 0; i < m_statOut.size(); ++i)
-    {
-        ui->text_browser_status->insertPlainText("<Название узла - " +
-                                                 QString::fromStdString(m_statOut[i].node_name())
-                                                 + ">\n<Время работы - " +
-                                                 QString::number(m_statOut[i].uptime()) + ">\n<Количество принятых пакетов - "
-                                                 + QString::number(m_statOut[i].in_packets_count()) +
-                                                 " (" + QString::number(m_statOut[i].in_bytes_count())
-                                                 + " б)" + ">\n<Количество переданных пакетов - "
-                                                 + QString::number(m_statOut[i].out_packets_count()) + " ("
-                                                 + QString::number(m_statOut[i].out_bytes_count())
-                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
-        for (int j = 0; j < m_statOut[i].component_statuses_size(); ++j)
-        {
-            ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                     QString::fromStdString(m_statOut[i].component_statuses(i).name()) +
-                                                     "\n<Количество принятых пакетов - >"
-                                                     + QString::number(m_statOut[i].component_statuses(i).in_packet_count()) +
-                                                     ">\n<Количество переданных пакетов - >" +
-                                                     QString::number(m_statOut[i].component_statuses(i).out_packet_count()) +
-                                                     "\n\n");
-        }
-        ui->text_browser_status->insertPlainText("\n\n");
-    }
+    QPushButton *setupConfig = new QPushButton();
+    setupConfig->setText("Установить");
+    ui->mainToolBar->addWidget(setupConfig);
 }

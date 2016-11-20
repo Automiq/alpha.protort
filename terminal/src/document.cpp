@@ -38,11 +38,6 @@ QString Document::fileName() const
     return m_name;
 }
 
-void Document::setFileName(const QString &fileName)
-{
-    m_name = fileName;
-}
-
 Document::Kind Document::kind() const
 {
     QXmlStreamReader xml(toPlainText());
@@ -55,6 +50,32 @@ Document::Kind Document::kind() const
         return Kind::Deploy;
 
     return Kind::Unknown;
+}
+
+void Document::setFileName(const QString &fileName)
+{
+    m_name = fileName;
+}
+
+bool Document::isApp()
+{
+    if(Kind::App == kind())
+        return true;
+    return false;
+}
+
+bool Document::isDeploy()
+{
+    if(Deploy == kind())
+        return true;
+    return false;
+}
+
+bool Document::isUnknown()
+{
+    if(Unknown == kind())
+        return true;
+    return false;
 }
 
 QString Document::getFileNameOFD()
