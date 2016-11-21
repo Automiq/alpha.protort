@@ -85,7 +85,7 @@ void MainWindow::defineToAddConf(Document *doc)
 
 void MainWindow::deleteConfig(QComboBox *ptr, QString &nameD)
 {
-    int indx = ptr->findText(nameD);
+    int indx = ptr->findText(QFileInfo(nameD).fileName());
     if(indx != -1)
         ptr->removeItem(indx);
 }
