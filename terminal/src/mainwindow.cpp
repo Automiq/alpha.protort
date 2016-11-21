@@ -95,33 +95,18 @@ void MainWindow::delConfig(Document *doc)
 {
     QString name = doc->fileName();
 
-    if(doc->isApp())
-        deleteConfig(m_apps, name);
-
-    if(doc->isDeploy())
-        deleteConfig(m_deploys, name);
+    deleteConfig(m_apps, name);
+    deleteConfig(m_deploys, name);
 }
 
-void MainWindow::updateConfig(Document *doc, Document::Kind before)
+void MainWindow::updateConfig(Document *doc)
 {
-    Document::Kind after = doc->kind();
-    if(after == before)
-        return;
+    Document::Kind type = doc->kind();
 
-    if((before == Document::Kind::Unknown) && (after != Document::Kind::Unknown))
+    delConfig(doc);
+
+    if(type != Document::Kind::Unknown)
         defineToAddConf(doc);
-
-    QString name = doc->fileName();
-    if(before == Document::Kind::App && after == Document::Kind::Deploy)
-    {
-        delConfig(doc);
-        addConfig(name, m_deploys);
-    }
-    if(before == Document::Kind::Deploy && after == Document::Kind::App)
-    {
-        delConfig(doc);
-        addConfig(name, m_apps);
-    }
 }
 
 void MainWindow::on_create_file_triggered()
@@ -290,12 +275,10 @@ void MainWindow::saveDocument(int index)
     if(!doc)
         return;
 
-    Document::Kind kindBeforeSave = doc->kind();
-
     if(!doc->save())
         return;
 
-    updateConfig(doc, kindBeforeSave);
+    updateConfig(doc);
 
     QString nfname = doc->fileName();
 
@@ -312,6 +295,7 @@ void MainWindow::addDocument(Document *doc)
     ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
     ui->tabWidget->setTabEnabled(index, true);
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
+    setIcon(doc);
 }
 
 void MainWindow::setIcon(Document *doc)
