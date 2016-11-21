@@ -121,7 +121,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(QString &name, QComboBox *ptr)
 {
-    ptr->addItem(name);
+    ptr->addItem(QFileInfo(name).fileName());
 }
 
 void MainWindow::on_config_triggered()
@@ -192,7 +192,6 @@ void MainWindow::on_close_file_triggered()
 
 void MainWindow::close_tab(int index)
 {
-
     auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
     delConfig(doc);
     ui->tabWidget->widget(index)->deleteLater();
@@ -341,8 +340,8 @@ void MainWindow::button_clickedSetup()
 
 void MainWindow::setActiveConfig()
 {
-    QString nameApp = m_apps->currentText();
-    QString nameDeploy = m_deploys->currentText();
+    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
+    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
 
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
@@ -352,10 +351,10 @@ void MainWindow::setActiveConfig()
 
         setIcon(text_edit);
 
-        if(text_edit->fileName() == nameApp)
+        if(QFileInfo(text_edit->fileName()).fileName() == nameApp)
             setupActiveIconApp(i);
 
-        if(text_edit->fileName() == nameDeploy)
+        if(QFileInfo(text_edit->fileName()).fileName() == nameDeploy)
             setupActiveIconDeploy(i);
     }
 }
