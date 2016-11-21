@@ -324,8 +324,8 @@ void MainWindow::setupWindowConfigurations()
     ui->mainToolBar->addWidget(app);
     ui->mainToolBar->addWidget(m_apps);
 
-    QLabel *sсhema = new QLabel("Схема: ");
-    ui->mainToolBar->addWidget(sсhema);
+    QLabel *schema = new QLabel("Схема: ");
+    ui->mainToolBar->addWidget(schema);
     ui->mainToolBar->addWidget(m_deploys);
 
     QPushButton *setupConfig = new QPushButton();
