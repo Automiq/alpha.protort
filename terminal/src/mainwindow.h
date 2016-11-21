@@ -77,7 +77,7 @@ private:
     void defineToAddConf(Document *doc);
     void delConfig(Document *doc);
     void deleteConfig(QComboBox *ptr, QString &nameD);
-    void updateConfig(Document *doc, Document::Kind before, Document::Kind after);
+    void updateConfig(Document *doc, Document::Kind before);
 };
 
 #endif // MAINWINDOW_H

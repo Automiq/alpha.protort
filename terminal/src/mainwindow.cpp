@@ -77,10 +77,10 @@ void MainWindow::defineToAddConf(Document *doc)
 {
     QString name = doc->fileName();
 
-    if(doc->isApp() && m_apps->findText(name) == -1)
+    if(doc->isApp() && (m_apps->findText(name) == -1))
         addConfig(name, m_apps);
 
-    if(doc->isDeploy() && m_deploys->findText(name) == -1)
+    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
         addConfig(name, m_deploys);
 }
 
@@ -96,29 +96,30 @@ void MainWindow::delConfig(Document *doc)
     QString name = doc->fileName();
 
     if(doc->isApp())
-        deleteConfig(m_app, name);
+        deleteConfig(m_apps, name);
 
     if(doc->isDeploy())
-        deleteConfig(m_deploy, name);
+        deleteConfig(m_deploys, name);
 }
 
-void MainWindow::updateConfig(Document *doc, Document::Kind before, Document::Kind after)
+void MainWindow::updateConfig(Document *doc, Document::Kind before)
 {
+    Document::Kind after = doc->kind();
     if(after == before)
         return;
 
-    if(before == Document::Kind::Unknown && after != Document::Kind::Unknown)
+    if((before == Document::Kind::Unknown) && (after != Document::Kind::Unknown))
         defineToAddConf(doc);
 
     QString name = doc->fileName();
     if(before == Document::Kind::App && after == Document::Kind::Deploy)
     {
-        deleteApp(name);
+        delConfig(doc);
         addConfig(name, m_deploys);
     }
     if(before == Document::Kind::Deploy && after == Document::Kind::App)
     {
-        deleteDeploy(name);
+        delConfig(doc);
         addConfig(name, m_apps);
     }
 }
@@ -294,9 +295,7 @@ void MainWindow::saveDocument(int index)
     if(!doc->save())
         return;
 
-    Document::Kind kindAfterSave = doc->kind();
-
-    updateConfig(doc, kindBeforeSave, kindAfterSave);
+    updateConfig(doc, kindBeforeSave);
 
     QString nfname = doc->fileName();
 
