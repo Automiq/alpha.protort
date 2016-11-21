@@ -3,6 +3,9 @@
 
 #include "component.h"
 #include <boost/thread.hpp>
+#include <boost/asio.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
+
 #include "router.h"
 
 namespace alpha {
@@ -13,7 +16,9 @@ class generator : public component
 {
 public:
     generator(node::router<node::node>& router, std::string name):
-        component(router, name)
+        component(router, name),
+        generating_interval(3000),
+        timer(router.get_service())
     {
 
     }
@@ -28,18 +33,32 @@ public:
 
     void generate()
     {
+        if (!started)
+            return;
+
         // TODO generate meaningful data
-        std::string data("Generated string");
+        std::string data("Generated data");
 
         router_.do_route(name_, { { data, { 0, 1 } } });
+
+        timer.expires_from_now(boost::posix_time::milliseconds(generating_interval));
+        timer.async_wait(boost::bind(&generator::generate, this));
     }
 
     void start() final override
     {
-        // TODO fix new thread creation
-        boost::thread new_thread{boost::bind(&generator::generate, this)};
+        started = true;
+        generate();
+    }
+
+    void stop() final override
+    {
+        started = false;
     }
 private:
+    boost::asio::deadline_timer timer;
+    int generating_interval;
+    bool started;
 };
 
 } // namespace components

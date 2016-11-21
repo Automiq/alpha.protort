@@ -115,6 +115,20 @@ public:
         on_off_state = !on_off_state;
     }
 
+    void start()
+    {
+        for (auto & comp : components) {
+            comp.second.component_->start();
+        }
+    }
+
+    void stop()
+    {
+        for (auto & comp : components) {
+            comp.second.component_->stop();
+        }
+    }
+
     /*!
      * \brief Обрабатывает пакет согласно таблице маршрутизации
      * \param component_name Идентификатор компонента
@@ -180,6 +194,11 @@ public:
                 }
             }
         }
+    }
+
+    boost::asio::io_service& get_service()
+    {
+        return service;
     }
 
 private:

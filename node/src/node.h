@@ -53,6 +53,11 @@ public:
         service_.run();
     }
 
+    void stop()
+    {
+        service_.stop();
+    }
+
     /*!
      * \brief Уведомление об отправке пакета в канал связи
      * \param err
@@ -87,7 +92,7 @@ public:
      */
     void on_new_message(const protocol_payload& payload)
     {
-        std::cout << "comp name is " << payload.communication_packet().destination().name() << std::endl;
+        std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
         router_.route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
                       payload.communication_packet().payload());
@@ -130,8 +135,11 @@ public:
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
         }
 
-        if (node_name_.empty())
+        if (node_name_.empty()) {
+            std::cout << "node_name_ is empty" << std::endl;
             node_name_ = settings_.name;
+            std::cout << node_name_ << " name was set\n";
+        }
 
         // Создаем экземпляры локальных компонентов
         for (const auto& comp : conf.components) {
@@ -222,7 +230,9 @@ private:
         }
 
         case protocol::deploy::PacketKind::Start:
-            router_.switch_state();
+            router_.start();
+        case protocol::deploy::PacketKind::Stop:
+            router_.stop();
         default:
             assert(false);
         }

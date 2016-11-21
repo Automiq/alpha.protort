@@ -40,6 +40,7 @@ public:
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
     virtual void start() = 0;
+    virtual void stop() = 0;
 
     output_list do_process(port_id input_port, std::string const& payload)
     {
