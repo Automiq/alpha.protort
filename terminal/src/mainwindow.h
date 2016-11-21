@@ -5,13 +5,12 @@
 #include <QList>
 #include <QMainWindow>
 #include <QMessageBox>
+#include <QPushButton>
 #include <QSyntaxHighlighter>
 
 #include "configdialog.h"
 #include "document.h"
 #include "deploy.pb.h"
-
-
 
 class QTextEdit;
 
@@ -32,8 +31,10 @@ public:
 
     void setTabName(int index, const QString &name);
 
-private slots:
+public slots:
+    void button_clickedSetup();
 
+private slots:
     void on_save_file_triggered();
 
     void on_save_all_triggered();
@@ -64,6 +65,7 @@ private:
     Ui::MainWindow *ui;
     QComboBox *m_apps;
     QComboBox *m_deploys;
+    QPushButton *m_setupConfig;
     QString m_app;
     QString m_deploySchema;
     std::vector<StatusResponse> m_statOut;
@@ -78,6 +80,9 @@ private:
     void delConfig(Document *doc);
     void deleteConfig(QComboBox *ptr, QString &nameD);
     void updateConfig(Document *doc);
+    void setActiveConfig();
+    void setupActiveIconApp(int index);
+    void setupActiveIconDeploy(int index);
 };
 
 #endif // MAINWINDOW_H

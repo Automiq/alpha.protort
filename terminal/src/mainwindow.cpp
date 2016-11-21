@@ -52,7 +52,6 @@ void MainWindow::on_load_file_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Открыть файл"), QString(),
                                                     tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
-
     if (fileName.isEmpty())
         return;
 
@@ -130,7 +129,6 @@ void MainWindow::on_config_triggered()
     ConfigDialog dlg(this);
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
-
         auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
         if (!text_edit)
             continue;
@@ -150,15 +148,16 @@ void MainWindow::on_config_triggered()
         ui->start->setDisabled(true);
         ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
+        m_apps->setCurrentIndex(m_apps->findText(m_app));
+        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
+        setActiveConfig();
     }
 
     ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
                              "\n" +"Описание загружено" + "\n" +
                              "Загрузка схемы развёртывания..." +
                              "\n" + m_deploySchema +
-                             "\n" + "Схема загружена" +
-                             "\n" + "Упс! Не могу развернуть." +
-                             "\n Требуются доработки.");
+                             "\n" + "Схема загружена");
 }
 
 void MainWindow::setTabName(int index, const QString &name)
@@ -328,7 +327,45 @@ void MainWindow::setupWindowConfigurations()
     ui->mainToolBar->addWidget(schema);
     ui->mainToolBar->addWidget(m_deploys);
 
-    QPushButton *setupConfig = new QPushButton();
-    setupConfig->setText("Установить");
-    ui->mainToolBar->addWidget(setupConfig);
+    m_setupConfig = new QPushButton();
+    m_setupConfig->setText("Установить");
+    ui->mainToolBar->addWidget(m_setupConfig);
+
+    connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
+}
+
+void MainWindow::button_clickedSetup()
+{
+    setActiveConfig();
+}
+
+void MainWindow::setActiveConfig()
+{
+    QString nameApp = m_apps->currentText();
+    QString nameDeploy = m_deploys->currentText();
+
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
+        if (!text_edit)
+            continue;
+
+        setIcon(text_edit);
+
+        if(text_edit->fileName() == nameApp)
+            setupActiveIconApp(i);
+
+        if(text_edit->fileName() == nameDeploy)
+            setupActiveIconDeploy(i);
+    }
+}
+
+void MainWindow::setupActiveIconApp(int index)
+{
+    ui->tabWidget->setTabIcon(index, QIcon(":/images/greenPen.png"));
+}
+
+void MainWindow::setupActiveIconDeploy(int index)
+{
+    ui->tabWidget->setTabIcon(index, QIcon(":/images/greenCog.png"));
 }
