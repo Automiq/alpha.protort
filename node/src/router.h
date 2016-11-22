@@ -112,15 +112,15 @@ public:
 
     void start()
     {
-        for (auto & comp : components) {
-            comp.second.component_->start();
+        for (auto & comp : component_ptrs) {
+            comp->start();
         }
     }
 
     void stop()
     {
-        for (auto & comp : components) {
-            comp.second.component_->stop();
+        for (auto & comp : component_ptrs) {
+            comp->stop();
         }
     }
 
@@ -134,14 +134,18 @@ public:
     {
         auto it = components.find(component_name);
         if (it != components.end())
+        {
             service.post(boost::bind(&protort::components::component::process,
                                      it->second.component_,
                                      in_port,
                                      payload));
+            in_bytes += sizeof(payload);
+            in_packets++;
+        }
     }
 
     void do_route(void *comp_inst,
-                  std::vector<alpha::protort::components::output> outputs)
+                  const std::vector<alpha::protort::components::output>& outputs)
     {
         if (comp_inst == NULL)
         {
@@ -189,6 +193,8 @@ public:
 
                     remote_route.client->async_send_message(payload);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
+                    out_bytes += sizeof(payload);
+                    out_packets++;
                 }
             }
         }
@@ -204,6 +210,10 @@ private:
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
     boost::asio::io_service& service;
+    uint32_t in_bytes = 0;
+    uint32_t out_bytes = 0;
+    uint32_t in_packets = 0;
+    uint32_t out_packets = 0;
 };
 
 } // namespae node
