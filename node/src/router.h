@@ -137,8 +137,6 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
-        //        if (on_off_state)
-        //            do_route(&components[component_name], in_port, payload);
         auto it = components.find(component_name);
         if (it != components.end())
             service.post(boost::bind(&protort::components::component::process,
@@ -147,10 +145,10 @@ public:
                                      payload));
     }
 
-    void do_route(const std::string& component_name,
+    void do_route(void *comp_inst,
                   std::vector<alpha::protort::components::output> outputs)
     {
-        component_instance* this_component = &components[component_name];
+        component_instance* this_component = static_cast<component_instance*>(comp_inst);
 
         for (auto &output : outputs)
         {

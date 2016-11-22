@@ -50,20 +50,19 @@ public:
     }
 
     static std::unique_ptr<components::component> create(protocol::ComponentKind kind,
-                                                         node::router<node::node>& router,
-                                                         std::string name)
+                                                         node::router<node::node>& router)
     {
         std::unique_ptr<components::component> ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
-            ptr.reset(new components::generator(router, name));
+            ptr.reset(new components::generator(router));
             break;
         case protocol::ComponentKind::Retranslator:
-            ptr.reset(new components::retranslator(router, name));
+            ptr.reset(new components::retranslator(router));
             break;
         case protocol::ComponentKind::Terminator:
-            ptr.reset(new components::terminator(router, name));
+            ptr.reset(new components::terminator(router));
             break;
         default:
             assert(false);
@@ -74,10 +73,9 @@ public:
     }
 
     static std::unique_ptr<components::component> create(const std::string& kind,
-                                                         node::router<node::node>& router,
-                                                         std::string name)
+                                                         node::router<node::node>& router)
     {
-        return create(get_component_kind(kind), router, name);
+        return create(get_component_kind(kind), router);
     }
 };
 

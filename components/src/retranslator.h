@@ -10,7 +10,7 @@ namespace components {
 class retranslator : public component
 {
 public:
-    retranslator(node::router<node::node>& router, std::string name):component(router, name)
+    retranslator(node::router<node::node>& router): component(router)
     {
 
     }
@@ -19,7 +19,7 @@ public:
         if (input_port == 0 || input_port == 1)
         {
             output_list result = { { payload, {0, 1} } };
-            router_.do_route(name_, result);
+            router_.do_route(comp_inst_, result);
             return result;
         }
         std::vector<output> result;

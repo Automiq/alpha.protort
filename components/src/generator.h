@@ -15,8 +15,8 @@ namespace components {
 class generator : public component
 {
 public:
-    generator(node::router<node::node>& router, std::string name):
-        component(router, name),
+    generator(node::router<node::node>& router):
+        component(router),
         generating_interval(3000),
         timer(router.get_service())
     {
@@ -39,7 +39,7 @@ public:
         // TODO generate meaningful data
         std::string data("Generated data");
 
-        router_.do_route(name_, { { data, { 0, 1 } } });
+        router_.do_route(comp_inst_, { { data, { 0, 1 } } });
 
         timer.expires_from_now(boost::posix_time::milliseconds(generating_interval));
         timer.async_wait(boost::bind(&generator::generate, this));

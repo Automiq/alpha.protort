@@ -31,8 +31,8 @@ using output_list = std::vector<output>;
 class component
 {
 public:
-    component(node::router<node::node>& router, std::string name):
-        router_(router), name_(name)
+    component(node::router<node::node>& router):
+        router_(router)
     {
 
     }
@@ -46,7 +46,6 @@ public:
     {
         ++in_packet_count_;
         output_list result = process(input_port, payload);
-        out_packet_count_ += result.size();
         return result;
     }
 
@@ -54,17 +53,15 @@ public:
     {
         return in_packet_count_;
     }
-
-    uint32_t out_packet_count() const
+    void set_comp_inst(void *comp_inst)
     {
-        return out_packet_count_;
+        comp_inst_ = comp_inst;
     }
 
 protected:
     uint32_t in_packet_count_ = 0;
-    uint32_t out_packet_count_ = 0;
     node::router<node::node>& router_;
-    std::string name_;
+    void *comp_inst_;
 
 };
 
