@@ -19,7 +19,8 @@ public:
         if (input_port == 0 || input_port == 1)
         {
             output_list result = { { payload, {0, 1} } };
-            router_.do_route(comp_inst_, result);
+            if (comp_inst_ != NULL)
+                router_.do_route(comp_inst_, result);
             return result;
         }
         std::vector<output> result;

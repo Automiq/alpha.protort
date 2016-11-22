@@ -37,7 +37,7 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
     n.router_.start();
     n.router_.stop();
     boost::asio::deadline_timer timer(n.router_.get_service());
-    timer.expires_from_now(boost::posix_time::milliseconds(5000));
+    timer.expires_from_now(boost::posix_time::milliseconds(10000));
     timer.async_wait(boost::bind(&node::stop, &n));
     n.start();
 }

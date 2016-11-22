@@ -105,14 +105,9 @@ private:
     };
 
 public:
-    router(boost::asio::io_service& service): on_off_state(false), service(service)
+    router(boost::asio::io_service& service): service(service)
     {
 
-    }
-
-    void switch_state()
-    {
-        on_off_state = !on_off_state;
     }
 
     void start()
@@ -148,6 +143,11 @@ public:
     void do_route(void *comp_inst,
                   std::vector<alpha::protort::components::output> outputs)
     {
+        if (comp_inst == NULL)
+        {
+            assert(false);
+            return;
+        }
         component_instance* this_component = static_cast<component_instance*>(comp_inst);
 
         for (auto &output : outputs)
@@ -204,9 +204,6 @@ private:
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
     boost::asio::io_service& service;
-
-    //! on - true, off - false
-    bool on_off_state;
 };
 
 } // namespae node
