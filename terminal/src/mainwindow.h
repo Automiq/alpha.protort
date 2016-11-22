@@ -12,7 +12,7 @@
 #include "deploy.pb.h"
 #include "configdialog.h"
 #include "client.h"
-#include "parser.h"
+#include "deploy_configuration.h"
 
 class QTextEdit;
 
@@ -35,11 +35,13 @@ public:
 
     void on_packet_sent(const boost::system::error_code& err, size_t bytes);
 
-    void on_connected(const boost::system::error_code& err, const std::string& node_name_);
+    void on_connected(const boost::system::error_code& err, const std::string& current_node_);
 
     void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
 
     void on_finished(alpha::protort::protocol::Packet_Payload packet_);
+
+    void another_connection(const boost::system::error_code& err, const std::string& current_node_);
 
 private slots:
 
@@ -80,9 +82,11 @@ private:
 
     boost::asio::io_service service_;
 
+    boost::scoped_ptr<boost::asio::io_service::work> work_;
+
     std::map<std::string,std::unique_ptr<alpha::protort::protolink::client<MainWindow>>> clients_for_configuration;
 
-    alpha::protort::parser::configuration config;
+    alpha::protort::parser::deploy_configuration deploy_config_;
 
     boost::thread protoThread_;
 };

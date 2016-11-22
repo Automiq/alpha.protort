@@ -2,6 +2,7 @@
 #define REQUEST_CALLBACKS_H
 
 #include <boost/signals2.hpp>
+#include <boost/asio.hpp>
 
 #include "protocol.pb.h"
 

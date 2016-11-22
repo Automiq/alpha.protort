@@ -10,11 +10,11 @@ int main(int argc, const char *argv[])
 
     node::node n(node_settings_);
 
-    alpha::protort::parser::configuration cnfg;
-    cnfg.parse_app("app.xml");
-    cnfg.parse_deploy("deploy.xml");
+    //alpha::protort::parser::configuration cnfg;
+    //cnfg.parse_app("app.xml");
+    //cnfg.parse_deploy("deploy.xml");
 
-    n.deploy(cnfg);
+    //n.deploy(cnfg);
 
     n.start();
 

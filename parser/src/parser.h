@@ -7,7 +7,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
-#include <unordered_map>
 
 namespace alpha {
 namespace protort {
@@ -75,14 +74,6 @@ struct configuration
     std::vector<node> nodes;
     std::vector<mapping> mappings;
 
-    std::unordered_map<std::string,mapping*> map_component_node;
-
-    std::unordered_map<std::string,component*> map_components;
-    std::unordered_map<std::string,std::vector<connection*>> map_component_with_connections;
-
-    std::unordered_map<std::string,node*> map_node;
-    std::unordered_map<std::string,std::vector<mapping*>> map_node_with_components;
-
     /*!
      * \brief Парсит схему приложения
      * \param путь к файлу схемы приложения
@@ -96,10 +87,6 @@ struct configuration
     {
         try
         {
-            map_components.clear();
-            map_component_with_connections.clear();
-            components.clear();
-            connections.clear();
             using boost::property_tree::ptree;
             boost::property_tree::ptree pt;
             read_xml(filename, pt);
@@ -110,7 +97,6 @@ struct configuration
                     comp.name = v.second.get<std::string>("<xmlattr>.name");
                     comp.kind = v.second.get<std::string>("<xmlattr>.kind");
                     components.push_back(comp);
-                    map_components[comp.name] = &components.back();
                 }
                 else if( v.first == "connection" ) {
                     connection conn;
@@ -119,7 +105,6 @@ struct configuration
                     conn.dest = v.second.get<std::string>("<xmlattr>.dest");
                     conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");
                     connections.push_back(conn);
-                    map_component_with_connections[conn.source].push_back(&connections.back());
                 }
                 else
                     std::cout << "Unknown tag in the file" << std::endl;
@@ -146,11 +131,6 @@ struct configuration
     {
         try
         {
-            map_node.clear();
-            map_node_with_components.clear();
-            map_component_node.clear();
-            nodes.clear();
-            mappings.clear();
             using boost::property_tree::ptree;
             boost::property_tree::ptree pt;
             read_xml(filename, pt);
@@ -162,15 +142,12 @@ struct configuration
                     n.address = v.second.get<std::string>("<xmlattr>.address");
                     n.port = v.second.get<port_id>("<xmlattr>.port");
                     nodes.push_back(n);
-                    map_node[n.name] = &nodes.back();
                 }
                 else if( v.first == "map" ) {
                     mapping mapp;
                     mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");
                     mapp.node_name = v.second.get<std::string>("<xmlattr>.node");
                     mappings.push_back(mapp);
-                    map_node_with_components[mapp.node_name].push_back(&mappings.back());
-                    map_component_node[mapp.comp_name] = &mappings.back();
                 }
                 else
                     std::cout << "Unknown tag in the file" << std::endl;
