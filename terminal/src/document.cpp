@@ -11,7 +11,7 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
-    setFontFamily(fontFamily());
+    setFont(QFont("Consolas", 10));
 }
 
 bool Document::save()
@@ -33,7 +33,7 @@ bool Document::save()
     return false;
 }
 
-QString Document::fileName() const
+QString Document::filePath() const
 {
     return m_name;
 }
@@ -57,25 +57,19 @@ void Document::setFileName(const QString &fileName)
     m_name = fileName;
 }
 
-bool Document::isApp()
+bool Document::isApp() const
 {
-    if(Kind::App == kind())
-        return true;
-    return false;
+    return Kind::App == kind();
 }
 
-bool Document::isDeploy()
+bool Document::isDeploy() const
 {
-    if(Deploy == kind())
-        return true;
-    return false;
+    return Deploy == kind();
 }
 
-bool Document::isUnknown()
+bool Document::isUnknown() const
 {
-    if(Unknown == kind())
-        return true;
-    return false;
+    return Unknown == kind();
 }
 
 QString Document::getFileNameOFD()

@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    delete dlg;
     delete ui;
 }
 
@@ -69,30 +70,19 @@ void MainWindow::on_load_file_triggered()
     doc->setFileName(fileName);
     addDocument(doc);
     setIcon(doc);
-    defineToAddConf(doc);
+    addConfig(doc);
 }
 
-void MainWindow::defineToAddConf(Document *doc)
+void MainWindow::deleteConfig(QComboBox *ptr, const QString &name)
 {
-    QString name = doc->fileName();
-
-    if(doc->isApp() && (m_apps->findText(name) == -1))
-        addConfig(name, m_apps);
-
-    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
-        addConfig(name, m_deploys);
-}
-
-void MainWindow::deleteConfig(QComboBox *ptr, QString &nameD)
-{
-    int indx = ptr->findText(QFileInfo(nameD).fileName());
+    int indx = ptr->findText(QFileInfo(name).fileName());
     if(indx != -1)
         ptr->removeItem(indx);
 }
 
 void MainWindow::delConfig(Document *doc)
 {
-    QString name = doc->fileName();
+    QString name = doc->filePath();
 
     deleteConfig(m_apps, name);
     deleteConfig(m_deploys, name);
@@ -100,12 +90,8 @@ void MainWindow::delConfig(Document *doc)
 
 void MainWindow::updateConfig(Document *doc)
 {
-    Document::Kind type = doc->kind();
-
     delConfig(doc);
-
-    if(type != Document::Kind::Unknown)
-        defineToAddConf(doc);
+    addConfig(doc);
 }
 
 void MainWindow::on_create_file_triggered()
@@ -119,40 +105,52 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
     close_tab(index);
 }
 
-void MainWindow::addConfig(QString &name, QComboBox *ptr)
+void MainWindow::addConfig(Document *doc)
 {
-    ptr->addItem(QFileInfo(name).fileName());
+    QString name = doc->filePath();
+
+    if(doc->isApp() && (m_apps->findText(name) == -1))
+        m_apps->addItem(QFileInfo(name).fileName());
+
+    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
+        m_deploys->addItem(QFileInfo(name).fileName());
 }
 
 void MainWindow::on_config_triggered()
 {
-    ConfigDialog dlg(this);
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
-        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
-        if (!text_edit)
+        auto doc = document(i);
+        if (!doc)
             continue;
 
-        QString nname = text_edit->fileName();
+        QString nname = doc->filePath();
 
-        if(text_edit->isApp())
-            dlg.loadApp(nname);
-        if(text_edit->isDeploy())
-            dlg.loadDeploy(nname);
+        if(doc->isApp())
+            dlg->loadApp(nname);
+        else
+            if(doc->isDeploy())
+                dlg->loadDeploy(nname);
     }
 
-    if (dlg.exec())
+    if (dlg->exec())
     {
-        m_app = dlg.app();
-        m_deploySchema = dlg.deploySchema();
+        m_app = dlg->app();
+        m_deploySchema = dlg->deploySchema();
         ui->start->setDisabled(true);
         ui->stop->setDisabled(true);
         ui->deploy->setEnabled(true);
         m_apps->setCurrentIndex(m_apps->findText(m_app));
         m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
         setActiveConfig();
+        //connect(dlg->buttonBox, SIGNAL(on_buttonBox_accepted()), this, SLOT(showLog()));
+        connect(dlg, SIGNAL(acptd()), this, SLOT(showLog()));
+     //   connect(this, SIGNAL(acptd()), this, SLOT(showLog()));
     }
+}
 
+void MainWindow::showLog() const
+{
     ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
                              "\n" +"Описание загружено" + "\n" +
                              "Загрузка схемы развёртывания..." +
@@ -192,7 +190,7 @@ void MainWindow::on_close_file_triggered()
 
 void MainWindow::close_tab(int index)
 {
-    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+    auto doc = document(index);
     delConfig(doc);
     ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
@@ -229,7 +227,7 @@ void MainWindow::on_status_request_triggered()
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
-    QString title = doc->fileName();
+    QString title = doc->filePath();
 
     if (title.isEmpty())
         title = tr("Безымянный");
@@ -268,7 +266,7 @@ void MainWindow::saveDocument(int index)
     if(index == -1)
         return;
 
-    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
+    auto doc = document(index);
 
     if(!doc)
         return;
@@ -278,7 +276,7 @@ void MainWindow::saveDocument(int index)
 
     updateConfig(doc);
 
-    QString nfname = doc->fileName();
+    QString nfname = doc->filePath();
 
     if(nfname != ui->tabWidget->tabText(index))
         setTabName(index, nfname);
@@ -298,36 +296,35 @@ void MainWindow::addDocument(Document *doc)
 
 void MainWindow::setIcon(Document *doc)
 {
-    if(doc->isApp())
+    switch(doc->kind())
     {
+    case Document::Kind::App:
         ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
-        return;
-    }
-
-    if(doc->isDeploy())
-    {
+        break;
+    case Document::Kind::Deploy:
         ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
-        return;
+        break;
+    default:
+        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/file.png"));
     }
-
-    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/file.png"));
 }
 
 void MainWindow::setupWindowConfigurations()
 {
+    dlg = new ConfigDialog();
     m_deploys = new QComboBox();
     m_apps = new QComboBox();
 
-    QLabel *app = new QLabel("Описание: ");
+    QLabel *app = new QLabel(tr("Описание: "));
     ui->mainToolBar->addWidget(app);
     ui->mainToolBar->addWidget(m_apps);
 
-    QLabel *schema = new QLabel("Схема: ");
+    QLabel *schema = new QLabel(tr("Схема: "));
     ui->mainToolBar->addWidget(schema);
     ui->mainToolBar->addWidget(m_deploys);
 
     m_setupConfig = new QPushButton();
-    m_setupConfig->setText("Установить");
+    m_setupConfig->setText(tr("Установить"));
     ui->mainToolBar->addWidget(m_setupConfig);
 
     connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
@@ -340,31 +337,27 @@ void MainWindow::button_clickedSetup()
 
 void MainWindow::setActiveConfig()
 {
-    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
-    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
-
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
-        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
-        if (!text_edit)
-            continue;
-
-        setIcon(text_edit);
-
-        if(QFileInfo(text_edit->fileName()).fileName() == nameApp)
-            setupActiveIconApp(i);
-
-        if(QFileInfo(text_edit->fileName()).fileName() == nameDeploy)
-            setupActiveIconDeploy(i);
+        setupActiveIcon(i);
     }
 }
 
-void MainWindow::setupActiveIconApp(int index)
+void MainWindow::setupActiveIcon(const int &index)
 {
-    ui->tabWidget->setTabIcon(index, QIcon(":/images/greenPen.png"));
+    auto doc = document(index);
+    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
+    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
+
+    setIcon(doc);
+    if((QFileInfo(doc->filePath()).fileName() == nameApp) && (doc->isApp()))
+        ui->tabWidget->setTabIcon(index, QIcon(":/images/greenPen.png"));
+
+    if((QFileInfo(doc->filePath()).fileName() == nameDeploy) && (doc->isDeploy()))
+        ui->tabWidget->setTabIcon(index, QIcon(":/images/greenCog.png"));
 }
 
-void MainWindow::setupActiveIconDeploy(int index)
+Document* MainWindow::document(int index)
 {
-    ui->tabWidget->setTabIcon(index, QIcon(":/images/greenCog.png"));
+    return dynamic_cast<Document*> (ui->tabWidget->widget(index));
 }

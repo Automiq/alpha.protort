@@ -2,6 +2,7 @@
 #define CONFIGDIALOG_H
 
 #include <QDialog>
+#include <QDialogButtonBox>
 #include "document.h"
 
 namespace Ui {
@@ -21,8 +22,12 @@ public:
 
     void loadApp(const QString &app);
     void loadDeploy(const QString &deploy);
+    void setup();
+    QDialogButtonBox *buttonBox2;
+signals:
+    void acptd();
 
-private slots:
+public slots:
     void on_buttonBox_accepted();
 
 private:

@@ -11,6 +11,7 @@
 #include "configdialog.h"
 #include "document.h"
 #include "deploy.pb.h"
+#include "configdialog.h"
 
 class QTextEdit;
 
@@ -61,8 +62,12 @@ private slots:
 
     void on_status_request_triggered();
 
+public slots:
+    void showLog() const;
+
 private:
     Ui::MainWindow *ui;
+    ConfigDialog *dlg;
     QComboBox *m_apps;
     QComboBox *m_deploys;
     QPushButton *m_setupConfig;
@@ -75,14 +80,13 @@ private:
     void addDocument(Document *doc);
     void setIcon(Document *doc);
     void setupWindowConfigurations();
-    void addConfig(QString &name, QComboBox *ptr);
-    void defineToAddConf(Document *doc);
+    void addConfig(Document *doc);
     void delConfig(Document *doc);
-    void deleteConfig(QComboBox *ptr, QString &nameD);
+    void deleteConfig(QComboBox *ptr, const QString &name);
     void updateConfig(Document *doc);
     void setActiveConfig();
-    void setupActiveIconApp(int index);
-    void setupActiveIconDeploy(int index);
+    void setupActiveIcon(const int &index);
+    Document* document(int index);
 };
 
 #endif // MAINWINDOW_H

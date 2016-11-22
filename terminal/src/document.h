@@ -26,12 +26,12 @@ public:
     void load();
     bool save();
 
-    QString fileName() const;
+    QString filePath() const;
     Kind kind() const;
-    void setFileName(const QString &fileName);
-    bool isApp();
-    bool isDeploy();
-    bool isUnknown();
+    void setFileName(const QString &filePath);
+    bool isApp() const;
+    bool isDeploy() const;
+    bool isUnknown() const;
 
 private:
     QString getFileNameOFD();
