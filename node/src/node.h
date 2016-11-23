@@ -56,6 +56,7 @@ public:
 
     void stop()
     {
+        router_.stop();
         service_.stop();
     }
 
@@ -221,6 +222,8 @@ private:
 
         case protocol::deploy::PacketKind::DeployConfig:
         {
+            router_.stop();
+            router_.clear();
             deploy(convert_config(packet.request().deploy_config().config()));
 
             // Формируем ответный пакет
@@ -233,10 +236,10 @@ private:
 
         case protocol::deploy::PacketKind::Start:
             router_.start();
-            break;
+            return {};
         case protocol::deploy::PacketKind::Stop:
             router_.stop();
-            break;
+            return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
         default:
@@ -261,11 +264,11 @@ private:
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_.in_packets);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_.out_packets);
 
-        for (auto & component : router_.component_ptrs) {
+        for (auto & component : router_.components) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
-            comp_status->set_in_packet_count(component->in_packet_count());
-            comp_status->set_out_packet_count(component->in_packet_count());
-//            comp_status->set_name(component->comp_inst_->);
+            comp_status->set_in_packet_count(component.second.component_->in_packet_count());
+            comp_status->set_out_packet_count(component.second.component_->in_packet_count());
+            comp_status->set_name(component.first);
         }
 
         return response;

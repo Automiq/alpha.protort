@@ -63,7 +63,7 @@ public:
 protected:
     uint32_t in_packet_count_ = 0;
     node::router<node::node>& router_;
-    void *comp_inst_ = NULL;
+    void *comp_inst_ = nullptr;
 
 };
 

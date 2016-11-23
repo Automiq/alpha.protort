@@ -112,6 +112,7 @@ public:
 
     void start()
     {
+        started = true;
         for (auto & comp : component_ptrs) {
             comp->start();
         }
@@ -119,9 +120,17 @@ public:
 
     void stop()
     {
+        started = false;
         for (auto & comp : component_ptrs) {
             comp->stop();
         }
+    }
+
+    void clear()
+    {
+        component_ptrs.clear();
+        components.clear();
+        clients.clear();
     }
 
     /*!
@@ -132,10 +141,16 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
+        if (!started)
+        {
+            std::cout << "route packet at stopped router" << std::endl;
+            return;
+        }
+
         auto it = components.find(component_name);
         if (it != components.end())
         {
-            service.post(boost::bind(&protort::components::component::process,
+            service.post(boost::bind(&protort::components::component::do_process,
                                      it->second.component_,
                                      in_port,
                                      payload));
@@ -147,11 +162,19 @@ public:
     void do_route(void *comp_inst,
                   const std::vector<alpha::protort::components::output>& outputs)
     {
-        if (comp_inst == NULL)
+        if (comp_inst == nullptr)
         {
+            std::cout << "nullptr comp_inst" << std::endl;
             assert(false);
             return;
         }
+
+        if (!started)
+        {
+            std::cout << "route packet at stopped router" << std::endl;
+            return;
+        }
+
         component_instance* this_component = static_cast<component_instance*>(comp_inst);
 
         for (auto &output : outputs)
@@ -168,7 +191,7 @@ public:
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
                               << " in port " << local_route.in_port << std::endl;
-                    service.post(boost::bind(&protort::components::component::process,
+                    service.post(boost::bind(&protort::components::component::do_process,
                                              local_route.component->component_,
                                              local_route.in_port,
                                              output.payload));
@@ -210,6 +233,7 @@ private:
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
     boost::asio::io_service& service;
+    bool started = false;
     uint32_t in_bytes = 0;
     uint32_t out_bytes = 0;
     uint32_t in_packets = 0;
