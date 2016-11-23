@@ -126,11 +126,10 @@ void MainWindow::on_config_triggered()
 
         QString nname = doc->filePath();
 
-        if(doc->isApp())
+        if (doc->isApp())
             dlg.loadApp(nname);
-        else
-            if(doc->isDeploy())
-                dlg.loadDeploy(nname);
+        else if (doc->isDeploy())
+            dlg.loadDeploy(nname);
     }
 
     if (dlg.exec())
@@ -328,6 +327,7 @@ void MainWindow::setIcon(Document *doc)
         break;
     default:
         setTabIco(doc,":/images/file.png");
+        break;
     }
 }
 
