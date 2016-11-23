@@ -11,7 +11,10 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
-    setFont(QFont("Consolas", 10));
+    QFont f("Courier", 10);
+    f.setStyleHint(QFont::Courier);
+    f.setStyleStrategy(QFont::PreferAntialias);
+    setFont(f);
 }
 
 bool Document::save()

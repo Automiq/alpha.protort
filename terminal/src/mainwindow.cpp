@@ -137,15 +137,14 @@ void MainWindow::on_config_triggered()
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        resetMenuEnabled();
+        resetDeployActions();
         m_apps->setCurrentIndex(m_apps->findText(m_app));
         m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
         setActiveConfig();
-        showLog();
     }
 }
 
-void MainWindow::resetMenuEnabled() const
+void MainWindow::resetDeployActions() const
 {
     ui->start->setDisabled(true);
     ui->stop->setDisabled(true);
@@ -154,11 +153,6 @@ void MainWindow::resetMenuEnabled() const
 
 void MainWindow::showLog() const
 {
-    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
-                             "\n" +"Описание загружено" + "\n" +
-                             "Загрузка схемы развёртывания..." +
-                             "\n" + m_deploySchema +
-                             "\n" + "Схема загружена");
 }
 
 void MainWindow::setTabName(int index, const QString &name)
@@ -169,14 +163,12 @@ void MainWindow::setTabName(int index, const QString &name)
 void MainWindow::on_start_triggered()
 {
     ui->start->setDisabled(true);
-    ui->status_request->setEnabled(true);
     ui->stop->setEnabled(true);
 }
 
 void MainWindow::on_stop_triggered()
 {
     ui->start->setEnabled(true);
-    ui->status_request->setDisabled(true);
     ui->stop->setDisabled(true);
 }
 
@@ -352,8 +344,7 @@ void MainWindow::button_clickedSetup()
 {
     setupConfigMembers();
     setActiveConfig();
-    resetMenuEnabled();
-    showLog();
+    resetDeployActions();
 }
 
 void MainWindow::setActiveConfig()

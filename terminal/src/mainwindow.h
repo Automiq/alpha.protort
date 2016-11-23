@@ -89,7 +89,7 @@ private:
     void setupActiveIcon(const int &index);
     void setupConfigMembers();
     void setTabIco(Document *doc, const QString &srcPath) const;
-    void resetMenuEnabled() const;
+    void resetDeployActions() const;
     Document* document(int index);
 };
 
