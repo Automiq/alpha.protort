@@ -110,7 +110,7 @@ void MainWindow::addConfig(Document *doc)
 
     if(doc->isApp() && (m_apps->findText(name) == -1))
         m_apps->addItem(QFileInfo(name).fileName());
-//дублирование кода (m_apps)
+
     if(doc->isDeploy() && (m_deploys->findText(name) == -1))
         m_deploys->addItem(QFileInfo(name).fileName());
 }
@@ -127,7 +127,7 @@ void MainWindow::on_config_triggered()
         QString nname = doc->filePath();
 
         if(doc->isApp())
-            dlg.loadApp(nname);//Вопрос остался!
+            dlg.loadApp(nname);
         else
             if(doc->isDeploy())
                 dlg.loadDeploy(nname);
@@ -137,18 +137,17 @@ void MainWindow::on_config_triggered()
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        resetDeployActions();
         m_apps->setCurrentIndex(m_apps->findText(m_app));
         m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
         setActiveConfig();
+        activateDeploy();
     }
 }
 
 void MainWindow::resetDeployActions() const
 {
-    ui->start->setDisabled(true);
     ui->stop->setDisabled(true);
-    ui->deploy->setEnabled(true);
+    ui->start->setEnabled(true);
 }
 
 void MainWindow::showLog() const
@@ -162,20 +161,43 @@ void MainWindow::setTabName(int index, const QString &name)
 
 void MainWindow::on_start_triggered()
 {
+    ui->deploy->setDisabled(true);
     ui->start->setDisabled(true);
     ui->stop->setEnabled(true);
 }
 
 void MainWindow::on_stop_triggered()
 {
-    ui->start->setEnabled(true);
+    if(! ui->deploy->isEnabled())
+        ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
+}
+
+void MainWindow::showMessage()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this,
+                                  "Смена конфигурации",
+                                  "Старая конфигурация будет остановлена и загружена новая, вы уверены?",
+                                QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes)
+    {
+        deployOk();
+    }
+}
+
+void MainWindow::deployOk()
+{
+    resetDeployActions();
+    ui->deploy->setDisabled(true);
 }
 
 void MainWindow::on_deploy_triggered()
 {
-    ui->deploy->setDisabled(true);
-    ui->start->setEnabled(true);
+    if(ui->start->isEnabled() || ui->stop->isEnabled())
+        showMessage();
+    else
+        deployOk();
 }
 
 void MainWindow::on_close_file_triggered()
@@ -340,11 +362,17 @@ void MainWindow::setupConfigMembers()
     m_deploySchema = m_deploys->currentText();
 }
 
+void MainWindow::activateDeploy() const
+{
+    if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
+        ui->deploy->setEnabled(true);
+}
+
 void MainWindow::button_clickedSetup()
 {
     setupConfigMembers();
     setActiveConfig();
-    resetDeployActions();
+    activateDeploy();
 }
 
 void MainWindow::setActiveConfig()

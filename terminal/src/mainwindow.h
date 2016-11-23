@@ -77,6 +77,7 @@ private:
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
+    void activateDeploy() const;
     void addDocument(Document *doc);
     void addWidgetOnBar(QWidget* newWidget) const;
     void setIcon(Document *doc);
@@ -90,6 +91,8 @@ private:
     void setupConfigMembers();
     void setTabIco(Document *doc, const QString &srcPath) const;
     void resetDeployActions() const;
+    void showMessage();
+    void deployOk();
     Document* document(int index);
 };
 
