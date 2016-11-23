@@ -33,7 +33,8 @@ static const int proto_reconnect_interval = 5000;
  * Шаблонный класс клиента
  */
 template<class Callback>
-class client
+class client:
+        public boost::enable_shared_from_this<client<Callback>>
 {
     using error_code = boost::system::error_code;
     using request_ptr = boost::shared_ptr<request_callbacks>;
@@ -107,17 +108,26 @@ public:
         do_send_packet(packet.SerializeAsString(),packet.kind());
     }
 
-    request_ptr async_send_request(protocol::Packet_Payload& payload)
+    void async_send_request(protocol::Packet_Payload& payload, request_ptr ptr_)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
         packet.mutable_transaction()->set_id(transaction_id_);
         packet.mutable_payload()->CopyFrom(payload);
 
-        request_ptr ptr_(new request_callbacks);
         transactions_.emplace(transaction_id_++, ptr_);
         do_send_packet(packet.SerializeAsString(),packet.kind());
-        return ptr_;
+    }
+
+    void stop_trying_to_connect()
+    {
+        reconnect_timer_.cancel();
+        closed_ = true;
+    }
+
+    bool is_connected()
+    {
+        return is_connected_;
     }
 
     //! Имя узла, с которым коннектится клиент
@@ -131,7 +141,8 @@ private:
     void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
         socket_.async_connect(
-            ep, boost::bind(&client::on_connect, this,
+            ep, boost::bind(&client::on_connect,
+                            this->shared_from_this(),
                             boost::asio::placeholders::error));
     }
 
@@ -142,11 +153,19 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        callback_.on_connected(err,node_name_);
-        if (err)
+        if(!closed_)
         {
-            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
-            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
+            callback_.on_connected(err,node_name_);
+            if (err)
+            {
+                reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
+                reconnect_timer_.async_wait(
+                    boost::bind(&client::do_connect,
+                                this->shared_from_this(),
+                                ep_));
+            }
+            else
+                is_connected_ = true;
         }
     }
 
@@ -167,7 +186,8 @@ private:
         async_write(
             socket_,
             boost::asio::buffer(buffer_.get(), header_size + packet.size()),
-            boost::bind(&client::on_packet_sent, this,
+            boost::bind(&client::on_packet_sent,
+                        this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred,
                         kind_));
@@ -211,7 +231,7 @@ private:
             boost::asio::buffer(&packet_header_, header_size),
             boost::asio::transfer_exactly(header_size),
             boost::bind(&client::on_header_read,
-                        this,
+                        this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
@@ -248,7 +268,7 @@ private:
             boost::asio::buffer(buffer_.get(), packet_size),
             boost::asio::transfer_exactly(packet_size),
             boost::bind(&client::on_packet_read,
-                        this,
+                        this->shared_from_this(),
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
@@ -276,7 +296,7 @@ private:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
-        packet.ParseFromString(std::string(buffer, nbytes));
+        packet.ParseFromArray(buffer,nbytes);
 
         switch(packet.kind())
         {
@@ -297,6 +317,10 @@ private:
             break;
         }
     }
+
+    bool closed_ = false;
+
+    bool is_connected_ = false;
 
     //! Сокет
     boost::asio::ip::tcp::socket socket_;

@@ -15,6 +15,9 @@ MainWindow::MainWindow(QWidget *parent) :
     work_(new boost::asio::io_service::work(service_)),
     protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
+    qRegisterMetaType<int>();
+    qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     ui->setupUi(this);
 }
 
@@ -188,7 +191,6 @@ void MainWindow::on_config_triggered()
                              "\n" + "Схема загружена" +
                              "\n" + "Упс! Не могу развернуть." +
                              "\n Требуются доработки.");
-    on_deploy_triggered();
 }
 
 void MainWindow::on_close_file_triggered()
@@ -207,9 +209,11 @@ void MainWindow::on_start_triggered()
 
     for (auto &client : clients_for_configuration)
     {
-        client.second->async_send_request(payload_)->on_finished.connect
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+
+        ptr_->on_finished.connect
             (
-                [&](alpha::protort::protocol::Packet_Payload p)
+                [&](const alpha::protort::protocol::Packet_Payload& p)
                   {
                      QMetaObject::invokeMethod(
                      this,
@@ -218,6 +222,9 @@ void MainWindow::on_start_triggered()
                      Q_ARG(alpha::protort::protocol::Packet_Payload, p));
                   }
             );
+
+
+        client.second->async_send_request(payload_, ptr_);
     }
 }
 
@@ -232,9 +239,11 @@ void MainWindow::on_stop_triggered()
 
     for (auto &client : clients_for_configuration)
     {
-        client.second->async_send_request(payload_)->on_finished.connect
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+
+        ptr_->on_finished.connect
             (
-                [&](alpha::protort::protocol::Packet_Payload p)
+                [&](const alpha::protort::protocol::Packet_Payload& p)
                   {
                      QMetaObject::invokeMethod(
                      this,
@@ -243,6 +252,8 @@ void MainWindow::on_stop_triggered()
                      Q_ARG(alpha::protort::protocol::Packet_Payload, p));
                   }
             );
+
+        client.second->async_send_request(payload_, ptr_);
     }
 }
 
@@ -259,16 +270,23 @@ void MainWindow::on_deploy_triggered()
         deploy_config_.parse_deploy(config_);
     }
 
+    for (auto &client : clients_for_configuration)
+        if(!client.second->is_connected())
+            client.second->stop_trying_to_connect();
+
+    clients_for_configuration.clear();
+
     for (auto node : deploy_config_.map_node)
     {
         boost::asio::ip::tcp::endpoint ep(
-                    boost::asio::ip::address::from_string(node.second.address), node.second.port); // Поменять порт на дефолтный
-        std::unique_ptr<alpha::protort::protolink::client<MainWindow>> client_(
+                    boost::asio::ip::address::from_string(node.second.address), 100);
+        boost::shared_ptr<alpha::protort::protolink::client<MainWindow>> client_(
             new alpha::protort::protolink::client<MainWindow>(*this,service_));
 
         client_->node_name_ = node.second.name;
 
         clients_for_configuration.emplace(node.second.name,std::move(client_));
+
         clients_for_configuration.begin()->second->async_connect(ep);
     }
 }
@@ -285,6 +303,9 @@ void MainWindow::on_connected(const boost::system::error_code& err, const std::s
         payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
         alpha::protort::protocol::deploy::Config* configuration_ =
             payload_.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
+
+        configuration_->mutable_this_node_info()->set_name(current_node_);
+        configuration_->mutable_this_node_info()->set_port(deploy_config_.map_node[current_node_].port);
 
         alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration_->add_node_infos();
         node_info_->set_name(current_node_);
@@ -349,9 +370,12 @@ void MainWindow::on_connected(const boost::system::error_code& err, const std::s
                 }
             }
         }
-        clients_for_configuration[current_node_]->async_send_request(payload_)->on_finished.connect
+
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+
+        ptr_->on_finished.connect
             (
-                [&](alpha::protort::protocol::Packet_Payload p)
+                [&](const alpha::protort::protocol::Packet_Payload& p)
                   {
                      QMetaObject::invokeMethod(
                      this,
@@ -360,6 +384,8 @@ void MainWindow::on_connected(const boost::system::error_code& err, const std::s
                      Q_ARG(alpha::protort::protocol::Packet_Payload, p));
                   }
             );
+
+        clients_for_configuration[current_node_]->async_send_request(payload_, ptr_);
     }
 }
 
@@ -376,33 +402,59 @@ void MainWindow::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
 void MainWindow::on_finished(alpha::protort::protocol::Packet_Payload packet_)
 {
     ui->text_browser_status->insertPlainText("on_finished\n");
+    packet_.deploy_packet().response().deploy_config();
 }
 
 void MainWindow::on_status_request_triggered()
 {
-    ui->text_browser_status->clear();
-    for (int i = 0; i < stat_out.size(); ++i)
+    alpha::protort::protocol::Packet_Payload stat;
+    stat.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+
+    for (auto &client : clients_for_configuration)
     {
-        ui->text_browser_status->insertPlainText("<Название узла - " +
-                                                 QString::fromStdString(stat_out[i].node_name())
-                                                 + ">\n<Время работы - " +
-                                                 QString::number(stat_out[i].uptime()) + ">\n<Количество принятых пакетов - "
-                                                 + QString::number(stat_out[i].in_packets_count()) +
-                                                 " (" + QString::number(stat_out[i].in_bytes_count())
-                                                 + " б)" + ">\n<Количество переданных пакетов - "
-                                                 + QString::number(stat_out[i].out_packets_count()) + " ("
-                                                 + QString::number(stat_out[i].out_bytes_count())
-                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
-        for (int j = 0; j < stat_out[i].component_statuses_size(); ++j)
-        {
-            ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                     QString::fromStdString(stat_out[i].component_statuses(i).name()) +
-                                                     "\n<Количество принятых пакетов - >"
-                                                     + QString::number(stat_out[i].component_statuses(i).in_packet_count()) +
-                                                     ">\n<Количество переданных пакетов - >" +
-                                                     QString::number(stat_out[i].component_statuses(i).out_packet_count()) +
-                                                     "\n\n");
-        }
-        ui->text_browser_status->insertPlainText("\n\n");
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+
+        ptr_->on_finished.connect
+            (
+                [&](const alpha::protort::protocol::Packet_Payload& p)
+                  {
+                     alpha::protort::protocol::deploy::StatusResponse status_ =
+                        p.deploy_packet().response().status();
+                     QMetaObject::invokeMethod(
+                     this,
+                     "on_status_response",
+                     Qt::QueuedConnection,
+                     Q_ARG(alpha::protort::protocol::deploy::StatusResponse, status_));
+                  }
+            );
+
+        client.second->async_send_request(stat, ptr_);
     }
+
+    ui->text_browser_status->clear();
+}
+
+void MainWindow::on_status_response(alpha::protort::protocol::deploy::StatusResponse status_)
+{
+    ui->text_browser_status->insertPlainText("<Название узла - " +
+                                             QString::fromStdString(status_.node_name())
+                                             + ">\n<Время работы - " +
+                                             QString::number(status_.uptime()) + " сек." + ">\n<Количество принятых пакетов - "
+                                             + QString::number(status_.in_packets_count()) +
+                                             " (" + QString::number(status_.in_bytes_count())
+                                             + " байт)" + ">\n<Количество переданных пакетов - "
+                                             + QString::number(status_.out_packets_count()) + " ("
+                                             + QString::number(status_.out_bytes_count())
+                                             + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
+    for (int j = 0; j < status_.component_statuses_size(); ++j)
+    {
+        ui->text_browser_status->insertPlainText("<Название компонента - " +
+                                                 QString::fromStdString(status_.component_statuses(j).name()) +
+                                                 "\n<Количество принятых пакетов - >"
+                                                 + QString::number(status_.component_statuses(j).in_packet_count()) +
+                                                 ">\n<Количество переданных пакетов - >" +
+                                                 QString::number(status_.component_statuses(j).out_packet_count()) +
+                                                 "\n\n");
+    }
+    ui->text_browser_status->insertPlainText("\n\n");
 }

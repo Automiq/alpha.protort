@@ -7,6 +7,9 @@
 #include <QList>
 #include <map>
 #include <boost/thread.hpp>
+#include <QThread>
+#include <QMetaType>
+#include <boost/asio.hpp>
 
 #include "document.h"
 #include "deploy.pb.h"
@@ -17,10 +20,12 @@
 class QTextEdit;
 
 namespace Ui {
+
+Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
+Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
+
 class MainWindow;
 }
-
-using namespace alpha::protort::protocol::deploy;
 
 class MainWindow : public QMainWindow
 {
@@ -39,11 +44,11 @@ public:
 
     void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
 
-    void on_finished(alpha::protort::protocol::Packet_Payload packet_);
-
     void another_connection(const boost::system::error_code& err, const std::string& current_node_);
 
 private slots:
+
+    void on_finished(alpha::protort::protocol::Packet_Payload packet_1);
 
     void on_save_file_triggered();
 
@@ -71,6 +76,8 @@ private slots:
 
     void on_status_request_triggered();
 
+    void on_status_response(alpha::protort::protocol::deploy::StatusResponse status_);
+
 private:
     Ui::MainWindow *ui;
     QString m_app;
@@ -78,13 +85,12 @@ private:
     void saveDocument(int index);
     void addDocument(Document *doc);
     QString fixedWindowTitle(const Document *doc) const;
-    std::vector<StatusResponse> stat_out;
 
     boost::asio::io_service service_;
 
     boost::scoped_ptr<boost::asio::io_service::work> work_;
 
-    std::map<std::string,std::unique_ptr<alpha::protort::protolink::client<MainWindow>>> clients_for_configuration;
+    std::map<std::string, boost::shared_ptr<alpha::protort::protolink::client<MainWindow>>> clients_for_configuration;
 
     alpha::protort::parser::deploy_configuration deploy_config_;
 
