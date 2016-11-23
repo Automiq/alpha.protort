@@ -4,6 +4,17 @@
 #include <iostream>
 #include <vector>
 
+
+namespace alpha {
+namespace protort {
+namespace node {
+class node;
+template<class app> class router;
+
+}
+}
+}
+
 namespace alpha {
 namespace protort {
 namespace components {
@@ -22,15 +33,21 @@ using output_list = std::vector<output>;
 class component
 {
 public:
+    component(node::router<node::node>& router):
+        router_(router)
+    {
+
+    }
     virtual output_list process(port_id input_port, std::string const& payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
+    virtual void start() = 0;
+    virtual void stop() = 0;
 
     output_list do_process(port_id input_port, std::string const& payload)
     {
         ++in_packet_count_;
         output_list result = process(input_port, payload);
-        out_packet_count_ += result.size();
         return result;
     }
 
@@ -38,15 +55,16 @@ public:
     {
         return in_packet_count_;
     }
-
-    uint32_t out_packet_count() const
+    void set_comp_inst(void *comp_inst)
     {
-        return out_packet_count_;
+        comp_inst_ = comp_inst;
     }
 
 protected:
     uint32_t in_packet_count_ = 0;
-    uint32_t out_packet_count_ = 0;
+    node::router<node::node>& router_;
+    void *comp_inst_ = nullptr;
+
 };
 
 } // namespace components

@@ -8,7 +8,7 @@
 //#include "max.h"
 //#include "min.h"
 //#include "average.h"
-#include "reduce.h"
+//#include "reduce.h"
 #include "sensor.h"
 
 #endif // COMPONENTS_H

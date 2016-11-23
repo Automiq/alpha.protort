@@ -278,9 +278,10 @@ private:
         switch(packet.kind())
         {
         case protocol::Packet::Kind::Packet_Kind_Message:
-            callback_.on_new_packet(packet.payload());
+            assert(false);
             break;
         case protocol::Packet::Kind::Packet_Kind_Request:
+            assert(false);
             break;
         case protocol::Packet::Kind::Packet_Kind_Response:
             auto iter = transactions_.find(packet.transaction().id());

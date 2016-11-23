@@ -89,6 +89,7 @@ private:
      */
     void on_connection_accepted(connection_ptr client, const boost::system::error_code& err)
     {
+        std::cout << "server::on_connection_accepted" << std::endl;
         // TODO: handle error
         if (err)
             return;

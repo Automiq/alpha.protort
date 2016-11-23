@@ -10,9 +10,9 @@
 #include "client.h"
 #include "node_settings.h"
 #include "packet.pb.h"
+#include "components.h"
 #include "router.h"
 #include "parser.h"
-#include "components.h"
 #include "factory.h"
 #include "protocol.pb.h"
 #include "deploy.pb.h"
@@ -38,18 +38,25 @@ public:
         : server_(*this, service_),
           server_for_conf_(*this,service_),
           settings_(settings),
-          signals_(service_, SIGINT, SIGTERM)
+          signals_(service_, SIGINT, SIGTERM),
+          router_(service_)
     {
     }
 
     void start()
     {
+        start_time = boost::chrono::steady_clock::now();
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
                      default_port));
         service_.run();
+    }
+
+    void stop()
+    {
+        service_.stop();
     }
 
     /*!
@@ -59,8 +66,7 @@ public:
      */
     void on_packet_sent(const boost::system::error_code& err, size_t bytes)
     {
-        if (!err)
-            router_.route("A", 0, "smth");
+
     }
 
     /*!
@@ -69,18 +75,7 @@ public:
      */
     void on_connected(const boost::system::error_code& err)
     {
-        if (!err)
-            router_.route("A", 0, "smth");
-    }
 
-    /*!
-     * \brief Уведомление о приеме сервером новогопакета
-     * \param buffer
-     * \param nbytes
-     */
-    void on_new_packet(protocol::Packet_Payload)
-    {
-        // Deploy
     }
 
     /*!
@@ -92,14 +87,23 @@ public:
         // TODO
     }
 
+    /*!
+     * \brief Уведомление о приеме нового сообщения
+     * \param payload
+     */
     void on_new_message(const protocol_payload& payload)
     {
-        std::cout << "comp name is " << payload.communication_packet().destination().name() << std::endl;
+        std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
         router_.route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
                       payload.communication_packet().payload());
     }
 
+    /*!
+     * \brief Уведомление о приеме нового запроса
+     * \param payload
+     * \return
+     */
     protocol_payload on_new_request(const protocol_payload& payload)
     {
         return process_request(payload);
@@ -119,12 +123,6 @@ public:
             uint32_t port;
         };
 
-        // Начинаем прослушивать порт
-        //        server_.listen(
-        //            boost::asio::ip::tcp::endpoint
-        //                (boost::asio::ip::tcp::v4(),
-        //                 порт);
-
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
 
@@ -138,14 +136,20 @@ public:
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
         }
 
-        const auto& current_node_name = settings_.name;
+        if (node_name_.empty()) {
+            std::cout << "node_name_ is empty" << std::endl;
+            node_name_ = settings_.name;
+            std::cout << node_name_ << " name was set\n";
+        }
 
         // Создаем экземпляры локальных компонентов
         for (const auto& comp : conf.components) {
-            if (comp_to_node[comp.name].name == current_node_name) {
+            if (comp_to_node[comp.name].name == node_name_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back(alpha::protort::components::factory::create(comp.kind));
+                router_.component_ptrs.push_back
+                        (alpha::protort::components::factory::create(comp.kind, router_));
                 router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {}};
+                router_.component_ptrs.back().get()->set_comp_inst(&router_.components[comp.name]);
             }
         }
 
@@ -157,7 +161,7 @@ public:
                 const auto& dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
-                if (dest_node_name == current_node_name) {
+                if (dest_node_name == node_name_) {
                     router<node>::component_instance* dest_ptr = &(router_.components[conn.dest]);
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
@@ -183,6 +187,12 @@ public:
                 }
             }
         }
+
+        // Начинаем прослушивать порт
+        if (port_)
+            server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
+        else
+            server_.listen(settings_.source);
     }
 
 
@@ -195,9 +205,8 @@ private:
         switch (payload.Payload_case()) {
 
         case PayloadCase::kCommunicationPacket:
-            return process_deploy_request(payload.deploy_packet());
-
         case PayloadCase::kDeployPacket:
+            return process_deploy_request(payload.deploy_packet());
         case PayloadCase::kPayload:
         case PayloadCase::kAnyPayload:
         default:
@@ -209,18 +218,66 @@ private:
     protocol_payload process_deploy_request(const protocol::deploy::Packet& packet)
     {
         switch (packet.kind()) {
+
         case protocol::deploy::PacketKind::DeployConfig:
+        {
+            router_.stop();
+            router_.clear();
             deploy(convert_config(packet.request().deploy_config().config()));
-            // TODO
-            return {};
+
+            // Формируем ответный пакет
+            protocol_payload response;
+            protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
+            response_packet->set_kind(protocol::deploy::PacketKind::DeployConfig);
+            response_packet->mutable_error()->set_message("deployed");
+            return response;
+        }
+
         case protocol::deploy::PacketKind::Start:
+            router_.start();
+            break;
+        case protocol::deploy::PacketKind::Stop:
+            router_.stop();
+            break;
+        case protocol::deploy::PacketKind::GetStatus:
+            return status_response();
         default:
             assert(false);
         }
     }
 
+    protocol_payload status_response()
+    {
+        protocol_payload response;
+        protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
+        response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
+
+        response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
+
+        boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time;
+        uint32_t uptime = uptime_period.count();
+        response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
+
+        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_.in_bytes);
+        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_.out_bytes);
+        response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_.in_packets);
+        response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_.out_packets);
+
+        for (auto & component : router_.components) {
+            auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
+            comp_status->set_in_packet_count(component.second.component_->in_packet_count());
+            comp_status->set_out_packet_count(component.second.component_->in_packet_count());
+            comp_status->set_name(component.first);
+        }
+
+        return response;
+    }
+
     alpha::protort::parser::configuration convert_config(protocol::deploy::Config config)
     {
+        node_name_ = config.this_node_info().name();
+        port_ = config.this_node_info().port();
+
         parser::configuration pconf;
 
         for (auto & inst : config.instances()) {
@@ -259,6 +316,15 @@ private:
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
+
+    //! Имя узла
+    std::string node_name_;
+
+    //! Порт, прослушиваемый сервером узла
+    port_id port_;
+
+    //! Время запуска узла
+    boost::chrono::steady_clock::time_point start_time;
 
 public:
     //! Роутер пакетов

@@ -27,42 +27,43 @@ void test_node_router()
     router<node>::local_route mas_endpoint[7];
 
     // Создаем node_router
-
-    router<node> router_;
+    boost::asio::io_service service;
+    router<node> router_(service);
 
     // Создаем компоненты
-    components::generator generator1_;
+    components::generator generator1_(router_);
     components.push_back(&generator1_);
 
-    components::retranslator retranslator1_;
+    components::retranslator retranslator1_(router_);
     components.push_back(&retranslator1_);
-    components::retranslator retranslator2_;
+    components::retranslator retranslator2_(router_);
     components.push_back(&retranslator2_);
-    components::retranslator retranslator3_;
+    components::retranslator retranslator3_(router_);
     components.push_back(&retranslator3_);
 
-    components::terminator terminator1_;
+    components::terminator terminator1_(router_);
     components.push_back(&terminator1_);
-    components::terminator terminator2_;
+    components::terminator terminator2_(router_);
     components.push_back(&terminator2_);
-    components::terminator terminator3_;
+    components::terminator terminator3_(router_);
     components.push_back(&terminator3_);
 
     // Присваиваем каждому объекту component_with_connections указатель на компонент и имя компонента
 
     for(int i = 0;i < 7;i++)
     {
-        router<node>::component_instance component_connections;
-        component_connections.component_ = components[i];
+        router<node>::component_instance component_instances;
+        component_instances.component_ = components[i];
 
         if(typeid(*components[i]) == typeid(components::generator))
-            component_connections.name = "g1";
+            component_instances.name = "g1";
         if(typeid(*components[i]) == typeid(components::terminator))
-            component_connections.name = "t" + std::to_string(++terminator_count);
+            component_instances.name = "t" + std::to_string(++terminator_count);
         if(typeid(*components[i]) == typeid(components::retranslator))
-            component_connections.name = "r" + std::to_string(++retranslator_count);
+            component_instances.name = "r" + std::to_string(++retranslator_count);
 
-        router_.components.insert(std::make_pair(component_connections.name,component_connections));
+        router_.components.insert(std::make_pair(component_instances.name,component_instances));
+        components[i]->set_comp_inst(&router_.components[component_instances.name]);
     }
 
     // Определяем для каждого компонента выходные порты и соединения для них

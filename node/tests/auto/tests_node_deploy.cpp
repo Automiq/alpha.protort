@@ -28,12 +28,18 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
 
     node n(node_settings_);
 
+
     alpha::protort::parser::configuration cnfg;
     cnfg.parse_app("../tests/auto/testdata/app_test.xml");
     cnfg.parse_deploy("../tests/auto/testdata/deploy_test.xml");
 
     n.deploy(cnfg);
-    n.router_.route("A", 0, "smth");
+    n.router_.start();
+    n.router_.stop();
+    boost::asio::deadline_timer timer(n.router_.get_service());
+    timer.expires_from_now(boost::posix_time::milliseconds(10000));
+    timer.async_wait(boost::bind(&node::stop, &n));
+    n.start();
 }
 BOOST_AUTO_TEST_SUITE_END()
 

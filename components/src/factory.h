@@ -6,6 +6,15 @@
 
 namespace alpha {
 namespace protort {
+namespace node {
+class node;
+template<class app> class router;
+}
+}
+}
+
+namespace alpha {
+namespace protort {
 namespace components {
 
 class factory
@@ -40,19 +49,20 @@ public:
         }
     }
 
-    static std::unique_ptr<components::component> create(protocol::ComponentKind kind)
+    static std::unique_ptr<components::component> create(protocol::ComponentKind kind,
+                                                         node::router<node::node>& router)
     {
         std::unique_ptr<components::component> ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
-            ptr.reset(new components::generator);
+            ptr.reset(new components::generator(router));
             break;
         case protocol::ComponentKind::Retranslator:
-            ptr.reset(new components::retranslator);
+            ptr.reset(new components::retranslator(router));
             break;
         case protocol::ComponentKind::Terminator:
-            ptr.reset(new components::terminator);
+            ptr.reset(new components::terminator(router));
             break;
         default:
             assert(false);
@@ -62,9 +72,10 @@ public:
         return ptr;
     }
 
-    static std::unique_ptr<components::component> create(const std::string& kind)
+    static std::unique_ptr<components::component> create(const std::string& kind,
+                                                         node::router<node::node>& router)
     {
-        return create(get_component_kind(kind));
+        return create(get_component_kind(kind), router);
     }
 };
 
