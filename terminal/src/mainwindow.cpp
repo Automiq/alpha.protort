@@ -306,7 +306,7 @@ void MainWindow::addDocument(Document *doc)
         return;
     ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
     ui->tabWidget->setTabEnabled(index, true);
-    ui->tabWidget->setCurrentIndex(ui->tabWidget->count()-1);
+    ui->tabWidget->setCurrentWidget(doc);
     setIcon(doc);
 }
 
