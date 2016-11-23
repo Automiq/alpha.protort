@@ -19,7 +19,7 @@ public:
         if (input_port == 0 || input_port == 1)
         {
             output_list result = { { payload, {0, 1} } };
-            if (comp_inst_ != NULL)
+            if (comp_inst_ != nullptr)
                 router_.do_route(comp_inst_, result);
             return result;
         }

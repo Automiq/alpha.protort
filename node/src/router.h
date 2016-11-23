@@ -112,6 +112,7 @@ public:
 
     void start()
     {
+        started = true;
         for (auto & comp : component_ptrs) {
             comp->start();
         }
@@ -119,9 +120,17 @@ public:
 
     void stop()
     {
+        started = false;
         for (auto & comp : component_ptrs) {
             comp->stop();
         }
+    }
+
+    void clear()
+    {
+        component_ptrs.clear();
+        components.clear();
+        clients.clear();
     }
 
     /*!
@@ -147,8 +156,9 @@ public:
     void do_route(void *comp_inst,
                   const std::vector<alpha::protort::components::output>& outputs)
     {
-        if (comp_inst == NULL)
+        if (comp_inst == nullptr || !started)
         {
+            std::cout << "nullptr or router::!started" << std::endl;
             assert(false);
             return;
         }
@@ -210,6 +220,7 @@ private:
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
     boost::asio::io_service& service;
+    bool started = false;
     uint32_t in_bytes = 0;
     uint32_t out_bytes = 0;
     uint32_t in_packets = 0;
