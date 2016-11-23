@@ -27,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete dlg;
     delete ui;
 }
 
@@ -111,13 +110,14 @@ void MainWindow::addConfig(Document *doc)
 
     if(doc->isApp() && (m_apps->findText(name) == -1))
         m_apps->addItem(QFileInfo(name).fileName());
-
+//дублирование кода (m_apps)
     if(doc->isDeploy() && (m_deploys->findText(name) == -1))
         m_deploys->addItem(QFileInfo(name).fileName());
 }
 
 void MainWindow::on_config_triggered()
 {
+    ConfigDialog dlg(this);
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         auto doc = document(i);
@@ -127,26 +127,29 @@ void MainWindow::on_config_triggered()
         QString nname = doc->filePath();
 
         if(doc->isApp())
-            dlg->loadApp(nname);
+            dlg.loadApp(nname);//Вопрос остался!
         else
             if(doc->isDeploy())
-                dlg->loadDeploy(nname);
+                dlg.loadDeploy(nname);
     }
 
-    if (dlg->exec())
+    if (dlg.exec())
     {
-        m_app = dlg->app();
-        m_deploySchema = dlg->deploySchema();
-        ui->start->setDisabled(true);
-        ui->stop->setDisabled(true);
-        ui->deploy->setEnabled(true);
+        m_app = dlg.app();
+        m_deploySchema = dlg.deploySchema();
+        resetMenuEnabled();
         m_apps->setCurrentIndex(m_apps->findText(m_app));
         m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
         setActiveConfig();
-        //connect(dlg->buttonBox, SIGNAL(on_buttonBox_accepted()), this, SLOT(showLog()));
-        connect(dlg, SIGNAL(acptd()), this, SLOT(showLog()));
-     //   connect(this, SIGNAL(acptd()), this, SLOT(showLog()));
+        showLog();
     }
+}
+
+void MainWindow::resetMenuEnabled() const
+{
+    ui->start->setDisabled(true);
+    ui->stop->setDisabled(true);
+    ui->deploy->setEnabled(true);
 }
 
 void MainWindow::showLog() const
@@ -294,45 +297,63 @@ void MainWindow::addDocument(Document *doc)
     setIcon(doc);
 }
 
+void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
+{
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(srcPath));
+}
+
 void MainWindow::setIcon(Document *doc)
 {
     switch(doc->kind())
     {
     case Document::Kind::App:
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/pen.png"));
+        setTabIco(doc, ":/images/pen.png");
         break;
     case Document::Kind::Deploy:
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/cog.png"));
+        setTabIco(doc,":/images/cog.png");
         break;
     default:
-        ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(":/images/file.png"));
+        setTabIco(doc,":/images/file.png");
     }
+}
+
+void MainWindow::addWidgetOnBar(QWidget* newWidget) const
+{
+    ui->mainToolBar->addWidget(newWidget);
 }
 
 void MainWindow::setupWindowConfigurations()
 {
-    dlg = new ConfigDialog();
     m_deploys = new QComboBox();
     m_apps = new QComboBox();
 
     QLabel *app = new QLabel(tr("Описание: "));
-    ui->mainToolBar->addWidget(app);
-    ui->mainToolBar->addWidget(m_apps);
+    addWidgetOnBar(app);
+    addWidgetOnBar(m_apps);
 
     QLabel *schema = new QLabel(tr("Схема: "));
-    ui->mainToolBar->addWidget(schema);
-    ui->mainToolBar->addWidget(m_deploys);
+    addWidgetOnBar(schema);
+    addWidgetOnBar(m_deploys);
 
     m_setupConfig = new QPushButton();
     m_setupConfig->setText(tr("Установить"));
-    ui->mainToolBar->addWidget(m_setupConfig);
+    addWidgetOnBar(m_setupConfig);
 
     connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
 }
 
+void MainWindow::setupConfigMembers()
+{
+    m_app = m_apps->currentText();
+    m_deploySchema = m_deploys->currentText();
+}
+
 void MainWindow::button_clickedSetup()
 {
+    setupConfigMembers();
     setActiveConfig();
+    resetMenuEnabled();
+    showLog();
 }
 
 void MainWindow::setActiveConfig()
@@ -351,10 +372,10 @@ void MainWindow::setupActiveIcon(const int &index)
 
     setIcon(doc);
     if((QFileInfo(doc->filePath()).fileName() == nameApp) && (doc->isApp()))
-        ui->tabWidget->setTabIcon(index, QIcon(":/images/greenPen.png"));
+        setTabIco(doc,":/images/greenPen.png");
 
     if((QFileInfo(doc->filePath()).fileName() == nameDeploy) && (doc->isDeploy()))
-        ui->tabWidget->setTabIcon(index, QIcon(":/images/greenCog.png"));
+        setTabIco(doc,":/images/greenCog.png");
 }
 
 Document* MainWindow::document(int index)

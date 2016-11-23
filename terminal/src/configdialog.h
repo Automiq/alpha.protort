@@ -22,12 +22,8 @@ public:
 
     void loadApp(const QString &app);
     void loadDeploy(const QString &deploy);
-    void setup();
-    QDialogButtonBox *buttonBox2;
-signals:
-    void acptd();
 
-public slots:
+private slots:
     void on_buttonBox_accepted();
 
 private:
