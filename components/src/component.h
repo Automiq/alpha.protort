@@ -28,6 +28,12 @@ struct output
     port_list ports;
 };
 
+struct data{
+    float val;
+    int time;
+    port_id port;
+};
+
 using output_list = std::vector<output>;
 
 class component

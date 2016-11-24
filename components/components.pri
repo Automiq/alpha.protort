@@ -11,4 +11,6 @@ HEADERS += \
            $$PWD/src/average.h \
            $$PWD/src/min.h \
            $$PWD/src/max.h \
-           $$PWD/src/sensor.h
+           $$PWD/src/sensor.h \
+           $$PWD/src/calc.h \
+           $$PWD/src/history.h

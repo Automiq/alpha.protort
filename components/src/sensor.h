@@ -14,6 +14,7 @@ namespace components {
 class sensor: public component
 {
 public:
+
     output_list process(port_id input_port, const std::string &payload) final override
     {
         output_list res(1);
@@ -25,6 +26,10 @@ public:
 
         res[0].payload = std::to_string(rand(max_val,min_val,after_point));
         res[0].ports.push_back(0);
+
+        if (comp_inst_ != nullptr)
+            router_.do_route(comp_inst_, res);
+
         return res;
     }
 

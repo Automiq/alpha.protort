@@ -30,6 +30,10 @@ public:
             return protocol::ComponentKind::Retranslator;
         else if (kind == "terminator")
             return protocol::ComponentKind::Terminator;
+        else if (kind == "calc")
+            return protocol::ComponentKind::Calc;
+        else if (kind == "history")
+            return protocol::ComponentKind::History;
         else
             assert(false);
     }
@@ -43,6 +47,10 @@ public:
             return "retranslator";
         case protocol::ComponentKind::Terminator:
             return "terminator";
+        case protocol::ComponentKind::Calc:
+            return "calc";
+        case protocol::ComponentKind::History:
+            return "history";
         default:
             assert(false);
             return {};
@@ -63,6 +71,12 @@ public:
             break;
         case protocol::ComponentKind::Terminator:
             ptr.reset(new components::terminator(router));
+            break;
+        case protocol::ComponentKind::Calc:
+            ptr.reset(new components::calc(router));
+            break;
+        case protocol::ComponentKind::History:
+            ptr.reset(new components::history(router));
             break;
         default:
             assert(false);
