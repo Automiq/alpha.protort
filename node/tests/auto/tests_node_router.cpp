@@ -48,22 +48,22 @@ void test_node_router()
     components::terminator terminator3_(router_);
     components.push_back(&terminator3_);
 
-    // Присваиваем каждому объекту component_with_connections указатель на компонент и имя компонента
+    // Присваиваем каждому объекту component_instance указатель на компонент и имя компонента
 
     for(int i = 0;i < 7;i++)
     {
-        router<node>::component_instance component_instances;
-        component_instances.component_ = components[i];
+        router<node>::component_instance component_instance;
+        component_instance.component_ = std::shared_ptr<components::component>(components[i]);
 
         if(typeid(*components[i]) == typeid(components::generator))
-            component_instances.name = "g1";
+            component_instance.name = "g1";
         if(typeid(*components[i]) == typeid(components::terminator))
-            component_instances.name = "t" + std::to_string(++terminator_count);
+            component_instance.name = "t" + std::to_string(++terminator_count);
         if(typeid(*components[i]) == typeid(components::retranslator))
-            component_instances.name = "r" + std::to_string(++retranslator_count);
+            component_instance.name = "r" + std::to_string(++retranslator_count);
 
-        router_.components.insert(std::make_pair(component_instances.name,component_instances));
-        components[i]->set_comp_inst(&router_.components[component_instances.name]);
+        router_.components.insert(std::make_pair(component_instance.name,component_instance));
+        components[i]->set_comp_inst(&router_.components[component_instance.name]);
     }
 
     // Определяем для каждого компонента выходные порты и соединения для них

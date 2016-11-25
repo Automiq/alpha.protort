@@ -23,7 +23,7 @@ public:
 
     }
 
-    output_list process(port_id input_port, std::string const & payload) final override
+      output_list process(port_id input_port, std::string const & payload) final override
     {
         std::string rand_str("Random_string");
         return { { rand_str, { 0, 1 } } };
@@ -42,7 +42,7 @@ public:
         router_.do_route(comp_inst_, { { data, { 0, 1 } } });
 
         timer.expires_from_now(boost::posix_time::milliseconds(generating_interval));
-        timer.async_wait(boost::bind(&generator::generate, this));
+        timer.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));
     }
 
     void start() final override

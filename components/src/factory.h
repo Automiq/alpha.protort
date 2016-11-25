@@ -49,10 +49,10 @@ public:
         }
     }
 
-    static std::unique_ptr<components::component> create(protocol::ComponentKind kind,
+    static std::shared_ptr<components::component> create(protocol::ComponentKind kind,
                                                          node::router<node::node>& router)
     {
-        std::unique_ptr<components::component> ptr;
+        std::shared_ptr<components::component> ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
@@ -72,7 +72,7 @@ public:
         return ptr;
     }
 
-    static std::unique_ptr<components::component> create(const std::string& kind,
+    static std::shared_ptr<components::component> create(const std::string& kind,
                                                          node::router<node::node>& router)
     {
         return create(get_component_kind(kind), router);

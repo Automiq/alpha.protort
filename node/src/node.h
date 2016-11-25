@@ -149,8 +149,8 @@ public:
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
                 router_.component_ptrs.push_back
                         (alpha::protort::components::factory::create(comp.kind, router_));
-                router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {}};
-                router_.component_ptrs.back().get()->set_comp_inst(&router_.components[comp.name]);
+                router_.components[comp.name] = {router_.component_ptrs.back(), comp.name, {}};
+                router_.component_ptrs.back()->set_comp_inst(&router_.components[comp.name]);
             }
         }
 

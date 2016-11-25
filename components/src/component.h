@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <vector>
+#include <memory>
 
 
 namespace alpha {
@@ -30,7 +31,7 @@ struct output
 
 using output_list = std::vector<output>;
 
-class component
+class component: public std::enable_shared_from_this<component>
 {
 public:
     component(node::router<node::node>& router):

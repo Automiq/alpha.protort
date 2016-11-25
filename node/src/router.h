@@ -26,7 +26,7 @@ namespace protort {
 namespace node {
 
 using component_ptr = alpha::protort::components::component *;
-using component_unique_ptr = std::unique_ptr<alpha::protort::components::component>;
+using component_shared_ptr = std::shared_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
@@ -95,7 +95,7 @@ private:
     {
     public:
         //! Указатель на объект компонента
-        component_ptr component_;
+        component_shared_ptr component_;
 
         //! Идентификтор экземпляра компонента
         std::string name;
@@ -229,7 +229,7 @@ public:
     }
 
 private:
-    std::vector<component_unique_ptr> component_ptrs;
+    std::vector<component_shared_ptr> component_ptrs;
     std::map<std::string, component_instance> components;
     std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
     boost::asio::io_service& service;
