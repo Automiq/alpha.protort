@@ -36,7 +36,7 @@ public:
     void start_node(const alpha::protort::protocol::Packet_Payload& p)
     {
          QMetaObject::invokeMethod(
-             this,
+             this->shared_from_this(),
              "on_start_finished",
              Qt::QueuedConnection,
              Q_ARG(alpha::protort::protocol::Packet_Payload, p));
@@ -45,7 +45,7 @@ public:
     void stop_node(const alpha::protort::protocol::Packet_Payload& p)
     {
          QMetaObject::invokeMethod(
-             this,
+             this->shared_from_this(),
              "on_stop_finished",
              Qt::QueuedConnection,
              Q_ARG(alpha::protort::protocol::Packet_Payload, p));
@@ -57,7 +57,7 @@ public:
            p.deploy_packet().response().status();
 
         QMetaObject::invokeMethod(
-            this,
+            this->shared_from_this(),
             "on_status_response",
             Qt::QueuedConnection,
             Q_ARG(alpha::protort::protocol::deploy::StatusResponse, status_));
@@ -154,7 +154,7 @@ public:
                     [&](const alpha::protort::protocol::Packet_Payload& p)
                       {
                          QMetaObject::invokeMethod(
-                         this,
+                         this->shared_from_this(),
                          "on_connected_finished",
                          Qt::QueuedConnection,
                          Q_ARG(alpha::protort::protocol::Packet_Payload, p));
