@@ -212,7 +212,8 @@ void MainWindow::on_start_triggered()
 
         ptr_->on_finished.connect(boost::bind(
             &alpha::protort::protolink::terminal_client<MainWindow>::start_node,
-            &terminal_client));
+            terminal_client.get(),
+            _1));
 
         terminal_client->client_.async_send_request(payload_, ptr_);
     }
@@ -234,7 +235,8 @@ void MainWindow::on_stop_triggered()
 
         ptr_->on_finished.connect(boost::bind(
             &alpha::protort::protolink::terminal_client<MainWindow>::stop_node,
-            &terminal_client));
+            terminal_client.get(),
+            _1));
 
         terminal_client->client_.async_send_request(payload_, ptr_);
     }
@@ -291,7 +293,8 @@ void MainWindow::on_status_request_triggered()
 
         ptr_->on_finished.connect(boost::bind(
             &alpha::protort::protolink::terminal_client<MainWindow>::status_node,
-            &terminal_client));
+            terminal_client.get(),
+            _1));
 
         terminal_client->client_.async_send_request(status_, ptr_);
     }
