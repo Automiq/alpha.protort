@@ -30,7 +30,7 @@ struct output
 
 using output_list = std::vector<output>;
 
-class component: public std::enable_shared_from_this<component>
+class component : public std::enable_shared_from_this<component>
 {
 public:
     component(node::router<node::node>& router):
@@ -38,17 +38,16 @@ public:
     {
 
     }
-    virtual output_list process(port_id input_port, std::string const& payload) = 0;
+    virtual void process(port_id input_port, std::string const& payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
-    virtual void start() = 0;
-    virtual void stop() = 0;
+    virtual void start() { };
+    virtual void stop() { };
 
-    output_list do_process(port_id input_port, std::string const& payload)
+    void do_process(port_id input_port, std::string const& payload)
     {
         ++in_packet_count_;
-        output_list result = process(input_port, payload);
-        return result;
+        process(input_port, payload);
     }
 
     uint32_t in_packet_count() const

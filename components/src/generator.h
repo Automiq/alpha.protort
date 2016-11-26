@@ -17,22 +17,22 @@ class generator : public component
 public:
     generator(node::router<node::node>& router):
         component(router),
-        generating_interval(3000),
-        timer(router.get_service())
+        generate_interval_(3000),
+        generate_timer_(router.get_service())
     {
 
     }
 
-    output_list process(port_id input_port, std::string const & payload) final override
+    void process(port_id input_port, std::string const & payload) final override
     {
-        return { { "Random_string", { 0, 1 } } };
+
     }
     port_id in_port_count() const final override { return 0; }
     port_id out_port_count() const final override { return 2; }
 
     void generate()
     {
-        if (!started)
+        if (!started_)
             return;
 
         // TODO generate meaningful data
@@ -40,25 +40,25 @@ public:
 
         router_.do_route(comp_inst_, { { data, { 0, 1 } } });
 
-        timer.expires_from_now(boost::posix_time::milliseconds(generating_interval));
-        timer.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));
+        generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
+        generate_timer_.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));
     }
 
     void start() final override
     {
-        started = true;
+        started_ = true;
         generate();
     }
 
     void stop() final override
     {
-        started = false;
-        timer.cancel();
+        started_ = false;
+        generate_timer_.cancel();
     }
 private:
-    boost::asio::deadline_timer timer;
-    int generating_interval;
-    bool started;
+    boost::asio::deadline_timer generate_timer_;
+    int generate_interval_;
+    bool started_;
 };
 
 } // namespace components

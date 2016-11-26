@@ -194,9 +194,10 @@ private:
 
         case protocol::Packet::Kind::Packet_Kind_Request:            
         {
-            // TODO
             protocol_payload response_payload = callback_.on_new_request(packet.payload());
+#ifdef _DEBUG
             std::cout << "response packet id " << packet.transaction().id() << std::endl;
+#endif
             send_response(response_payload, packet.transaction().id());
             break;
         }
