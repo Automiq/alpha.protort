@@ -130,9 +130,6 @@ public:
         return is_connected_;
     }
 
-    //! Имя узла, с которым коннектится клиент
-    std::string node_name_;
-
 private:
 
     /*!
@@ -155,7 +152,7 @@ private:
     {
         if(!closed_)
         {
-            callback_.on_connected(err,node_name_);
+            callback_.on_connected(err);
             if (err)
             {
                 reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));

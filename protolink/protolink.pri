@@ -6,4 +6,5 @@ HEADERS += \
     $$PWD/src/client.h \
     $$PWD/src/server.h \
     $$PWD/src/connection.h \
-    $$PWD/src/request_callbacks.h
+    $$PWD/src/request_callbacks.h \
+    $$PWD/src/terminal_client.h

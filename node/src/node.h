@@ -67,7 +67,7 @@ public:
      * \brief Уведомление о подключении или безуспешном подключении
      * \param err
      */
-    void on_connected(const boost::system::error_code& err, const std::string& node_name_)
+    void on_connected(const boost::system::error_code& err)
     {
         if (!err)
             router_.route("A", 0, "smth");

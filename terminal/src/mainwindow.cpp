@@ -2,7 +2,6 @@
 #include <QTextEdit>
 #include <QObject>
 #include <QTextStream>
-#include <set>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -15,8 +14,6 @@ MainWindow::MainWindow(QWidget *parent) :
     work_(new boost::asio::io_service::work(service_)),
     protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
-    qRegisterMetaType<int>();
-    qRegisterMetaType<std::string>();
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     ui->setupUi(this);
@@ -208,25 +205,16 @@ void MainWindow::on_start_triggered()
     alpha::protort::protocol::Packet_Payload payload_;
     payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
 
-    for (auto &client : clients_for_configuration)
+    for (auto &terminal_client : terminal_clients)
     {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+            new alpha::protort::protolink::request_callbacks);
 
-        ptr_->on_finished.connect
-            (
-                [&](const alpha::protort::protocol::Packet_Payload& p)
-                  {
-                     QMetaObject::invokeMethod(
-                     this,
-                     "on_finished",
-                     Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
-                     Q_ARG(std::string, client.first));
-                  }
-            );
+        ptr_->on_finished.connect(boost::bind(
+            &alpha::protort::protolink::terminal_client<MainWindow>::start_node,
+            &terminal_client));
 
-
-        client.second->async_send_request(payload_, ptr_);
+        terminal_client->client_.async_send_request(payload_, ptr_);
     }
 }
 
@@ -239,24 +227,16 @@ void MainWindow::on_stop_triggered()
     alpha::protort::protocol::Packet_Payload payload_;
     payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
 
-    for (auto &client : clients_for_configuration)
+    for (auto &terminal_client : terminal_clients)
     {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+            new alpha::protort::protolink::request_callbacks);
 
-        ptr_->on_finished.connect
-            (
-                [&](const alpha::protort::protocol::Packet_Payload& p)
-                  {
-                     QMetaObject::invokeMethod(
-                     this,
-                     "on_finished",
-                     Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
-                     Q_ARG(std::string, client.first));
-                  }
-            );
+        ptr_->on_finished.connect(boost::bind(
+            &alpha::protort::protolink::terminal_client<MainWindow>::stop_node,
+            &terminal_client));
 
-        client.second->async_send_request(payload_, ptr_);
+        terminal_client->client_.async_send_request(payload_, ptr_);
     }
 }
 
@@ -273,140 +253,28 @@ void MainWindow::on_deploy_triggered()
         deploy_config_.parse_deploy(config_);
     }
 
-    for (auto &client : clients_for_configuration)
-        if(!client.second->is_connected())
-            client.second->stop_trying_to_connect();
+    for (auto &terminal_client : terminal_clients)
+        if(!terminal_client->client_.is_connected())
+            terminal_client->client_.stop_trying_to_connect();
 
-    clients_for_configuration.clear();
+    if(terminal_clients.size() > 0)
+        terminal_clients.clear();
 
     for (auto node : deploy_config_.map_node)
     {
         boost::asio::ip::tcp::endpoint ep(
                     boost::asio::ip::address::from_string(node.second.address), 100);
-        boost::shared_ptr<alpha::protort::protolink::client<MainWindow>> client_(
-            new alpha::protort::protolink::client<MainWindow>(*this,service_));
 
-        client_->node_name_ = node.second.name;
+        boost::shared_ptr<alpha::protort::protolink::terminal_client<MainWindow>> terminal_client_(
+            new alpha::protort::protolink::terminal_client<MainWindow>(
+                *this,
+                service_,
+                QString::fromStdString(node.second.name)));
 
-        clients_for_configuration.emplace(node.second.name,std::move(client_));
+        terminal_client_->client_.async_connect(ep);
 
-        clients_for_configuration.begin()->second->async_connect(ep);
+        terminal_clients.push_back(std::move(terminal_client_));
     }
-}
-
-void MainWindow::on_connected(const boost::system::error_code& err, const std::string& current_node_)
-{
-    if (!err)
-    {
-        std::set<std::string> added_nodes_;
-        std::set<std::string> added_maps_;
-
-        alpha::protort::protocol::Packet_Payload payload_;
-
-        payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
-        alpha::protort::protocol::deploy::Config* configuration_ =
-            payload_.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
-
-        configuration_->mutable_this_node_info()->set_name(current_node_);
-        configuration_->mutable_this_node_info()->set_port(deploy_config_.map_node[current_node_].port);
-
-        alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration_->add_node_infos();
-        node_info_->set_name(current_node_);
-        node_info_->set_port(deploy_config_.map_node[current_node_].port);
-        node_info_->set_address(deploy_config_.map_node[current_node_].address);
-
-        for (auto &component : deploy_config_.map_node_with_components[current_node_])
-        {
-            alpha::protort::protocol::ComponentKind kind_ =
-                alpha::protort::components::factory::get_component_kind(deploy_config_.map_components[component.comp_name].kind);
-
-            // Добавляем компонент к конфигурации нода
-            alpha::protort::protocol::deploy::Instance* instance_ = configuration_->add_instances();
-
-            instance_->set_name(component.comp_name);
-            instance_->set_kind(kind_);
-
-            // Указываем, что компонент относится к текущему ноду
-            alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
-
-            components_map_->set_node_name(current_node_);
-            components_map_->set_instance_name(component.comp_name);
-
-            for (auto &connection : deploy_config_.map_component_with_connections[component.comp_name])
-            {
-                // Добавляем коннекшион к конфигурации нода
-                alpha::protort::protocol::deploy::Connection* connection_ = configuration_->add_connections();
-
-                connection_->mutable_source()->set_name(connection.source);
-                connection_->mutable_source()->set_port(connection.source_out);
-
-                connection_->mutable_destination()->set_name(connection.dest);
-                connection_->mutable_destination()->set_port(connection.dest_in);
-
-                // Получаем имя нода компонента назначения
-                std::string node_name_ = deploy_config_.map_component_node[connection.dest].node_name;
-
-                if(node_name_ != current_node_)
-                {
-                    alpha::protort::parser::node& node_ = deploy_config_.map_node[node_name_];
-
-                    if(added_nodes_.find(node_.name) == added_nodes_.end())
-                    {
-                        // Добавляем информацию о ноде в конфигурацию
-                        alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration_->add_node_infos();
-
-                        remote_node_info_->set_name(node_.name);
-                        remote_node_info_->set_port(node_.port);
-                        remote_node_info_->set_address(node_.address);
-                        added_nodes_.insert(node_.name);
-                    }
-
-                    if(added_maps_.find(connection.dest) == added_maps_.end())
-                    {
-                        // Добавляем информацию о мэпинге удаленного компонента
-                        alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
-
-                        components_map_->set_node_name(node_.name);
-                        components_map_->set_instance_name(connection.dest);
-                        added_maps_.insert(connection.dest);
-                    }
-                }
-            }
-        }
-
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
-
-        ptr_->on_finished.connect
-            (
-                [&](const alpha::protort::protocol::Packet_Payload& p)
-                  {
-                     QMetaObject::invokeMethod(
-                     this,
-                     "on_finished",
-                     Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
-                     Q_ARG(std::string, current_node_));
-                  }
-            );
-
-        clients_for_configuration[current_node_]->async_send_request(payload_, ptr_);
-    }
-}
-
-void MainWindow::on_packet_sent(const boost::system::error_code& err, size_t bytes)
-{
-
-}
-
-void MainWindow::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
-{
-
-}
-
-void MainWindow::on_finished(alpha::protort::protocol::Packet_Payload packet_, std::string message_)
-{
-    ui->textBrowser->insertPlainText(QString::fromStdString(message_) + "\n");
-    //packet_.deploy_packet().response().deploy_config();
 }
 
 void MainWindow::on_status_request_triggered()
@@ -416,49 +284,15 @@ void MainWindow::on_status_request_triggered()
     alpha::protort::protocol::Packet_Payload status_;
     status_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
-    for (auto &client : clients_for_configuration)
+    for (auto &terminal_client : terminal_clients)
     {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(new alpha::protort::protolink::request_callbacks);
+        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+            new alpha::protort::protolink::request_callbacks);
 
-        ptr_->on_finished.connect
-            (
-                [&](const alpha::protort::protocol::Packet_Payload& p)
-                  {
-                     alpha::protort::protocol::deploy::StatusResponse status_ =
-                        p.deploy_packet().response().status();
-                     QMetaObject::invokeMethod(
-                     this,
-                     "on_status_response",
-                     Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::deploy::StatusResponse, status_));
-                  }
-            );
+        ptr_->on_finished.connect(boost::bind(
+            &alpha::protort::protolink::terminal_client<MainWindow>::status_node,
+            &terminal_client));
 
-        client.second->async_send_request(status_, ptr_);
+        terminal_client->client_.async_send_request(status_, ptr_);
     }
-}
-
-void MainWindow::on_status_response(alpha::protort::protocol::deploy::StatusResponse status_)
-{
-    ui->text_browser_status->insertPlainText("<Название узла - " +
-                                             QString::fromStdString(status_.node_name())
-                                             + ">\n<Время работы - " +
-                                             QString::number(status_.uptime()) + " сек." + ">\n<Количество принятых пакетов - "
-                                             + QString::number(status_.in_packets_count()) +
-                                             " (" + QString::number(status_.in_bytes_count())
-                                             + " байт)" + ">\n<Количество переданных пакетов - "
-                                             + QString::number(status_.out_packets_count()) + " ("
-                                             + QString::number(status_.out_bytes_count())
-                                             + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
-    for (int j = 0; j < status_.component_statuses_size(); ++j)
-    {
-        ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                 QString::fromStdString(status_.component_statuses(j).name()) +
-                                                 ">\n<Количество принятых пакетов - "
-                                                 + QString::number(status_.component_statuses(j).in_packet_count()) +
-                                                 ">\n<Количество переданных пакетов - " +
-                                                 QString::number(status_.component_statuses(j).out_packet_count()) +
-                                                 ">\n\n");
-    }
-    ui->text_browser_status->insertPlainText("\n\n");
 }
