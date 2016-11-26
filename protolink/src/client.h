@@ -121,8 +121,8 @@ public:
 
     void stop_trying_to_connect()
     {
-        reconnect_timer_.cancel();
         closed_ = true;
+        reconnect_timer_.cancel();
     }
 
     bool is_connected()

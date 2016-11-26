@@ -23,6 +23,7 @@ namespace Ui {
 
 Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
+Q_DECLARE_METATYPE(std::string);
 
 class MainWindow;
 }
@@ -48,7 +49,7 @@ public:
 
 private slots:
 
-    void on_finished(alpha::protort::protocol::Packet_Payload packet_1);
+    void on_finished(alpha::protort::protocol::Packet_Payload packet_, std::string message_);
 
     void on_save_file_triggered();
 
@@ -95,6 +96,8 @@ private:
     alpha::protort::parser::deploy_configuration deploy_config_;
 
     boost::thread protoThread_;
+
+    bool hyinya = false;
 };
 
 #endif // MAINWINDOW_H

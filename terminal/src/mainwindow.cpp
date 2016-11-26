@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
     qRegisterMetaType<int>();
+    qRegisterMetaType<std::string>();
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     ui->setupUi(this);
@@ -219,7 +220,8 @@ void MainWindow::on_start_triggered()
                      this,
                      "on_finished",
                      Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p));
+                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
+                     Q_ARG(std::string, client.first));
                   }
             );
 
@@ -249,7 +251,8 @@ void MainWindow::on_stop_triggered()
                      this,
                      "on_finished",
                      Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p));
+                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
+                     Q_ARG(std::string, client.first));
                   }
             );
 
@@ -381,7 +384,8 @@ void MainWindow::on_connected(const boost::system::error_code& err, const std::s
                      this,
                      "on_finished",
                      Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p));
+                     Q_ARG(alpha::protort::protocol::Packet_Payload, p),
+                     Q_ARG(std::string, current_node_));
                   }
             );
 
@@ -399,16 +403,18 @@ void MainWindow::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
 
 }
 
-void MainWindow::on_finished(alpha::protort::protocol::Packet_Payload packet_)
+void MainWindow::on_finished(alpha::protort::protocol::Packet_Payload packet_, std::string message_)
 {
-    ui->text_browser_status->insertPlainText("on_finished\n");
-    packet_.deploy_packet().response().deploy_config();
+    ui->textBrowser->insertPlainText(QString::fromStdString(message_) + "\n");
+    //packet_.deploy_packet().response().deploy_config();
 }
 
 void MainWindow::on_status_request_triggered()
 {
-    alpha::protort::protocol::Packet_Payload stat;
-    stat.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+    ui->text_browser_status->clear();
+
+    alpha::protort::protocol::Packet_Payload status_;
+    status_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
     for (auto &client : clients_for_configuration)
     {
@@ -428,10 +434,8 @@ void MainWindow::on_status_request_triggered()
                   }
             );
 
-        client.second->async_send_request(stat, ptr_);
+        client.second->async_send_request(status_, ptr_);
     }
-
-    ui->text_browser_status->clear();
 }
 
 void MainWindow::on_status_response(alpha::protort::protocol::deploy::StatusResponse status_)
@@ -450,11 +454,11 @@ void MainWindow::on_status_response(alpha::protort::protocol::deploy::StatusResp
     {
         ui->text_browser_status->insertPlainText("<Название компонента - " +
                                                  QString::fromStdString(status_.component_statuses(j).name()) +
-                                                 "\n<Количество принятых пакетов - >"
+                                                 ">\n<Количество принятых пакетов - "
                                                  + QString::number(status_.component_statuses(j).in_packet_count()) +
-                                                 ">\n<Количество переданных пакетов - >" +
+                                                 ">\n<Количество переданных пакетов - " +
                                                  QString::number(status_.component_statuses(j).out_packet_count()) +
-                                                 "\n\n");
+                                                 ">\n\n");
     }
     ui->text_browser_status->insertPlainText("\n\n");
 }
