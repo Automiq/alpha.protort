@@ -5,16 +5,15 @@
 #include <vector>
 #include <memory>
 
-
+// node, router forward declaration
 namespace alpha {
 namespace protort {
 namespace node {
 class node;
 template<class app> class router;
-
-}
-}
-}
+} // node
+} // protort
+} // alpha
 
 namespace alpha {
 namespace protort {

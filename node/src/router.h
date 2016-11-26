@@ -10,7 +10,7 @@
 #include "client.h"
 #include "node.h"
 
-
+// Декларируем функцию, используемую в автотесте
 namespace alpha {
 namespace protort {
 namespace node {
@@ -25,7 +25,6 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using component_ptr = alpha::protort::components::component *;
 using component_shared_ptr = std::shared_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
@@ -69,7 +68,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        protolink::client<app> * client;
+        std::shared_ptr<protolink::client<app>> client;
     };
 
     /*!
@@ -110,31 +109,33 @@ public:
 
     }
 
+    //! Запускает каждый компонент
     void start()
     {
         started = true;
-        for (auto & comp : component_ptrs) {
-            comp->start();
+        for (auto & comp : components) {
+            comp.second.component_->start();
         }
     }
 
+    //! Останавливает каждый компонент
     void stop()
     {
         started = false;
-        for (auto & comp : component_ptrs) {
-            comp->stop();
+        for (auto & comp : components) {
+            comp.second.component_->stop();
         }
     }
 
+    //! Удаляет компоненты и клиентов
     void clear()
     {
-        component_ptrs.clear();
         components.clear();
         clients.clear();
     }
 
     /*!
-     * \brief Обрабатывает пакет согласно таблице маршрутизации
+     * \brief Отдает входящий пакет на обработку соответствующему компоненту
      * \param component_name Идентификатор компонента
      * \param port Идентификатор входящего порта
      * \param payload Содержимое пакета
@@ -159,6 +160,11 @@ public:
         }
     }
 
+    /*!
+     * \brief Рассылает выходные данные компонента по маршрутам
+     * \param comp_inst Компонент
+     * \param outputs Выходные данные компонента
+     */
     void do_route(void *comp_inst,
                   const std::vector<alpha::protort::components::output>& outputs)
     {
@@ -223,20 +229,35 @@ public:
         }
     }
 
+    //! Выдает ссылку на io_service роутера
     boost::asio::io_service& get_service()
     {
         return service;
     }
 
 private:
-    std::vector<component_shared_ptr> component_ptrs;
+    //! Таблица компонентов
     std::map<std::string, component_instance> components;
-    std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
+
+    //! Таблица удаленных получателей пакетов
+    std::map<std::string, std::shared_ptr<protolink::client<app>>> clients;
+
+    //! I/O сервис
     boost::asio::io_service& service;
+
+    //! Статус роутера
     bool started = false;
+
+    //! Статистика по принятым байтам
     uint32_t in_bytes = 0;
+
+    //! Статистика по отправленным байтам
     uint32_t out_bytes = 0;
+
+    //! Статистика по принятым пакетам
     uint32_t in_packets = 0;
+
+    //! Статистика по отправленным пакетам
     uint32_t out_packets = 0;
 };
 

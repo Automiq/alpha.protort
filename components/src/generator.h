@@ -1,11 +1,11 @@
 #ifndef GENERATOR_H
 #define GENERATOR_H
 
-#include "component.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#include "component.h"
 #include "router.h"
 
 namespace alpha {
@@ -23,10 +23,9 @@ public:
 
     }
 
-      output_list process(port_id input_port, std::string const & payload) final override
+    output_list process(port_id input_port, std::string const & payload) final override
     {
-        std::string rand_str("Random_string");
-        return { { rand_str, { 0, 1 } } };
+        return { { "Random_string", { 0, 1 } } };
     }
     port_id in_port_count() const final override { return 0; }
     port_id out_port_count() const final override { return 2; }
@@ -54,6 +53,7 @@ public:
     void stop() final override
     {
         started = false;
+        timer.cancel();
     }
 private:
     boost::asio::deadline_timer timer;

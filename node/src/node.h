@@ -34,6 +34,14 @@ class node
 public:
     using protocol_payload = protocol::Packet::Payload;
 
+    node()
+        : server_(*this, service_),
+          server_for_conf_(*this,service_),
+          signals_(service_, SIGINT, SIGTERM),
+          router_(service_)
+    {
+    }
+
     node(const node_settings &settings)
         : server_(*this, service_),
           server_for_conf_(*this,service_),
@@ -43,6 +51,7 @@ public:
     {
     }
 
+    //! Запускает сетевой узел
     void start()
     {
         start_time = boost::chrono::steady_clock::now();
@@ -54,6 +63,7 @@ public:
         service_.run();
     }
 
+    //! Останавливает работу роутера и I/O сервиса
     void stop()
     {
         router_.stop();
@@ -147,10 +157,9 @@ public:
         for (const auto& comp : conf.components) {
             if (comp_to_node[comp.name].name == node_name_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back
-                        (alpha::protort::components::factory::create(comp.kind, router_));
-                router_.components[comp.name] = {router_.component_ptrs.back(), comp.name, {}};
-                router_.component_ptrs.back()->set_comp_inst(&router_.components[comp.name]);
+                component_shared_ptr new_comp = alpha::protort::components::factory::create(comp.kind, router_);
+                router_.components[comp.name] = {new_comp, comp.name, {}};
+                new_comp->set_comp_inst(&router_.components[comp.name]);
             }
         }
 
@@ -174,15 +183,15 @@ public:
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::unique_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
+                        std::shared_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
                         router_.clients[dest_node_name] = std::move(client_ptr);
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second.get()}
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second}
                                     );
                     }
                 }
@@ -300,8 +309,6 @@ private:
 
         return pconf;
     }
-
-
 
     //! I/O сервис
     boost::asio::io_service service_;
