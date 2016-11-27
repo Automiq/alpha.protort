@@ -189,6 +189,7 @@ void MainWindow::deployOk()
 {
     resetDeployActions();
     ui->deploy->setDisabled(true);
+    ui->status_request->setEnabled(true);
 }
 
 void MainWindow::on_deploy_triggered()
@@ -231,11 +232,11 @@ void MainWindow::on_status_request_triggered()
         {
             ui->text_browser_status->insertPlainText("<Название компонента - " +
                                                      QString::fromStdString(m_statOut[i].component_statuses(i).name()) +
-                                                     "\n<Количество принятых пакетов - >"
+                                                     "\n<Количество принятых пакетов - "
                                                      + QString::number(m_statOut[i].component_statuses(i).in_packet_count()) +
-                                                     ">\n<Количество переданных пакетов - >" +
+                                                     ">\n<Количество переданных пакетов - " +
                                                      QString::number(m_statOut[i].component_statuses(i).out_packet_count()) +
-                                                     "\n\n");
+                                                     ">\n\n");
         }
         ui->text_browser_status->insertPlainText("\n\n");
     }
