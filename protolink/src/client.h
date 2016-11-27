@@ -171,10 +171,6 @@ private:
      */
     void do_send_packet(const std::string& packet, int kind_)
     {
-        protocol::Packet packet_;
-        auto iter = transactions_.begin();
-        iter->second->on_finished(packet_.payload());
-
         // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(buffer_.get());
         header->packet_size = packet.size();

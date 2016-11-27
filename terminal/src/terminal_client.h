@@ -15,15 +15,15 @@
 Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
 
-static Ui::MainWindow* terminal_;
-
-static alpha::protort::parser::deploy_configuration* deploy_configuration;
-
 class terminal_client: public QObject
 {
     Q_OBJECT
 
 public:
+
+    Ui::MainWindow* terminal_;
+
+    alpha::protort::parser::deploy_configuration* deploy_configuration;
 
     terminal_client(boost::asio::io_service& service, QString node_name);
 

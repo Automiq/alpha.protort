@@ -13,8 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
     work_(new boost::asio::io_service::work(service_)),
     protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
-    terminal_ = ui;
-    deploy_configuration = &deploy_config_;
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     ui->setupUi(this);
@@ -274,6 +272,9 @@ void MainWindow::on_deploy_triggered()
                 QString::fromStdString(node.second.name)));
 
         terminal_clients.push_back(std::move(terminal_client_));
+
+        terminal_clients.back()->terminal_ = ui;
+        terminal_clients.back()->deploy_configuration = &deploy_config_;
 
         terminal_clients.back()->client_.async_connect(ep);
     }
