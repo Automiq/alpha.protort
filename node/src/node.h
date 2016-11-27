@@ -289,7 +289,7 @@ private:
      * конфигурацию парсера xml и используя функцию deploy_from_config.
      *
      */
-    void deploy_from_packet(protocol::deploy::Config config)
+    void deploy_from_packet(const protocol::deploy::Config& config)
     {
         node_name_ = config.this_node_info().name();
         port_ = config.this_node_info().port();
