@@ -27,8 +27,6 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    friend class alpha::protort::protolink::terminal_client<MainWindow>;
-
 public:
     explicit MainWindow(QWidget *parent = 0);
 
@@ -76,7 +74,7 @@ private:
 
     boost::scoped_ptr<boost::asio::io_service::work> work_;
 
-    std::vector<boost::shared_ptr<alpha::protort::protolink::terminal_client<MainWindow>>> terminal_clients;
+    std::vector<boost::shared_ptr<terminal_client>> terminal_clients;
 
     alpha::protort::parser::deploy_configuration deploy_config_;
 

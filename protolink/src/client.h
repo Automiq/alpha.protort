@@ -33,8 +33,7 @@ static const int proto_reconnect_interval = 5000;
  * Шаблонный класс клиента
  */
 template<class Callback>
-class client:
-        public boost::enable_shared_from_this<client<Callback>>
+class client
 {
     using error_code = boost::system::error_code;
     using request_ptr = boost::shared_ptr<request_callbacks>;
@@ -139,7 +138,7 @@ private:
     {
         socket_.async_connect(
             ep, boost::bind(&client::on_connect,
-                            this->shared_from_this(),
+                            this,
                             boost::asio::placeholders::error));
     }
 
@@ -158,7 +157,7 @@ private:
                 reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
                 reconnect_timer_.async_wait(
                     boost::bind(&client::do_connect,
-                                this->shared_from_this(),
+                                this,
                                 ep_));
             }
             else
@@ -172,6 +171,10 @@ private:
      */
     void do_send_packet(const std::string& packet, int kind_)
     {
+        protocol::Packet packet_;
+        auto iter = transactions_.begin();
+        iter->second->on_finished(packet_.payload());
+
         // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(buffer_.get());
         header->packet_size = packet.size();
@@ -184,7 +187,7 @@ private:
             socket_,
             boost::asio::buffer(buffer_.get(), header_size + packet.size()),
             boost::bind(&client::on_packet_sent,
-                        this->shared_from_this(),
+                        this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred,
                         kind_));
@@ -228,7 +231,7 @@ private:
             boost::asio::buffer(&packet_header_, header_size),
             boost::asio::transfer_exactly(header_size),
             boost::bind(&client::on_header_read,
-                        this->shared_from_this(),
+                        this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }
@@ -265,7 +268,7 @@ private:
             boost::asio::buffer(buffer_.get(), packet_size),
             boost::asio::transfer_exactly(packet_size),
             boost::bind(&client::on_packet_read,
-                        this->shared_from_this(),
+                        this,
                         boost::asio::placeholders::error,
                         boost::asio::placeholders::bytes_transferred));
     }

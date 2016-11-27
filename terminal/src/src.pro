@@ -20,11 +20,13 @@ LIBS += \
 SOURCES += main.cpp\
         mainwindow.cpp \
     configdialog.cpp \
-    document.cpp
+    document.cpp \
+    terminal_client.cpp
 
 HEADERS  += mainwindow.h \
     configdialog.h \
-    document.h
+    document.h \
+    terminal_client.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui

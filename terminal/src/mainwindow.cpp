@@ -5,7 +5,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "factory.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -14,6 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
     work_(new boost::asio::io_service::work(service_)),
     protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
+    terminal_ = ui;
+    deploy_configuration = &deploy_config_;
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     ui->setupUi(this);
@@ -211,7 +212,7 @@ void MainWindow::on_start_triggered()
             new alpha::protort::protolink::request_callbacks);
 
         ptr_->on_finished.connect(boost::bind(
-            &alpha::protort::protolink::terminal_client<MainWindow>::start_node,
+            &terminal_client::start_node,
             terminal_client.get(),
             _1));
 
@@ -234,7 +235,7 @@ void MainWindow::on_stop_triggered()
             new alpha::protort::protolink::request_callbacks);
 
         ptr_->on_finished.connect(boost::bind(
-            &alpha::protort::protolink::terminal_client<MainWindow>::stop_node,
+            &terminal_client::stop_node,
             terminal_client.get(),
             _1));
 
@@ -267,15 +268,14 @@ void MainWindow::on_deploy_triggered()
         boost::asio::ip::tcp::endpoint ep(
                     boost::asio::ip::address::from_string(node.second.address), 100);
 
-        boost::shared_ptr<alpha::protort::protolink::terminal_client<MainWindow>> terminal_client_(
-            new alpha::protort::protolink::terminal_client<MainWindow>(
-                *this,
+        boost::shared_ptr<terminal_client> terminal_client_(
+            new terminal_client(
                 service_,
                 QString::fromStdString(node.second.name)));
 
-        terminal_client_->client_.async_connect(ep);
-
         terminal_clients.push_back(std::move(terminal_client_));
+
+        terminal_clients.back()->client_.async_connect(ep);
     }
 }
 
@@ -292,7 +292,7 @@ void MainWindow::on_status_request_triggered()
             new alpha::protort::protolink::request_callbacks);
 
         ptr_->on_finished.connect(boost::bind(
-            &alpha::protort::protolink::terminal_client<MainWindow>::status_node,
+            &terminal_client::status_node,
             terminal_client.get(),
             _1));
 
