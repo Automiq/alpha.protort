@@ -123,11 +123,8 @@ public:
 
     void stop_trying_to_connect()
     {
-        if(is_connected_)
-        {
-            closed_ = true;
-            reconnect_timer_.cancel();
-        }
+        shutdown_ = true;
+        reconnect_timer_.cancel();
     }
 
 private:
@@ -150,7 +147,7 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        if(!closed_)
+        if (!shutdown_)
         {
             callback_->on_connected(err);
             if (err)
@@ -161,8 +158,6 @@ private:
                                         this->shared_from_this(),
                                         ep_));
             }
-            else
-                is_connected_ = true;
         }
     }
 
@@ -315,10 +310,6 @@ private:
         }
     }
 
-    bool closed_ = false;
-
-    bool is_connected_ = false;
-
     //! Сокет
     boost::asio::ip::tcp::socket socket_;
 
@@ -341,7 +332,10 @@ private:
     std::map<int, request_ptr> transactions_;
 
     //! Идентификатор транзакции
-    int transaction_id_ = 0;
+    uint32_t transaction_id_ = 0;
+
+    //! Флаг завершения работы клиента
+    bool shutdown_ = false;
 };
 
 } // namespace protolink
