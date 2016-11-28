@@ -10,7 +10,7 @@
 #include "client.h"
 #include "node.h"
 
-
+// Декларируем функцию, используемую в автотесте
 namespace alpha {
 namespace protort {
 namespace node {
@@ -25,8 +25,7 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using component_ptr = alpha::protort::components::component *;
-using component_unique_ptr = std::unique_ptr<alpha::protort::components::component>;
+using component_shared_ptr = std::shared_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
@@ -69,7 +68,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        protolink::client<app> * client;
+        std::shared_ptr<protolink::client<app>> client;
     };
 
     /*!
@@ -95,7 +94,7 @@ private:
     {
     public:
         //! Указатель на объект компонента
-        component_ptr component_;
+        component_shared_ptr component_;
 
         //! Идентификтор экземпляра компонента
         std::string name;
@@ -105,63 +104,81 @@ private:
     };
 
 public:
-    router(boost::asio::io_service& service): service(service)
+    router(boost::asio::io_service& service): service_(service)
     {
 
     }
 
+    //! Запускает каждый компонент
     void start()
     {
-        started = true;
-        for (auto & comp : component_ptrs) {
-            comp->start();
+        started_ = true;
+        for (auto & comp : components_) {
+            comp.second.component_->start();
         }
     }
 
+    //! Останавливает каждый компонент
     void stop()
     {
-        started = false;
-        for (auto & comp : component_ptrs) {
-            comp->stop();
+        started_ = false;
+        for (auto & comp : components_) {
+            comp.second.component_->stop();
         }
     }
 
+    //! Удаляет компоненты и клиентов
     void clear()
     {
-        component_ptrs.clear();
-        components.clear();
-        clients.clear();
+        components_.clear();
+        clients_.clear();
     }
 
     /*!
-     * \brief Обрабатывает пакет согласно таблице маршрутизации
+     * \brief Отдает входящий пакет на обработку соответствующему компоненту
      * \param component_name Идентификатор компонента
      * \param port Идентификатор входящего порта
      * \param payload Содержимое пакета
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
-        auto it = components.find(component_name);
-        if (it != components.end())
+        if (!started_)
         {
-            service.post(boost::bind(&protort::components::component::process,
+#ifdef _DEBUG
+            std::cout << "route packet at stopped router" << std::endl;
+#endif
+            return;
+        }
+
+        auto it = components_.find(component_name);
+        if (it != components_.end())
+        {
+            service_.post(boost::bind(&protort::components::component::do_process,
                                      it->second.component_,
                                      in_port,
                                      payload));
-            in_bytes += sizeof(payload);
-            in_packets++;
+            in_packets_++;
         }
     }
 
+    /*!
+     * \brief Рассылает выходные данные компонента по маршрутам
+     * \param comp_inst Компонент
+     * \param outputs Выходные данные компонента
+     */
     void do_route(void *comp_inst,
                   const std::vector<alpha::protort::components::output>& outputs)
     {
-        if (comp_inst == nullptr || !started)
+        assert(comp_inst != nullptr);
+
+        if (!started_)
         {
-            std::cout << "nullptr or router::!started" << std::endl;
-            assert(false);
+#ifdef _DEBUG
+            std::cout << "route packet at stopped router" << std::endl;
+#endif
             return;
         }
+
         component_instance* this_component = static_cast<component_instance*>(comp_inst);
 
         for (auto &output : outputs)
@@ -173,12 +190,13 @@ public:
                 // Рассылаем пакеты по локальным маршрутам
                 for (auto &local_route : port_routes.local_routes)
                 {
-
+#ifdef _DEBUG
                     std::cout << "using do_route: \nfrom comp " << this_component->name
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
                               << " in port " << local_route.in_port << std::endl;
-                    service.post(boost::bind(&protort::components::component::process,
+#endif
+                    service_.post(boost::bind(&protort::components::component::do_process,
                                              local_route.component->component_,
                                              local_route.in_port,
                                              output.payload));
@@ -202,29 +220,46 @@ public:
                     packet->set_payload(output.payload);
 
                     remote_route.client->async_send_message(payload);
+                    out_bytes_ += sizeof(payload);
+                    out_packets_++;
+#ifdef _DEBUG
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
-                    out_bytes += sizeof(payload);
-                    out_packets++;
+#endif
                 }
             }
         }
     }
 
+    //! Выдает ссылку на io_service роутера
     boost::asio::io_service& get_service()
     {
-        return service;
+        return service_;
     }
 
 private:
-    std::vector<component_unique_ptr> component_ptrs;
-    std::map<std::string, component_instance> components;
-    std::map<std::string, std::unique_ptr<protolink::client<app>>> clients;
-    boost::asio::io_service& service;
-    bool started = false;
-    uint32_t in_bytes = 0;
-    uint32_t out_bytes = 0;
-    uint32_t in_packets = 0;
-    uint32_t out_packets = 0;
+    //! Таблица компонентов
+    std::map<std::string, component_instance> components_;
+
+    //! Таблица удаленных получателей пакетов
+    std::map<std::string, std::shared_ptr<protolink::client<app>>> clients_;
+
+    //! I/O сервис
+    boost::asio::io_service& service_;
+
+    //! Статус роутера
+    bool started_ = false;
+
+    //! Статистика по принятым байтам
+    uint32_t in_bytes_ = 0;
+
+    //! Статистика по отправленным байтам
+    uint32_t out_bytes_ = 0;
+
+    //! Статистика по принятым пакетам
+    uint32_t in_packets_ = 0;
+
+    //! Статистика по отправленным пакетам
+    uint32_t out_packets_ = 0;
 };
 
 } // namespae node

@@ -1,14 +1,17 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QComboBox>
+#include <QList>
 #include <QMainWindow>
-#include <QSyntaxHighlighter>
-#include "configdialog.h"
 #include <QMessageBox>
+#include <QPushButton>
+#include <QSyntaxHighlighter>
+
+#include "configdialog.h"
 #include "document.h"
 #include "deploy.pb.h"
-#include <QList>
-
+#include "configdialog.h"
 
 class QTextEdit;
 
@@ -27,10 +30,12 @@ public:
 
     ~MainWindow();
 
-    void setTabName(int index, const QString& name);
+    void setTabName(int index, const QString &name);
+
+public slots:
+    void button_clickedSetup();
 
 private slots:
-
     void on_save_file_triggered();
 
     void on_save_all_triggered();
@@ -57,14 +62,38 @@ private slots:
 
     void on_status_request_triggered();
 
+public slots:
+    void showLog() const;
+
 private:
     Ui::MainWindow *ui;
+    ConfigDialog *dlg;
+    QComboBox *m_apps;
+    QComboBox *m_deploys;
+    QPushButton *m_setupConfig;
     QString m_app;
     QString m_deploySchema;
-    void saveDocument(int index);
-    void addDocument(Document *doc);
+    std::vector<StatusResponse> m_statOut;
+
     QString fixedWindowTitle(const Document *doc) const;
-    std::vector<StatusResponse> stat_out;
+    void saveDocument(int index);
+    void activateDeploy() const;
+    void addDocument(Document *doc);
+    void addWidgetOnBar(QWidget* newWidget) const;
+    void setIcon(Document *doc);
+    void setupWindowConfigurations();
+    void addConfig(Document *doc);
+    void delConfig(Document *doc);
+    void deleteConfig(QComboBox *ptr, const QString &name);
+    void updateConfig(Document *doc);
+    void setActiveConfig();
+    void setupActiveIcon(const int &index);
+    void setupConfigMembers();
+    void setTabIco(Document *doc, const QString &srcPath) const;
+    void resetDeployActions() const;
+    void showMessage();
+    void deployOk();
+    Document* document(int index);
 };
 
 #endif // MAINWINDOW_H

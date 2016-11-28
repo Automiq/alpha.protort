@@ -1,5 +1,7 @@
 #include "configdialog.h"
 #include "ui_configdialog.h"
+#include <QFileInfo>
+#include <QDialogButtonBox>
 
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
@@ -25,12 +27,12 @@ QString ConfigDialog::deploySchema() const
 
 void ConfigDialog::loadApp(const QString &app)
 {
-    cd->appComboBox->addItem(app);
+    cd->appComboBox->addItem(QFileInfo(app).fileName());
 }
 
 void ConfigDialog::loadDeploy(const QString &deploy)
 {
-    cd->deploySchemaComboBox->addItem(deploy);
+    cd->deploySchemaComboBox->addItem(QFileInfo(deploy).fileName());
 }
 
 void ConfigDialog::on_buttonBox_accepted()

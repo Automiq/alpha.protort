@@ -15,12 +15,12 @@ class sensor: public component
 {
 public:
 
-    output_list process(port_id input_port, const std::string &payload) final override
+    void process(port_id input_port, const std::string &payload) final override
     {
         output_list res(1);
 
         if (payload == "shutdown") is_down = true;
-        if (is_down) return res;
+        if (is_down) return;
 
         std::srand(uint32_t(std::time(NULL)));
 
@@ -29,8 +29,6 @@ public:
 
         if (comp_inst_ != nullptr)
             router_.do_route(comp_inst_, res);
-
-        return res;
     }
 
     port_id in_port_count() const final override { return 1; }

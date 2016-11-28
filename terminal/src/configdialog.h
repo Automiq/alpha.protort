@@ -2,6 +2,7 @@
 #define CONFIGDIALOG_H
 
 #include <QDialog>
+#include <QDialogButtonBox>
 #include "document.h"
 
 namespace Ui {

@@ -22,7 +22,7 @@ public:
     {
 
     }
-    output_list process(port_id input_port, std::string const & payload) final override
+    void process(port_id input_port, std::string const & payload) final override
     {
         float val;
         unsigned int t;
@@ -39,7 +39,6 @@ public:
 
         if (comp_inst_ != nullptr)
             router_.do_route(comp_inst_, out);
-        return out;
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 2; }

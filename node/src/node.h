@@ -34,6 +34,14 @@ class node
 public:
     using protocol_payload = protocol::Packet::Payload;
 
+    node()
+        : server_(*this, service_),
+          server_for_conf_(*this,service_),
+          signals_(service_, SIGINT, SIGTERM),
+          router_(service_)
+    {
+    }
+
     node(const node_settings &settings)
         : server_(*this, service_),
           server_for_conf_(*this,service_),
@@ -43,9 +51,10 @@ public:
     {
     }
 
+    //! Запускает сетевой узел
     void start()
     {
-        start_time = boost::chrono::steady_clock::now();
+        start_time_ = boost::chrono::steady_clock::now();
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
@@ -54,8 +63,10 @@ public:
         service_.run();
     }
 
+    //! Останавливает работу роутера и I/O сервиса
     void stop()
     {
+        router_.stop();
         service_.stop();
     }
 
@@ -93,7 +104,10 @@ public:
      */
     void on_new_message(const protocol_payload& payload)
     {
+#ifdef _DEBUG
         std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
+#endif
+        router_.in_bytes_ += sizeof(payload);
         router_.route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
                       payload.communication_packet().payload());
@@ -114,7 +128,7 @@ public:
      * \param conf Конфигурация полученная парсером из xml
      * Создает необходимые компоненты, локальные и удаленные связи роутера.
      */
-    void deploy(const alpha::protort::parser::configuration& conf)
+    void deploy_from_config(const alpha::protort::parser::configuration& conf)
     {
         struct node_info
         {
@@ -136,52 +150,53 @@ public:
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
         }
 
+#ifdef _DEBUG
         if (node_name_.empty()) {
             std::cout << "node_name_ is empty" << std::endl;
             node_name_ = settings_.name;
             std::cout << node_name_ << " name was set\n";
         }
+#endif
 
         // Создаем экземпляры локальных компонентов
         for (const auto& comp : conf.components) {
             if (comp_to_node[comp.name].name == node_name_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                router_.component_ptrs.push_back
-                        (alpha::protort::components::factory::create(comp.kind, router_));
-                router_.components[comp.name] = {router_.component_ptrs.back().get(), comp.name, {}};
-                router_.component_ptrs.back().get()->set_comp_inst(&router_.components[comp.name]);
+                component_shared_ptr new_comp = alpha::protort::components::factory::create(comp.kind, router_);
+                router_.components_[comp.name] = {new_comp, comp.name, {}};
+                new_comp->set_comp_inst(&router_.components_[comp.name]);
             }
         }
 
         // Для каждого локального компонента
         for (const auto& conn : conf.connections) {
-            auto name_to_comp_inst = router_.components.find(conn.source);
-            if (name_to_comp_inst != router_.components.end()) {
+            auto name_to_comp_inst = router_.components_.find(conn.source);
+            if (name_to_comp_inst != router_.components_.end()) {
                 auto& comp_inst = name_to_comp_inst->second;
                 const auto& dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
                 if (dest_node_name == node_name_) {
-                    router<node>::component_instance* dest_ptr = &(router_.components[conn.dest]);
+                    router<node>::component_instance* dest_ptr = &(router_.components_[conn.dest]);
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
-                    auto client = router_.clients.find(dest_node_name);
-                    if (client == router_.clients.end()) {
+                    auto client = router_.clients_.find(dest_node_name);
+                    if (client == router_.clients_.end()) {
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::unique_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
+                        std::shared_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr.get()}
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
-                        router_.clients[dest_node_name] = std::move(client_ptr);
+                        router_.clients_[dest_node_name] = std::move(client_ptr);
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second.get()}
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second}
                                     );
                     }
                 }
@@ -220,25 +235,16 @@ private:
         switch (packet.kind()) {
 
         case protocol::deploy::PacketKind::DeployConfig:
-        {
             router_.stop();
             router_.clear();
-            deploy(convert_config(packet.request().deploy_config().config()));
-
-            // Формируем ответный пакет
-            protocol_payload response;
-            protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
-            response_packet->set_kind(protocol::deploy::PacketKind::DeployConfig);
-            response_packet->mutable_error()->set_message("deployed");
-            return response;
-        }
-
+            deploy_from_packet(packet.request().deploy_config().config());
+            return {};
         case protocol::deploy::PacketKind::Start:
             router_.start();
-            break;
+            return {};
         case protocol::deploy::PacketKind::Stop:
             router_.stop();
-            break;
+            return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
         default:
@@ -254,16 +260,16 @@ private:
 
         response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
 
-        boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time;
+        boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;
         uint32_t uptime = uptime_period.count();
         response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
 
-        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_.in_bytes);
-        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_.out_bytes);
-        response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_.in_packets);
-        response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_.out_packets);
+        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_.in_bytes_);
+        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_.out_bytes_);
+        response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_.in_packets_);
+        response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_.out_packets_);
 
-        for (auto & component : router_.components) {
+        for (auto & component : router_.components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
             comp_status->set_in_packet_count(component.second.component_->in_packet_count());
             comp_status->set_out_packet_count(component.second.component_->in_packet_count());
@@ -273,34 +279,38 @@ private:
         return response;
     }
 
-    alpha::protort::parser::configuration convert_config(protocol::deploy::Config config)
+    /*!
+     * \brief Разворачивает узел, используя пакет, полученный от терминала
+     * \param config Конфигурация из пакета
+     * \return Ответный пакет
+     * Присваивает узлу имя и прослушиваемый порт в соответсвии с данными,
+     * содержащимися в пакете.
+     * Разворачивает узел путем преобразования конфигурации из пакета в
+     * конфигурацию парсера xml и используя функцию deploy_from_config.
+     *
+     */
+    void deploy_from_packet(const protocol::deploy::Config& config)
     {
         node_name_ = config.this_node_info().name();
         port_ = config.this_node_info().port();
 
         parser::configuration pconf;
 
-        for (auto & inst : config.instances()) {
+        for (auto & inst : config.instances())
             pconf.components.push_back({inst.name(), components::factory::get_component_kind(inst.kind())});
-        }
 
-        for (auto & conn : config.connections()) {
+        for (auto & conn : config.connections())
             pconf.connections.push_back({conn.source().name(), conn.source().port(),
                                          conn.destination().name(), conn.destination().port()});
-        }
 
-        for (auto & node : config.node_infos()) {
+        for (auto & node : config.node_infos())
             pconf.nodes.push_back({node.name(), node.address(), node.port()});
-        }
 
-        for (auto & map : config.maps()) {
+        for (auto & map : config.maps())
             pconf.mappings.push_back({map.instance_name(), map.node_name()});
-        }
 
-        return pconf;
+        deploy_from_config(pconf);
     }
-
-
 
     //! I/O сервис
     boost::asio::io_service service_;
@@ -324,7 +334,7 @@ private:
     port_id port_;
 
     //! Время запуска узла
-    boost::chrono::steady_clock::time_point start_time;
+    boost::chrono::steady_clock::time_point start_time_;
 
 public:
     //! Роутер пакетов
