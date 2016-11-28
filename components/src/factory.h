@@ -1,6 +1,7 @@
 #ifndef ALPHA_PROTORT_COMPONENTS_FACTORY_H
 #define ALPHA_PROTORT_COMPONENTS_FACTORY_H
 
+#include "convert.h"
 #include "components.h"
 #include "packet.pb.h"
 
@@ -22,33 +23,6 @@ class factory
 {
 public:
     factory() = delete;
-
-    static protocol::ComponentKind get_component_kind(const std::string& kind)
-    {
-        if (kind == "generator")
-            return protocol::ComponentKind::Generator;
-        else if (kind == "retranslator")
-            return protocol::ComponentKind::Retranslator;
-        else if (kind == "terminator")
-            return protocol::ComponentKind::Terminator;
-        else
-            assert(false);
-    }
-
-    static std::string get_component_kind(const protocol::ComponentKind& kind)
-    {
-        switch (kind) {
-        case protocol::ComponentKind::Generator:
-            return "generator";
-        case protocol::ComponentKind::Retranslator:
-            return "retranslator";
-        case protocol::ComponentKind::Terminator:
-            return "terminator";
-        default:
-            assert(false);
-            return {};
-        }
-    }
 
     static std::shared_ptr<components::component> create(protocol::ComponentKind kind,
                                                          node::router<node::node>& router)

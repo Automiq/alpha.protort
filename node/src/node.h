@@ -29,7 +29,7 @@ static const int default_port = 100;
 /*!
  * \brief Класс сетевого узла
  */
-class node
+class node : public boost::enable_shared_from_this<node>
 {
 public:
     using protocol_payload = protocol::Packet::Payload;
@@ -188,7 +188,7 @@ public:
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::shared_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(*this, service_, ep));
+                        std::shared_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(shared_from_this(), service_, ep));
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
@@ -297,7 +297,7 @@ private:
         parser::configuration pconf;
 
         for (auto & inst : config.instances())
-            pconf.components.push_back({inst.name(), components::factory::get_component_kind(inst.kind())});
+            pconf.components.push_back({inst.name(), components::get_component_kind(inst.kind())});
 
         for (auto & conn : config.connections())
             pconf.connections.push_back({conn.source().name(), conn.source().port(),
