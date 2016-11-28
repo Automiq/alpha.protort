@@ -13,7 +13,7 @@
 #include "document.h"
 #include "deploy.pb.h"
 #include "configdialog.h"
-#include "terminal_client.h"
+#include "remotenode.h"
 #include "deploy_configuration.h"
 
 class QTextEdit;
@@ -74,7 +74,7 @@ private:
 
     boost::scoped_ptr<boost::asio::io_service::work> work_;
 
-    std::vector<boost::shared_ptr<terminal_client>> terminal_clients;
+    std::vector<boost::shared_ptr<RemoteNode>> terminal_clients;
 
     alpha::protort::parser::deploy_configuration deploy_config_;
 

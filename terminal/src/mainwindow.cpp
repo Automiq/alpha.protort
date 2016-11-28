@@ -214,7 +214,7 @@ void MainWindow::on_start_triggered()
             terminal_client.get(),
             _1));
 
-        terminal_client->client_.async_send_request(payload_, ptr_);
+        terminal_client->client_->async_send_request(payload_, ptr_);
     }
 }
 
@@ -237,7 +237,7 @@ void MainWindow::on_stop_triggered()
             terminal_client.get(),
             _1));
 
-        terminal_client->client_.async_send_request(payload_, ptr_);
+        terminal_client->client_->async_send_request(payload_, ptr_);
     }
 }
 
@@ -255,8 +255,8 @@ void MainWindow::on_deploy_triggered()
     }
 
     for (auto &terminal_client : terminal_clients)
-        if(!terminal_client->client_.is_connected())
-            terminal_client->client_.stop_trying_to_connect();
+        if(!terminal_client->client_->is_connected())
+            terminal_client->client_->stop_trying_to_connect();
 
     if(terminal_clients.size() > 0)
         terminal_clients.clear();
@@ -266,8 +266,8 @@ void MainWindow::on_deploy_triggered()
         boost::asio::ip::tcp::endpoint ep(
                     boost::asio::ip::address::from_string(node.second.address), 100);
 
-        boost::shared_ptr<terminal_client> terminal_client_(
-            new terminal_client(
+        boost::shared_ptr<RemoteNode> terminal_client_(
+            new RemoteNode(
                 service_,
                 QString::fromStdString(node.second.name)));
 
@@ -276,7 +276,7 @@ void MainWindow::on_deploy_triggered()
         terminal_clients.back()->terminal_ = ui;
         terminal_clients.back()->deploy_configuration = &deploy_config_;
 
-        terminal_clients.back()->client_.async_connect(ep);
+        terminal_clients.back()->client_->async_connect(ep);
     }
 }
 
@@ -297,6 +297,6 @@ void MainWindow::on_status_request_triggered()
             terminal_client.get(),
             _1));
 
-        terminal_client->client_.async_send_request(status_, ptr_);
+        terminal_client->client_->async_send_request(status_, ptr_);
     }
 }

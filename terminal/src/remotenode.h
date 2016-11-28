@@ -15,19 +15,21 @@
 Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
 
-class terminal_client: public QObject
+class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
     Q_OBJECT
 
 public:
+    RemoteNode(boost::asio::io_service& service, QString node_name);
 
-    Ui::MainWindow* terminal_;
+    void async_deploy();
+    void async_start();
+    void async_stop();
+    void async_status();
 
     alpha::protort::parser::deploy_configuration* deploy_configuration;
 
-    terminal_client(boost::asio::io_service& service, QString node_name);
-
-    alpha::protort::protolink::client<terminal_client> client_;
+    boost::shared_ptr<alpha::protort::protolink::client<RemoteNode>> client_;
 
     void start_node(const alpha::protort::protocol::Packet_Payload& p);
 
@@ -40,6 +42,10 @@ public:
     void on_packet_sent(const boost::system::error_code& err, size_t bytes);
 
     void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
+
+signals:
+    void connected();
+    void connectionFailed();
 
 private slots:
 

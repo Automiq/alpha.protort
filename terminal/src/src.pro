@@ -21,12 +21,12 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     configdialog.cpp \
     document.cpp \
-    terminal_client.cpp
+    remotenode.cpp
 
 HEADERS  += mainwindow.h \
     configdialog.h \
     document.h \
-    terminal_client.h
+    remotenode.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui

@@ -2,7 +2,7 @@
 #include "factory.h"
 
 terminal_client::terminal_client(boost::asio::io_service& service, QString node_name)
-    : client_(*this, service),
+    : client_(new alpha::protort::protolink::client<terminal_client>(*this, service)),
       node_name_(node_name)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
@@ -137,7 +137,7 @@ void terminal_client::on_connected(const boost::system::error_code& err)
                   }
             );
 
-        client_.async_send_request(payload_, ptr_);
+        client_->async_send_request(payload_, ptr_);
     }
 }
 
