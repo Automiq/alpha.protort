@@ -7,21 +7,17 @@
 
 #include "parser.h"
 
-namespace alpha {
-namespace protort {
-namespace parser {
-
 struct deploy_configuration
 {
-    std::unordered_map<std::string,mapping> map_component_node;
+    std::unordered_map<std::string,alpha::protort::parser::mapping> map_component_node;
 
-    std::unordered_map<std::string,component> map_components;
-    std::unordered_map<std::string,std::vector<connection>> map_component_with_connections;
+    std::unordered_map<std::string,alpha::protort::parser::component> map_components;
+    std::unordered_map<std::string,std::vector<alpha::protort::parser::connection>> map_component_with_connections;
 
-    std::unordered_map<std::string,node> map_node;
-    std::unordered_map<std::string,std::vector<mapping>> map_node_with_components;
+    std::unordered_map<std::string,alpha::protort::parser::node> map_node;
+    std::unordered_map<std::string,std::vector<alpha::protort::parser::mapping>> map_node_with_components;
 
-    void parse_deploy(configuration& config)
+    void parse_deploy(alpha::protort::parser::configuration& config)
     {
 
         map_component_node.clear();
@@ -49,8 +45,5 @@ struct deploy_configuration
     }
 };
 
-} // namespace parser
-} // namespace protort
-} // namespace alpha
 
 #endif // DEPLOY_CONFIGURATION_H

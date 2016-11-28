@@ -297,7 +297,7 @@ private:
         parser::configuration pconf;
 
         for (auto & inst : config.instances())
-            pconf.components.push_back({inst.name(), components::factory::get_component_kind(inst.kind())});
+            pconf.components.push_back({inst.name(), components::get_component_kind(inst.kind())});
 
         for (auto & conn : config.connections())
             pconf.connections.push_back({conn.source().name(), conn.source().port(),

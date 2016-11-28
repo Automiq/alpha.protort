@@ -5,6 +5,7 @@
 #include <QMetaType>
 #include <QObject>
 #include <set>
+#include <boost/make_shared.hpp>
 
 #include "client.h"
 #include "parser.h"
@@ -20,6 +21,9 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
 {
     Q_OBJECT
 
+    using client_t = alpha::protort::protolink::client<RemoteNode>;
+    using client_ptr = boost::shared_ptr<client_t>;
+
 public:
     //! Информация об узле, с которым коннектится клиент
     alpha::protort::parser::node node_information_;
@@ -30,11 +34,11 @@ public:
 
     void shutdown();
 
-    void async_deploy(alpha::protort::parser::deploy_configuration const& deploy_configuration_);
+    void async_deploy(deploy_configuration& deploy_configuration_);
 
-    void async_start(alpha::protort::protocol::Packet_Payload& packet_);
+    void async_start(alpha::protort::protocol::Packet_Payload& packet);
 
-    void async_stop(alpha::protort::protocol::Packet_Payload& packet_);
+    void async_stop(alpha::protort::protocol::Packet_Payload& packet);
 
     void async_status(alpha::protort::protocol::Packet_Payload& status);
 
@@ -42,11 +46,11 @@ public:
 
     void on_packet_sent(const boost::system::error_code& err, size_t bytes);
 
-    void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
+    void on_new_packet(alpha::protort::protocol::Packet_Payload packet);
 
 signals:
     void deployConfigRequestFinished();
-    void statusRequestFinished(alpha::protort::protocol::deploy::StatusResponse status_);
+    void statusRequestFinished(alpha::protort::protocol::deploy::Packet const& status_);
     void startRequestFinished();
     void stopRequestFinished();
     void connected();
@@ -54,7 +58,7 @@ signals:
 
 private:
 
-    boost::shared_ptr<alpha::protort::protolink::client<RemoteNode>> client_;
+    client_ptr client_;
 };
 
 #endif // TERMINAL_CLIENT_H

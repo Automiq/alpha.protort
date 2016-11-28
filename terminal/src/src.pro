@@ -26,7 +26,8 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     configdialog.h \
     document.h \
-    remotenode.h
+    remotenode.h \
+    deploy_configuration.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui

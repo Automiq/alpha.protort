@@ -1,6 +1,7 @@
 #ifndef ALPHA_PROTORT_COMPONENTS_FACTORY_H
 #define ALPHA_PROTORT_COMPONENTS_FACTORY_H
 
+#include "convert.h"
 #include "components.h"
 #include "packet.pb.h"
 

@@ -176,26 +176,26 @@ void MainWindow::onDeployConfigRequestFinished()
                 " has been connected.\n");
 }
 
-void MainWindow::onstatusRequestFinished(alpha::protort::protocol::deploy::StatusResponse status_)
+void MainWindow::onstatusRequestFinished(alpha::protort::protocol::deploy::Packet const& status)
 {
     ui->text_browser_status->insertPlainText("<Название узла - " +
-                                             QString::fromStdString(status_.node_name())
+                                             QString::fromStdString(status.response().status().node_name())
                                              + ">\n<Время работы - " +
-                                             QString::number(status_.uptime()) + " сек." + ">\n<Количество принятых пакетов - "
-                                             + QString::number(status_.in_packets_count()) +
-                                             " (" + QString::number(status_.in_bytes_count())
+                                             QString::number(status.response().status().uptime()) + " сек." + ">\n<Количество принятых пакетов - "
+                                             + QString::number(status.response().status().in_packets_count()) +
+                                             " (" + QString::number(status.response().status().in_bytes_count())
                                              + " байт)" + ">\n<Количество переданных пакетов - "
-                                             + QString::number(status_.out_packets_count()) + " ("
-                                             + QString::number(status_.out_bytes_count())
+                                             + QString::number(status.response().status().out_packets_count()) + " ("
+                                             + QString::number(status.response().status().out_bytes_count())
                                              + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
-    for (int j = 0; j < status_.component_statuses_size(); ++j)
+    for (int j = 0; j < status.response().status().component_statuses_size(); ++j)
     {
         ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                 QString::fromStdString(status_.component_statuses(j).name()) +
+                                                 QString::fromStdString(status.response().status().component_statuses(j).name()) +
                                                  ">\n<Количество принятых пакетов - "
-                                                 + QString::number(status_.component_statuses(j).in_packet_count()) +
+                                                 + QString::number(status.response().status().component_statuses(j).in_packet_count()) +
                                                  ">\n<Количество переданных пакетов - " +
-                                                 QString::number(status_.component_statuses(j).out_packet_count()) +
+                                                 QString::number(status.response().status().component_statuses(j).out_packet_count()) +
                                                  ">\n\n");
     }
     ui->text_browser_status->insertPlainText("\n\n");
@@ -277,16 +277,17 @@ void MainWindow::showMessage()
                                 QMessageBox::Yes|QMessageBox::No);
     if (reply == QMessageBox::Yes)
     {
-        deployOk();
+        deploy();
     }
 }
 
-void MainWindow::deployOk()
+void MainWindow::deploy()
 {
     resetDeployActions();
     ui->deploy->setDisabled(true);
 
-    createRemoteNodes();
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_deploy(deploy_config_);
 }
 
 void MainWindow::on_deploy_triggered()
@@ -294,7 +295,7 @@ void MainWindow::on_deploy_triggered()
     if(ui->start->isEnabled() || ui->stop->isEnabled())
         showMessage();
     else
-        deployOk();
+        deploy();
 }
 
 void MainWindow::on_close_file_triggered()
@@ -375,7 +376,7 @@ void MainWindow::createRemoteNodes()
 
     for (auto node : deploy_config_.map_node)
     {
-        auto remoteNode = boost::make_shared<RemoteNode>(service_, node.second);
+        auto remoteNode = boost::make_shared<RemoteNode>(node.second);
 
         connect(remoteNode.get(),
                 &RemoteNode::connected,
@@ -502,15 +503,14 @@ void MainWindow::activateDeploy() const
 {
     if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
         ui->deploy->setEnabled(true);
-    for (auto &remoteNode: remoteNodes_)
-        remoteNode->async_deploy(deploy_config_);
 }
 
 void MainWindow::button_clickedSetup()
 {
     setupConfigMembers();
     setActiveConfig();
-    activateDeploy();
+    //activateDeploy();
+    createRemoteNodes();
 }
 
 void MainWindow::setActiveConfig()

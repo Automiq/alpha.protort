@@ -77,7 +77,7 @@ public slots:
 
 private slots:
     void onDeployConfigRequestFinished();
-    void onstatusRequestFinished(alpha::protort::protocol::deploy::StatusResponse status_);
+    void onstatusRequestFinished(alpha::protort::protocol::deploy::Packet const& status_);
     void onstartRequestFinished();
     void onstopRequestFinished();
     void onconnected();
@@ -109,7 +109,7 @@ private:
     void setTabIco(Document *doc, const QString &srcPath) const;
     void resetDeployActions() const;
     void showMessage();
-    void deployOk();
+    void deploy();
     void createRemoteNodes();
     Document* document(int index);
 
@@ -119,7 +119,7 @@ private:
 
     QList<RemoteNodePtr> remoteNodes_;
 
-    alpha::protort::parser::deploy_configuration deploy_config_;
+    deploy_configuration deploy_config_;
 
     boost::thread protoThread_;
 };

@@ -11,10 +11,11 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
 
 void RemoteNode::init(boost::asio::io_service &service)
 {
-    client_ = new alpha::protort::protolink::client<RemoteNode>(shared_from_this(), service);
+    client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
 
     boost::asio::ip::tcp::endpoint ep(
-                boost::asio::ip::address::from_string(node_information_.address), 100);
+                boost::asio::ip::address::from_string(node_information_.address),
+                100);
 
     client_->async_connect(ep);
 }
@@ -26,9 +27,9 @@ void RemoteNode::shutdown()
     client_.reset();
 }
 
-void RemoteNode::async_deploy(alpha::protort::parser::deploy_configuration const& deploy_configuration_)
+void RemoteNode::async_deploy(deploy_configuration& deploy_configuration_)
 {
-    std::string current_node =  node_name_.toStdString();
+    std::string current_node = node_information_.name;
 
     std::set<std::string> added_nodes_;
     std::set<std::string> added_maps_;
@@ -121,7 +122,7 @@ void RemoteNode::async_deploy(alpha::protort::parser::deploy_configuration const
     client_->async_send_request(payload_, ptr_);
 }
 
-void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet_)
+void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet)
 {
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
         new alpha::protort::protolink::request_callbacks);
@@ -130,13 +131,13 @@ void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet_)
         (
             [&](const alpha::protort::protocol::Packet_Payload& p)
               {
-                  emit statusRequestFinished(p);
+                  emit statusRequestFinished(p.deploy_packet());
               }
         );
-    client_->async_send_request(packet_, ptr_);
+    client_->async_send_request(packet, ptr_);
 }
 
-void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet_)
+void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet)
 {
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
         new alpha::protort::protolink::request_callbacks);
@@ -148,7 +149,7 @@ void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet_)
                   emit stopRequestFinished();
               }
         );
-    client_->async_send_request(packet_, ptr_);
+    client_->async_send_request(packet, ptr_);
 }
 
 void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
@@ -173,7 +174,7 @@ void RemoteNode::on_connected(const boost::system::error_code& err)
         emit connected();
         return;
     }
-    emit ConnectionFailed(err);
+    emit connectionFailed(err);
 }
 
 void RemoteNode::on_packet_sent(const boost::system::error_code& err, size_t bytes)
@@ -181,7 +182,7 @@ void RemoteNode::on_packet_sent(const boost::system::error_code& err, size_t byt
 
 }
 
-void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
+void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 {
 
 }
