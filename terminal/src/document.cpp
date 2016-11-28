@@ -11,6 +11,10 @@
 Document::Document(QWidget *parent)
     : QTextEdit(parent)
 {
+    QFont f("Courier", 10);
+    f.setStyleHint(QFont::Courier);
+    f.setStyleStrategy(QFont::PreferAntialias);
+    setFont(f);
 }
 
 bool Document::save()
@@ -32,14 +36,9 @@ bool Document::save()
     return false;
 }
 
-QString Document::fileName() const
+QString Document::filePath() const
 {
     return m_name;
-}
-
-void Document::setFileName(const QString &fileName)
-{
-    m_name = fileName;
 }
 
 Document::Kind Document::kind() const
@@ -54,6 +53,26 @@ Document::Kind Document::kind() const
         return Kind::Deploy;
 
     return Kind::Unknown;
+}
+
+void Document::setFileName(const QString &fileName)
+{
+    m_name = fileName;
+}
+
+bool Document::isApp() const
+{
+    return Kind::App == kind();
+}
+
+bool Document::isDeploy() const
+{
+    return Deploy == kind();
+}
+
+bool Document::isUnknown() const
+{
+    return Unknown == kind();
 }
 
 QString Document::getFileNameOFD()
