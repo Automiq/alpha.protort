@@ -1,7 +1,22 @@
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "client.h"
+#include "server.h"
+#include "connection.h"
+#include "parser.h"
+#include "configdialog.h"
+
+#include <QComboBox>
+#include <QIcon>
+#include <QLabel>
 #include <QFileDialog>
 #include <QTextEdit>
-#include <QObject>
 #include <QTextStream>
+#include <QToolBar>
+#include <QObject>
+#include <QPushButton>
+#include <QWidget>
+#include <boost/make_shared.hpp>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
@@ -15,7 +30,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
+    qRegisterMetaType<boost::system::error_code>();
     ui->setupUi(this);
+    setupWindowConfigurations();
 }
 
 MainWindow::~MainWindow()
@@ -25,38 +42,6 @@ MainWindow::~MainWindow()
     if (protoThread_.joinable())
         protoThread_.join();
     delete ui;
-}
-
-void MainWindow::close_tab(int index)
-{
-    ui->tabWidget->widget(index)->deleteLater();
-    ui->tabWidget->removeTab(index);
-    if (ui->tabWidget->count() == 0)
-        close();
-}
-
-void MainWindow::setTabName(int index, const QString &name)
-{
-    ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
-}
-
-void MainWindow::saveDocument(int index)
-{
-    if(index == -1)
-        return;
-
-    auto doc = dynamic_cast<Document*> (ui->tabWidget->widget(index));
-
-    if(!doc)
-        return;
-
-    if(!doc->save())
-        return;
-
-    QString nfname = doc->fileName();
-    if(nfname != ui->tabWidget->tabText(index))
-        setTabName(index, nfname);
-
 }
 
 void MainWindow::on_save_file_triggered()
@@ -81,7 +66,6 @@ void MainWindow::on_load_file_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Открыть файл"), QString(),
                                                     tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
-
     if (fileName.isEmpty())
         return;
 
@@ -98,18 +82,248 @@ void MainWindow::on_load_file_triggered()
     doc->setText(file.readAll());
     doc->setFileName(fileName);
     addDocument(doc);
+    setIcon(doc);
+    addConfig(doc);
 }
 
-void MainWindow::addDocument(Document *doc)
+void MainWindow::deleteConfig(QComboBox *ptr, const QString &name)
 {
-    if (ui->tabWidget->indexOf(doc) != -1)
-        return;
-    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+    int indx = ptr->findText(QFileInfo(name).fileName());
+    if(indx != -1)
+        ptr->removeItem(indx);
+}
+
+void MainWindow::delConfig(Document *doc)
+{
+    QString name = doc->filePath();
+
+    deleteConfig(m_apps, name);
+    deleteConfig(m_deploys, name);
+}
+
+void MainWindow::updateConfig(Document *doc)
+{
+    delConfig(doc);
+    addConfig(doc);
+}
+
+void MainWindow::on_create_file_triggered()
+{
+    Document *tmp = new Document();
+    addDocument(tmp);
+}
+
+void MainWindow::on_tabWidget_tabCloseRequested(int index)
+{
+    close_tab(index);
+}
+
+void MainWindow::addConfig(Document *doc)
+{
+    QString name = doc->filePath();
+
+    if(doc->isApp() && (m_apps->findText(name) == -1))
+        m_apps->addItem(QFileInfo(name).fileName());
+
+    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
+        m_deploys->addItem(QFileInfo(name).fileName());
+}
+
+void MainWindow::on_config_triggered()
+{
+    ConfigDialog dlg(this);
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+        auto doc = document(i);
+        if (!doc)
+            continue;
+
+        QString nname = doc->filePath();
+
+        if (doc->isApp())
+            dlg.loadApp(nname);
+        else if (doc->isDeploy())
+            dlg.loadDeploy(nname);
+    }
+
+    if (dlg.exec())
+    {
+        m_app = dlg.app();
+        m_deploySchema = dlg.deploySchema();
+        m_apps->setCurrentIndex(m_apps->findText(m_app));
+        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
+        setActiveConfig();
+        activateDeploy();
+    }
+}
+
+void MainWindow::resetDeployActions() const
+{
+    ui->stop->setDisabled(true);
+    ui->start->setEnabled(true);
+}
+
+void MainWindow::showLog() const
+{
+}
+
+void MainWindow::onDeployConfigRequestFinished()
+{
+    auto remoteNode = qobject_cast<RemoteNode *>(sender());
+    ui->textBrowser->insertPlainText(
+                "Configuration on " +
+                QString::fromStdString(remoteNode->node_information_.name) +
+                " has been connected.\n");
+}
+
+void MainWindow::onstatusRequestFinished(alpha::protort::protocol::deploy::StatusResponse status_)
+{
+    ui->text_browser_status->insertPlainText("<Название узла - " +
+                                             QString::fromStdString(status_.node_name())
+                                             + ">\n<Время работы - " +
+                                             QString::number(status_.uptime()) + " сек." + ">\n<Количество принятых пакетов - "
+                                             + QString::number(status_.in_packets_count()) +
+                                             " (" + QString::number(status_.in_bytes_count())
+                                             + " байт)" + ">\n<Количество переданных пакетов - "
+                                             + QString::number(status_.out_packets_count()) + " ("
+                                             + QString::number(status_.out_bytes_count())
+                                             + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
+    for (int j = 0; j < status_.component_statuses_size(); ++j)
+    {
+        ui->text_browser_status->insertPlainText("<Название компонента - " +
+                                                 QString::fromStdString(status_.component_statuses(j).name()) +
+                                                 ">\n<Количество принятых пакетов - "
+                                                 + QString::number(status_.component_statuses(j).in_packet_count()) +
+                                                 ">\n<Количество переданных пакетов - " +
+                                                 QString::number(status_.component_statuses(j).out_packet_count()) +
+                                                 ">\n\n");
+    }
+    ui->text_browser_status->insertPlainText("\n\n");
+}
+
+void MainWindow::onstartRequestFinished()
+{
+    auto remoteNode = qobject_cast<RemoteNode *>(sender());
+    ui->textBrowser->insertPlainText(
+                "Configuration on " +
+                QString::fromStdString(remoteNode->node_information_.name) +
+                " has been started.\n");
+}
+
+void MainWindow::onstopRequestFinished()
+{
+    auto remoteNode = qobject_cast<RemoteNode *>(sender());
+    ui->textBrowser->insertPlainText(
+                "Configuration on " +
+                QString::fromStdString(remoteNode->node_information_.name) +
+                " has been stopped.\n");
+}
+
+void MainWindow::onconnected()
+{
+    auto remoteNode = qobject_cast<RemoteNode *>(sender());
+    ui->textBrowser->insertPlainText(
+                "Node " +
+                QString::fromStdString(remoteNode->node_information_.name) +
+                " has been connected.\n");
+}
+
+void MainWindow::onconnectionFailed(const boost::system::error_code &)
+{
+    auto remoteNode = qobject_cast<RemoteNode *>(sender());
+    ui->textBrowser->insertPlainText(
+                "Node " +
+                QString::fromStdString(remoteNode->node_information_.name) +
+                " can not be connected.\n");
+}
+
+void MainWindow::setTabName(int index, const QString &name)
+{
+    ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
+}
+
+void MainWindow::on_start_triggered()
+{
+    ui->deploy->setDisabled(true);
+    ui->start->setDisabled(true);
+    ui->stop->setEnabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload;
+    payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_start(payload);
+}
+
+void MainWindow::on_stop_triggered()
+{
+    if(! ui->deploy->isEnabled())
+        ui->start->setEnabled(true);
+    ui->stop->setDisabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload;
+    payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_stop(payload);
+}
+
+void MainWindow::showMessage()
+{
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this,
+                                  "Смена конфигурации",
+                                  "Старая конфигурация будет остановлена и загружена новая, вы уверены?",
+                                QMessageBox::Yes|QMessageBox::No);
+    if (reply == QMessageBox::Yes)
+    {
+        deployOk();
+    }
+}
+
+void MainWindow::deployOk()
+{
+    resetDeployActions();
+    ui->deploy->setDisabled(true);
+
+    createRemoteNodes();
+}
+
+void MainWindow::on_deploy_triggered()
+{
+    if(ui->start->isEnabled() || ui->stop->isEnabled())
+        showMessage();
+    else
+        deployOk();
+}
+
+void MainWindow::on_close_file_triggered()
+{
+    close_tab(ui->tabWidget->currentIndex());
+}
+
+void MainWindow::close_tab(int index)
+{
+    auto doc = document(index);
+    delConfig(doc);
+    ui->tabWidget->widget(index)->deleteLater();
+    ui->tabWidget->removeTab(index);
+}
+
+void MainWindow::on_status_request_triggered()
+{
+    ui->text_browser_status->clear();
+
+    alpha::protort::protocol::Packet_Payload status;
+    status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_status(status);
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
-    QString title = doc->fileName();
+    QString title = doc->filePath();
 
     if (title.isEmpty())
         title = tr("Безымянный");
@@ -143,109 +357,8 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
     return result;
 }
 
-
-void MainWindow::on_create_file_triggered()
+void MainWindow::createRemoteNodes()
 {
-    Document *tmp = new Document();
-    addDocument(tmp);
-}
-
-void MainWindow::on_tabWidget_tabCloseRequested(int index)
-{
-    close_tab(index);
-}
-
-void MainWindow::on_config_triggered()
-{
-    ConfigDialog dlg(this);
-    for (int i = 0; i < ui->tabWidget->count(); ++i)
-    {
-        auto text_edit = dynamic_cast<Document*> (ui->tabWidget->widget(i));
-        if (!text_edit)
-            continue;
-
-        QString nname = text_edit->fileName();
-
-        if(text_edit->Kind::App == text_edit->kind())
-            dlg.loadApp(nname);
-        if(text_edit->Kind::Deploy == text_edit->kind())
-            dlg.loadDeploy(nname);
-    }
-
-    if (dlg.exec())
-    {
-        m_app = dlg.app();
-        m_deploySchema = dlg.deploySchema();
-        ui->start->setDisabled(true);
-        ui->stop->setDisabled(true);
-        ui->deploy->setEnabled(true);
-    }
-
-    ui->textBrowser->setText("Загрузка описания приложения...\n" + m_app +
-                             "\n" +"Описание загружено" + "\n" +
-                             "Загрузка схемы развёртывания..." +
-                             "\n" + m_deploySchema +
-                             "\n" + "Схема загружена" +
-                             "\n" + "Упс! Не могу развернуть." +
-                             "\n Требуются доработки.");
-}
-
-void MainWindow::on_close_file_triggered()
-{
-    close_tab(ui->tabWidget->currentIndex());
-}
-
-void MainWindow::on_start_triggered()
-{
-    ui->start->setDisabled(true);
-    ui->status_request->setEnabled(true);
-    ui->stop->setEnabled(true);
-
-    alpha::protort::protocol::Packet_Payload payload_;
-    payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
-
-    for (auto &terminal_client : terminal_clients)
-    {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
-            new alpha::protort::protolink::request_callbacks);
-
-        ptr_->on_finished.connect(boost::bind(
-            &terminal_client::start_node,
-            terminal_client.get(),
-            _1));
-
-        terminal_client->client_->async_send_request(payload_, ptr_);
-    }
-}
-
-void MainWindow::on_stop_triggered()
-{
-    ui->start->setEnabled(true);
-    ui->status_request->setDisabled(true);
-    ui->stop->setDisabled(true);
-
-    alpha::protort::protocol::Packet_Payload payload_;
-    payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
-
-    for (auto &terminal_client : terminal_clients)
-    {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
-            new alpha::protort::protolink::request_callbacks);
-
-        ptr_->on_finished.connect(boost::bind(
-            &terminal_client::stop_node,
-            terminal_client.get(),
-            _1));
-
-        terminal_client->client_->async_send_request(payload_, ptr_);
-    }
-}
-
-void MainWindow::on_deploy_triggered()
-{
-    ui->deploy->setDisabled(true);
-    ui->start->setEnabled(true);
-
     {
         alpha::protort::parser::configuration config_;
         config_.parse_app(m_app.toStdString());
@@ -254,49 +367,175 @@ void MainWindow::on_deploy_triggered()
         deploy_config_.parse_deploy(config_);
     }
 
-    for (auto &terminal_client : terminal_clients)
-        if(!terminal_client->client_->is_connected())
-            terminal_client->client_->stop_trying_to_connect();
+    for (auto &remoteNode : remoteNodes_)
+        remoteNode->shutdown();
 
-    if(terminal_clients.size() > 0)
-        terminal_clients.clear();
+    if(remoteNodes_.size() > 0)
+        remoteNodes_.clear();
 
     for (auto node : deploy_config_.map_node)
     {
-        boost::asio::ip::tcp::endpoint ep(
-                    boost::asio::ip::address::from_string(node.second.address), 100);
+        auto remoteNode = boost::make_shared<RemoteNode>(service_, node.second);
 
-        boost::shared_ptr<RemoteNode> terminal_client_(
-            new RemoteNode(
-                service_,
-                QString::fromStdString(node.second.name)));
+        connect(remoteNode.get(),
+                &RemoteNode::connected,
+                this,
+                &MainWindow::onconnected);
 
-        terminal_clients.push_back(std::move(terminal_client_));
+        connect(remoteNode.get(),
+                &RemoteNode::connectionFailed,
+                this,
+                &MainWindow::onconnectionFailed);
 
-        terminal_clients.back()->terminal_ = ui;
-        terminal_clients.back()->deploy_configuration = &deploy_config_;
+        connect(remoteNode.get(),
+                &RemoteNode::deployConfigRequestFinished,
+                this,
+                &MainWindow::onDeployConfigRequestFinished);
 
-        terminal_clients.back()->client_->async_connect(ep);
+        connect(remoteNode.get(),
+                &RemoteNode::statusRequestFinished,
+                this,
+                &MainWindow::onstatusRequestFinished);
+
+        connect(remoteNode.get(),
+                &RemoteNode::startRequestFinished,
+                this,
+                &MainWindow::onstartRequestFinished);
+
+        connect(remoteNode.get(),
+                &RemoteNode::stopRequestFinished,
+                this,
+                &MainWindow::onstopRequestFinished);
+
+        remoteNode->init(service_);
+
+        remoteNodes_.append(remoteNode);
     }
 }
 
-void MainWindow::on_status_request_triggered()
+void MainWindow::saveDocument(int index)
 {
-    ui->text_browser_status->clear();
+    if(index == -1)
+        return;
 
-    alpha::protort::protocol::Packet_Payload status_;
-    status_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+    auto doc = document(index);
 
-    for (auto &terminal_client : terminal_clients)
+    if(!doc)
+        return;
+
+    if(!doc->save())
+        return;
+
+    updateConfig(doc);
+
+    QString nfname = doc->filePath();
+
+    if(nfname != ui->tabWidget->tabText(index))
+        setTabName(index, nfname);
+    setIcon(doc);
+}
+
+void MainWindow::addDocument(Document *doc)
+{
+    int index = ui->tabWidget->indexOf(doc);
+    if (index != -1)
+        return;
+    ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
+    ui->tabWidget->setTabEnabled(index, true);
+    ui->tabWidget->setCurrentWidget(doc);
+    setIcon(doc);
+}
+
+void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
+{
+    ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(srcPath));
+}
+
+void MainWindow::setIcon(Document *doc)
+{
+    switch(doc->kind())
     {
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
-            new alpha::protort::protolink::request_callbacks);
-
-        ptr_->on_finished.connect(boost::bind(
-            &terminal_client::status_node,
-            terminal_client.get(),
-            _1));
-
-        terminal_client->client_->async_send_request(status_, ptr_);
+    case Document::Kind::App:
+        setTabIco(doc, ":/images/pen.png");
+        break;
+    case Document::Kind::Deploy:
+        setTabIco(doc,":/images/cog.png");
+        break;
+    default:
+        setTabIco(doc,":/images/file.png");
+        break;
     }
+}
+
+void MainWindow::addWidgetOnBar(QWidget* newWidget) const
+{
+    ui->mainToolBar->addWidget(newWidget);
+}
+
+void MainWindow::setupWindowConfigurations()
+{
+    m_deploys = new QComboBox();
+    m_apps = new QComboBox();
+
+    QLabel *app = new QLabel(tr("Описание: "));
+    addWidgetOnBar(app);
+    addWidgetOnBar(m_apps);
+
+    QLabel *schema = new QLabel(tr("Схема: "));
+    addWidgetOnBar(schema);
+    addWidgetOnBar(m_deploys);
+
+    m_setupConfig = new QPushButton();
+    m_setupConfig->setText(tr("Установить"));
+    addWidgetOnBar(m_setupConfig);
+
+    connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
+}
+
+void MainWindow::setupConfigMembers()
+{
+    m_app = m_apps->currentText();
+    m_deploySchema = m_deploys->currentText();
+}
+
+void MainWindow::activateDeploy() const
+{
+    if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
+        ui->deploy->setEnabled(true);
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_deploy(deploy_config_);
+}
+
+void MainWindow::button_clickedSetup()
+{
+    setupConfigMembers();
+    setActiveConfig();
+    activateDeploy();
+}
+
+void MainWindow::setActiveConfig()
+{
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+        setupActiveIcon(i);
+    }
+}
+
+void MainWindow::setupActiveIcon(const int &index)
+{
+    auto doc = document(index);
+    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
+    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
+
+    setIcon(doc);
+    if((QFileInfo(doc->filePath()).fileName() == nameApp) && (doc->isApp()))
+        setTabIco(doc,":/images/greenPen.png");
+
+    if((QFileInfo(doc->filePath()).fileName() == nameDeploy) && (doc->isDeploy()))
+        setTabIco(doc,":/images/greenCog.png");
+}
+
+Document* MainWindow::document(int index)
+{
+    return dynamic_cast<Document*> (ui->tabWidget->widget(index));
 }

@@ -14,28 +14,29 @@
 
 Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
+Q_DECLARE_METATYPE(boost::system::error_code);
 
 class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
     Q_OBJECT
 
 public:
-    RemoteNode(boost::asio::io_service& service, QString node_name);
+    //! Информация об узле, с которым коннектится клиент
+    alpha::protort::parser::node node_information_;
 
-    void async_deploy();
-    void async_start();
-    void async_stop();
-    void async_status();
+    RemoteNode(alpha::protort::parser::node const& node);
 
-    alpha::protort::parser::deploy_configuration* deploy_configuration;
+    void init(boost::asio::io_service& service);
 
-    boost::shared_ptr<alpha::protort::protolink::client<RemoteNode>> client_;
+    void shutdown();
 
-    void start_node(const alpha::protort::protocol::Packet_Payload& p);
+    void async_deploy(alpha::protort::parser::deploy_configuration const& deploy_configuration_);
 
-    void stop_node(const alpha::protort::protocol::Packet_Payload& p);
+    void async_start(alpha::protort::protocol::Packet_Payload& packet_);
 
-    void status_node(const alpha::protort::protocol::Packet_Payload& p);
+    void async_stop(alpha::protort::protocol::Packet_Payload& packet_);
+
+    void async_status(alpha::protort::protocol::Packet_Payload& status);
 
     void on_connected(const boost::system::error_code& err);
 
@@ -44,23 +45,16 @@ public:
     void on_new_packet(alpha::protort::protocol::Packet_Payload packet_);
 
 signals:
+    void deployConfigRequestFinished();
+    void statusRequestFinished(alpha::protort::protocol::deploy::StatusResponse status_);
+    void startRequestFinished();
+    void stopRequestFinished();
     void connected();
-    void connectionFailed();
-
-private slots:
-
-    void on_status_response(alpha::protort::protocol::deploy::StatusResponse status_);
-
-    void on_connected_finished(alpha::protort::protocol::Packet_Payload packet_);
-
-    void on_start_finished(alpha::protort::protocol::Packet_Payload packet_);
-
-    void on_stop_finished(alpha::protort::protocol::Packet_Payload packet_);
+    void connectionFailed(const boost::system::error_code&);
 
 private:
 
-    //! Имя узла, с которым коннектится клиент
-    QString node_name_;
+    boost::shared_ptr<alpha::protort::protolink::client<RemoteNode>> client_;
 };
 
 #endif // TERMINAL_CLIENT_H

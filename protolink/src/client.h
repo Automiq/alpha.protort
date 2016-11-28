@@ -122,13 +122,11 @@ public:
 
     void stop_trying_to_connect()
     {
-        closed_ = true;
-        reconnect_timer_.cancel();
-    }
-
-    bool is_connected()
-    {
-        return is_connected_;
+        if(is_connected_)
+        {
+            closed_ = true;
+            reconnect_timer_.cancel();
+        }
     }
 
 private:
@@ -154,7 +152,6 @@ private:
         if(!closed_)
         {
             callback_->on_connected(err);
-
             if (err)
             {
                 reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));

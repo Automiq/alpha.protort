@@ -27,7 +27,7 @@ include(../../parser.pri)
     win32 {
         copyapp.commands = $(COPY_DIR) \"$$PWD\testdata\\*\" \"$$OUT_PWD\testdata\"
     } else {
-        copydata.commands = $(COPY_DIR) $$PWD/testdata/* $$OUT_PWD/tesdata
+        copydata.commands = $(COPY_DIR) $$PWD/testdata/* $$OUT_PWD/testdata
     }
 }
 first.depends = $(first) copyapp

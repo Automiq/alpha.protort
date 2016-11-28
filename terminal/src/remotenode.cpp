@@ -1,192 +1,187 @@
-#include "terminal_client.h"
-#include "factory.h"
+#include "remotenode.h"
+#include "convert.h"
 
-terminal_client::terminal_client(boost::asio::io_service& service, QString node_name)
-    : client_(new alpha::protort::protolink::client<terminal_client>(*this, service)),
-      node_name_(node_name)
+RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
+    : node_information_(node_information)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
+    qRegisterMetaType<boost::system::error_code>();
 }
 
-void terminal_client::start_node(const alpha::protort::protocol::Packet_Payload& p)
+void RemoteNode::init(boost::asio::io_service &service)
 {
-     QMetaObject::invokeMethod(
-         this,
-         "on_start_finished",
-         Qt::QueuedConnection,
-         Q_ARG(alpha::protort::protocol::Packet_Payload, p));
+    client_ = new alpha::protort::protolink::client<RemoteNode>(shared_from_this(), service);
+
+    boost::asio::ip::tcp::endpoint ep(
+                boost::asio::ip::address::from_string(node_information_.address), 100);
+
+    client_->async_connect(ep);
 }
 
-void terminal_client::stop_node(const alpha::protort::protocol::Packet_Payload& p)
+void RemoteNode::shutdown()
 {
-     QMetaObject::invokeMethod(
-         this,
-         "on_stop_finished",
-         Qt::QueuedConnection,
-         Q_ARG(alpha::protort::protocol::Packet_Payload, p));
+    client_->stop_trying_to_connect();
+
+    client_.reset();
 }
 
-void terminal_client::status_node(const alpha::protort::protocol::Packet_Payload& p)
+void RemoteNode::async_deploy(alpha::protort::parser::deploy_configuration const& deploy_configuration_)
 {
-    alpha::protort::protocol::deploy::StatusResponse status_ =
-       p.deploy_packet().response().status();
+    std::string current_node =  node_name_.toStdString();
 
-    QMetaObject::invokeMethod(
-        this,
-        "on_status_response",
-        Qt::QueuedConnection,
-        Q_ARG(alpha::protort::protocol::deploy::StatusResponse, status_));
-}
+    std::set<std::string> added_nodes_;
+    std::set<std::string> added_maps_;
 
-void terminal_client::on_connected(const boost::system::error_code& err)
-{
-    if (!err)
+    alpha::protort::protocol::Packet_Payload payload_;
+
+    payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
+    alpha::protort::protocol::deploy::Config* configuration_ =
+        payload_.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
+
+    configuration_->mutable_this_node_info()->set_name(current_node);
+    configuration_->mutable_this_node_info()->set_port(deploy_configuration_.map_node[current_node].port);
+
+    alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration_->add_node_infos();
+    node_info_->set_name(current_node);
+    node_info_->set_port(deploy_configuration_.map_node[current_node].port);
+    node_info_->set_address(deploy_configuration_.map_node[current_node].address);
+
+    for (auto &component : deploy_configuration_.map_node_with_components[current_node])
     {
-        std::string current_node =  node_name_.toStdString();
+        alpha::protort::protocol::ComponentKind kind_ =
+            alpha::protort::components::get_component_kind(
+                deploy_configuration_.map_components[component.comp_name].kind);
 
-        std::set<std::string> added_nodes_;
-        std::set<std::string> added_maps_;
+        // Добавляем компонент к конфигурации нода
+        alpha::protort::protocol::deploy::Instance* instance_ = configuration_->add_instances();
 
-        alpha::protort::protocol::Packet_Payload payload_;
+        instance_->set_name(component.comp_name);
+        instance_->set_kind(kind_);
 
-        payload_.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
-        alpha::protort::protocol::deploy::Config* configuration_ =
-            payload_.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
+        // Указываем, что компонент относится к текущему ноду
+        alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
 
-        configuration_->mutable_this_node_info()->set_name(current_node);
-        configuration_->mutable_this_node_info()->set_port(deploy_configuration->map_node[current_node].port);
+        components_map_->set_node_name(current_node);
+        components_map_->set_instance_name(component.comp_name);
 
-        alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration_->add_node_infos();
-        node_info_->set_name(current_node);
-        node_info_->set_port(deploy_configuration->map_node[current_node].port);
-        node_info_->set_address(deploy_configuration->map_node[current_node].address);
-
-        for (auto &component : deploy_configuration->map_node_with_components[current_node])
+        for (auto &connection : deploy_configuration_.map_component_with_connections[component.comp_name])
         {
-            alpha::protort::protocol::ComponentKind kind_ =
-                alpha::protort::components::factory::get_component_kind(
-                    deploy_configuration->map_components[component.comp_name].kind);
+            // Добавляем коннекшион к конфигурации нода
+            alpha::protort::protocol::deploy::Connection* connection_ = configuration_->add_connections();
 
-            // Добавляем компонент к конфигурации нода
-            alpha::protort::protocol::deploy::Instance* instance_ = configuration_->add_instances();
+            connection_->mutable_source()->set_name(connection.source);
+            connection_->mutable_source()->set_port(connection.source_out);
 
-            instance_->set_name(component.comp_name);
-            instance_->set_kind(kind_);
+            connection_->mutable_destination()->set_name(connection.dest);
+            connection_->mutable_destination()->set_port(connection.dest_in);
 
-            // Указываем, что компонент относится к текущему ноду
-            alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
+            // Получаем имя нода компонента назначения
+            std::string node_name_ = deploy_configuration_.map_component_node[connection.dest].node_name;
 
-            components_map_->set_node_name(current_node);
-            components_map_->set_instance_name(component.comp_name);
-
-            for (auto &connection : deploy_configuration->map_component_with_connections[component.comp_name])
+            if(node_name_ != current_node)
             {
-                // Добавляем коннекшион к конфигурации нода
-                alpha::protort::protocol::deploy::Connection* connection_ = configuration_->add_connections();
+                alpha::protort::parser::node& node_ = deploy_configuration_.map_node[node_name_];
 
-                connection_->mutable_source()->set_name(connection.source);
-                connection_->mutable_source()->set_port(connection.source_out);
-
-                connection_->mutable_destination()->set_name(connection.dest);
-                connection_->mutable_destination()->set_port(connection.dest_in);
-
-                // Получаем имя нода компонента назначения
-                std::string node_name_ = deploy_configuration->map_component_node[connection.dest].node_name;
-
-                if(node_name_ != current_node)
+                if(added_nodes_.find(node_.name) == added_nodes_.end())
                 {
-                    alpha::protort::parser::node& node_ = deploy_configuration->map_node[node_name_];
+                    // Добавляем информацию о ноде в конфигурацию
+                    alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration_->add_node_infos();
 
-                    if(added_nodes_.find(node_.name) == added_nodes_.end())
-                    {
-                        // Добавляем информацию о ноде в конфигурацию
-                        alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration_->add_node_infos();
+                    remote_node_info_->set_name(node_.name);
+                    remote_node_info_->set_port(node_.port);
+                    remote_node_info_->set_address(node_.address);
+                    added_nodes_.insert(node_.name);
+                }
 
-                        remote_node_info_->set_name(node_.name);
-                        remote_node_info_->set_port(node_.port);
-                        remote_node_info_->set_address(node_.address);
-                        added_nodes_.insert(node_.name);
-                    }
+                if(added_maps_.find(connection.dest) == added_maps_.end())
+                {
+                    // Добавляем информацию о мэпинге удаленного компонента
+                    alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
 
-                    if(added_maps_.find(connection.dest) == added_maps_.end())
-                    {
-                        // Добавляем информацию о мэпинге удаленного компонента
-                        alpha::protort::protocol::deploy::Map* components_map_ = configuration_->add_maps();
-
-                        components_map_->set_node_name(node_.name);
-                        components_map_->set_instance_name(connection.dest);
-                        added_maps_.insert(connection.dest);
-                    }
+                    components_map_->set_node_name(node_.name);
+                    components_map_->set_instance_name(connection.dest);
+                    added_maps_.insert(connection.dest);
                 }
             }
         }
-
-        boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
-            new alpha::protort::protolink::request_callbacks);
-
-        ptr_->on_finished.connect
-            (
-                [&](const alpha::protort::protocol::Packet_Payload& p)
-                  {
-                     QMetaObject::invokeMethod(
-                     this,
-                     "on_connected_finished",
-                     Qt::QueuedConnection,
-                     Q_ARG(alpha::protort::protocol::Packet_Payload, p));
-                  }
-            );
-
-        client_->async_send_request(payload_, ptr_);
     }
+
+    boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+        new alpha::protort::protolink::request_callbacks);
+
+    ptr_->on_finished.connect
+        (
+            [&](const alpha::protort::protocol::Packet_Payload& p)
+              {
+                  emit deployConfigRequestFinished();
+              }
+        );
+
+    client_->async_send_request(payload_, ptr_);
 }
 
-void terminal_client::on_packet_sent(const boost::system::error_code& err, size_t bytes)
+void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet_)
 {
+    boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+        new alpha::protort::protolink::request_callbacks);
 
+    ptr_->on_finished.connect
+        (
+            [&](const alpha::protort::protocol::Packet_Payload& p)
+              {
+                  emit statusRequestFinished(p);
+              }
+        );
+    client_->async_send_request(packet_, ptr_);
 }
 
-void terminal_client::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
+void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet_)
 {
+    boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+        new alpha::protort::protolink::request_callbacks);
 
+    ptr_->on_finished.connect
+        (
+            [&](const alpha::protort::protocol::Packet_Payload& p)
+              {
+                  emit stopRequestFinished();
+              }
+        );
+    client_->async_send_request(packet_, ptr_);
 }
 
-void terminal_client::on_status_response(alpha::protort::protocol::deploy::StatusResponse status_)
+void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
 {
-    terminal_->text_browser_status->insertPlainText("<Название узла - " +
-                                             QString::fromStdString(status_.node_name())
-                                             + ">\n<Время работы - " +
-                                             QString::number(status_.uptime()) + " сек." + ">\n<Количество принятых пакетов - "
-                                             + QString::number(status_.in_packets_count()) +
-                                             " (" + QString::number(status_.in_bytes_count())
-                                             + " байт)" + ">\n<Количество переданных пакетов - "
-                                             + QString::number(status_.out_packets_count()) + " ("
-                                             + QString::number(status_.out_bytes_count())
-                                             + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
-    for (int j = 0; j < status_.component_statuses_size(); ++j)
+    boost::shared_ptr<alpha::protort::protolink::request_callbacks> ptr_(
+        new alpha::protort::protolink::request_callbacks);
+
+    ptr_->on_finished.connect
+        (
+            [&](const alpha::protort::protocol::Packet_Payload& p)
+              {
+                  emit startRequestFinished();
+              }
+        );
+    client_->async_send_request(status, ptr_);
+}
+
+void RemoteNode::on_connected(const boost::system::error_code& err)
+{
+    if (!err)
     {
-        terminal_->text_browser_status->insertPlainText("<Название компонента - " +
-                                                 QString::fromStdString(status_.component_statuses(j).name()) +
-                                                 ">\n<Количество принятых пакетов - "
-                                                 + QString::number(status_.component_statuses(j).in_packet_count()) +
-                                                 ">\n<Количество переданных пакетов - " +
-                                                 QString::number(status_.component_statuses(j).out_packet_count()) +
-                                                 ">\n\n");
+        emit connected();
+        return;
     }
-    terminal_->text_browser_status->insertPlainText("\n\n");
+    emit ConnectionFailed(err);
 }
 
-void terminal_client::on_connected_finished(alpha::protort::protocol::Packet_Payload packet_)
+void RemoteNode::on_packet_sent(const boost::system::error_code& err, size_t bytes)
 {
-    terminal_->textBrowser->insertPlainText(node_name_ + " has been connected.\n");
+
 }
 
-void terminal_client::on_start_finished(alpha::protort::protocol::Packet_Payload packet_)
+void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet_)
 {
-    terminal_->textBrowser->insertPlainText("Configuration on " + node_name_ + " has been started.\n");
-}
 
-void terminal_client::on_stop_finished(alpha::protort::protocol::Packet_Payload packet_)
-{
-    terminal_->textBrowser->insertPlainText("Configuration on " + node_name_ + " has been stopped.\n");
 }
