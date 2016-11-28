@@ -20,7 +20,7 @@
 #include "configdialog.h"
 #include "configdialog.h"
 #include "remotenode.h"
-#include "deploy_configuration.h"
+#include "deployconfiguration.h"
 
 class QTextEdit;
 
@@ -76,12 +76,12 @@ public slots:
     void showLog() const;
 
 private slots:
-    void onDeployConfigRequestFinished();
-    void onstatusRequestFinished(alpha::protort::protocol::deploy::Packet const& status_);
-    void onstartRequestFinished();
-    void onstopRequestFinished();
-    void onconnected();
-    void onconnectionFailed(const boost::system::error_code&);
+    void onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& status);
+    void onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onConnected();
+    void onConnectionFailed(const boost::system::error_code&);
 
 private:
     Ui::MainWindow *ui;
@@ -98,7 +98,7 @@ private:
     void addDocument(Document *doc);
     void addWidgetOnBar(QWidget* newWidget) const;
     void setIcon(Document *doc);
-    void setupWindowConfigurations();
+    void createConfigurationToolBar();
     void addConfig(Document *doc);
     void delConfig(Document *doc);
     void deleteConfig(QComboBox *ptr, const QString &name);
@@ -111,7 +111,12 @@ private:
     void showMessage();
     void deploy();
     void createRemoteNodes();
+    void connectRemoteNodeSignals(RemoteNode* node);
+
     Document* document(int index);
+
+    void writeLog(const QString& message);
+    void writeStatusLog(const QString& message);
 
     boost::asio::io_service service_;
 
@@ -121,7 +126,7 @@ private:
 
     deploy_configuration deploy_config_;
 
-    boost::thread protoThread_;
+    boost::thread serviceThread_;
 };
 
 #endif // MAINWINDOW_H

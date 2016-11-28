@@ -29,7 +29,7 @@ using alpha::protort::link::max_packet_size;
  * Временной интервал, через который будет выполнена повторная попытка подключения
  * если предыдущая попытка не увенчалась успехом.
  */
-static const int proto_reconnect_interval = 5000;
+static const int reconnect_interval = 5000;
 
 /*!
  * Шаблонный класс клиента
@@ -38,7 +38,7 @@ template<class Callback>
 class client : public boost::enable_shared_from_this<client<Callback>>
 {
     using error_code = boost::system::error_code;
-    using request_ptr = boost::shared_ptr<request_callbacks>;
+    using request_callbacks_ptr = boost::shared_ptr<request_callbacks>;
     using callback_ptr = boost::shared_ptr<Callback>;
 
 public:
@@ -99,29 +99,34 @@ public:
     }
 
     /*!
-     * \brief Метод для отправки пакета данных
-     * \param msg Строка для отправки
+     * \brief Отправить сообщение
+     * \param payload Пакет сообщения
      */
     void async_send_message(const protocol::Packet_Payload& payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
         packet.mutable_payload()->CopyFrom(payload);
-        do_send_packet(packet.SerializeAsString(),packet.kind());
+        do_send_packet(packet.SerializeAsString(), packet.kind());
     }
 
-    void async_send_request(protocol::Packet_Payload& payload, request_ptr ptr_)
+    /*!
+     * \brief Отправить запрос
+     * \param payload Пакет запроса
+     * \param callbacks Объект колбеков
+     */
+    void async_send_request(protocol::Packet_Payload& payload, request_callbacks_ptr callbacks)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
         packet.mutable_transaction()->set_id(transaction_id_);
         packet.mutable_payload()->CopyFrom(payload);
 
-        transactions_.emplace(transaction_id_++, ptr_);
-        do_send_packet(packet.SerializeAsString(),packet.kind());
+        transactions_.emplace(transaction_id_++, callbacks);
+        do_send_packet(packet.SerializeAsString(), packet.kind());
     }
 
-    void stop_trying_to_connect()
+    void prepare_shutdown()
     {
         shutdown_ = true;
         reconnect_timer_.cancel();
@@ -147,17 +152,19 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        if (!shutdown_)
+        if (shutdown_)
+            return;
+
+        callback_->on_connected(err);
+
+        if (err)
         {
-            callback_->on_connected(err);
-            if (err)
-            {
-                reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
-                reconnect_timer_.async_wait(
-                            boost::bind(&client::do_connect,
-                                        this->shared_from_this(),
-                                        ep_));
-            }
+            // Переподключаемся в случае ошибки подключения
+            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(reconnect_interval));
+            reconnect_timer_.async_wait(
+                        boost::bind(&client::do_connect,
+                                    this->shared_from_this(),
+                                    ep_));
         }
     }
 
@@ -287,7 +294,7 @@ private:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
-        packet.ParseFromArray(buffer,nbytes);
+        packet.ParseFromArray(buffer, nbytes);
 
         switch(packet.kind())
         {
@@ -329,7 +336,7 @@ private:
     link::packet_header packet_header_;
 
     //! Мэп с идентификатором транзакции и транзакцией
-    std::map<int, request_ptr> transactions_;
+    std::map<int, request_callbacks_ptr> transactions_;
 
     //! Идентификатор транзакции
     uint32_t transaction_id_ = 0;

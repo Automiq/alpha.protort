@@ -26,21 +26,23 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     service_(),
     work_(new boost::asio::io_service::work(service_)),
-    protoThread_(boost::bind(&boost::asio::io_service::run, &service_))
+    serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
+
     ui->setupUi(this);
-    setupWindowConfigurations();
+
+    createConfigurationToolBar();
 }
 
 MainWindow::~MainWindow()
 {
     work_.reset();
     service_.stop();
-    if (protoThread_.joinable())
-        protoThread_.join();
+    if (serviceThread_.joinable())
+        serviceThread_.join();
     delete ui;
 }
 
@@ -167,74 +169,85 @@ void MainWindow::showLog() const
 {
 }
 
-void MainWindow::onDeployConfigRequestFinished()
+void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    auto remoteNode = qobject_cast<RemoteNode *>(sender());
-    ui->textBrowser->insertPlainText(
-                "Configuration on " +
-                QString::fromStdString(remoteNode->node_information_.name) +
-                " has been connected.\n");
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
+        tr("Конфигурация успешно развернута на узел %1").arg(node->info())
+    );
 }
 
-void MainWindow::onstatusRequestFinished(alpha::protort::protocol::deploy::Packet const& status)
+void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    ui->text_browser_status->insertPlainText("<Название узла - " +
-                                             QString::fromStdString(status.response().status().node_name())
-                                             + ">\n<Время работы - " +
-                                             QString::number(status.response().status().uptime()) + " сек." + ">\n<Количество принятых пакетов - "
-                                             + QString::number(status.response().status().in_packets_count()) +
-                                             " (" + QString::number(status.response().status().in_bytes_count())
-                                             + " байт)" + ">\n<Количество переданных пакетов - "
-                                             + QString::number(status.response().status().out_packets_count()) + " ("
-                                             + QString::number(status.response().status().out_bytes_count())
-                                             + " байт)"+ ">\n\n<Информация о компонентах>\n\n");
-    for (int j = 0; j < status.response().status().component_statuses_size(); ++j)
+    auto node = qobject_cast<RemoteNode *>(sender());
+
+    if (packet.has_error())
     {
-        ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                 QString::fromStdString(status.response().status().component_statuses(j).name()) +
-                                                 ">\n<Количество принятых пакетов - "
-                                                 + QString::number(status.response().status().component_statuses(j).in_packet_count()) +
-                                                 ">\n<Количество переданных пакетов - " +
-                                                 QString::number(status.response().status().component_statuses(j).out_packet_count()) +
-                                                 ">\n\n");
+        writeLog(tr("Ошибка получения статуса узла %1").arg(node->info()));
+        return;
     }
-    ui->text_browser_status->insertPlainText("\n\n");
+
+    auto status = packet.response().status();
+
+    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
+    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
+    writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
+                      .arg(QString::number(status.in_packets_count()))
+                      .arg(QString::number(status.in_bytes_count())));
+    writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
+                      .arg(QString::number(status.out_packets_count()))
+                      .arg(QString::number(status.out_bytes_count())));
+
+    writeStatusLog(tr("<Информация о компонентах>"));
+    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    {
+        auto component = status.component_statuses(i);
+
+        writeStatusLog(tr("\t<Название компонента - %1>")
+                          .arg(QString::fromStdString(component.name())));
+        writeStatusLog(tr("\t\t<Количество принятых пакетов - %1>")
+                          .arg(QString::number(component.in_packet_count())));
+        writeStatusLog(tr("\t\t<Количество переданных пакетов - %1>")
+                          .arg(QString::number(status.component_statuses(i).out_packet_count())));
+    }
+
+    writeStatusLog("\r\n");
 }
 
-void MainWindow::onstartRequestFinished()
+void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    auto remoteNode = qobject_cast<RemoteNode *>(sender());
-    ui->textBrowser->insertPlainText(
-                "Configuration on " +
-                QString::fromStdString(remoteNode->node_information_.name) +
-                " has been started.\n");
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка запуска узла %1").arg(node->info()) :
+        tr("Узел %1 успешно запущен").arg(node->info())
+    );
 }
 
-void MainWindow::onstopRequestFinished()
+void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    auto remoteNode = qobject_cast<RemoteNode *>(sender());
-    ui->textBrowser->insertPlainText(
-                "Configuration on " +
-                QString::fromStdString(remoteNode->node_information_.name) +
-                " has been stopped.\n");
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка останова узла %1").arg(node->info()) :
+        tr("Узел %1 успешно остановлен").arg(node->info())
+    );
 }
 
-void MainWindow::onconnected()
+void MainWindow::onConnected()
 {
-    auto remoteNode = qobject_cast<RemoteNode *>(sender());
-    ui->textBrowser->insertPlainText(
-                "Node " +
-                QString::fromStdString(remoteNode->node_information_.name) +
-                " has been connected.\n");
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
 }
 
-void MainWindow::onconnectionFailed(const boost::system::error_code &)
+void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
-    auto remoteNode = qobject_cast<RemoteNode *>(sender());
-    ui->textBrowser->insertPlainText(
-                "Node " +
-                QString::fromStdString(remoteNode->node_information_.name) +
-                " can not be connected.\n");
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(tr("Невозможно подключиться к %1: %2")
+             .arg(node->info())
+             .arg(QString::fromStdString(err.message())));
 }
 
 void MainWindow::setTabName(int index, const QString &name)
@@ -313,8 +326,6 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_request_triggered()
 {
-    ui->text_browser_status->clear();
-
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
@@ -370,48 +381,27 @@ void MainWindow::createRemoteNodes()
 
     for (auto &remoteNode : remoteNodes_)
         remoteNode->shutdown();
-
-    if(remoteNodes_.size() > 0)
-        remoteNodes_.clear();
+    remoteNodes_.clear();
 
     for (auto node : deploy_config_.map_node)
     {
         auto remoteNode = boost::make_shared<RemoteNode>(node.second);
+        remoteNodes_.append(remoteNode);
 
-        connect(remoteNode.get(),
-                &RemoteNode::connected,
-                this,
-                &MainWindow::onconnected);
-
-        connect(remoteNode.get(),
-                &RemoteNode::connectionFailed,
-                this,
-                &MainWindow::onconnectionFailed);
-
-        connect(remoteNode.get(),
-                &RemoteNode::deployConfigRequestFinished,
-                this,
-                &MainWindow::onDeployConfigRequestFinished);
-
-        connect(remoteNode.get(),
-                &RemoteNode::statusRequestFinished,
-                this,
-                &MainWindow::onstatusRequestFinished);
-
-        connect(remoteNode.get(),
-                &RemoteNode::startRequestFinished,
-                this,
-                &MainWindow::onstartRequestFinished);
-
-        connect(remoteNode.get(),
-                &RemoteNode::stopRequestFinished,
-                this,
-                &MainWindow::onstopRequestFinished);
+        connectRemoteNodeSignals(remoteNode.get());
 
         remoteNode->init(service_);
-
-        remoteNodes_.append(remoteNode);
     }
+}
+
+void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
+{
+    connect(node, &RemoteNode::connected, this, &MainWindow::onConnected);
+    connect(node, &RemoteNode::connectionFailed, this, &MainWindow::onConnectionFailed);
+    connect(node, &RemoteNode::deployConfigRequestFinished, this, &MainWindow::onDeployConfigRequestFinished);
+    connect(node, &RemoteNode::statusRequestFinished, this, &MainWindow::onStatusRequestFinished);
+    connect(node, &RemoteNode::startRequestFinished, this, &MainWindow::onStartRequestFinished);
+    connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
 }
 
 void MainWindow::saveDocument(int index)
@@ -473,7 +463,7 @@ void MainWindow::addWidgetOnBar(QWidget* newWidget) const
     ui->mainToolBar->addWidget(newWidget);
 }
 
-void MainWindow::setupWindowConfigurations()
+void MainWindow::createConfigurationToolBar()
 {
     m_deploys = new QComboBox();
     m_apps = new QComboBox();
@@ -538,4 +528,14 @@ void MainWindow::setupActiveIcon(const int &index)
 Document* MainWindow::document(int index)
 {
     return dynamic_cast<Document*> (ui->tabWidget->widget(index));
+}
+
+void MainWindow::writeLog(const QString &message)
+{
+    ui->deployLog->append(message);
+}
+
+void MainWindow::writeStatusLog(const QString &message)
+{
+    ui->statusLog->append(message);
 }

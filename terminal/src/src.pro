@@ -27,7 +27,7 @@ HEADERS  += mainwindow.h \
     configdialog.h \
     document.h \
     remotenode.h \
-    deploy_configuration.h
+    deployconfiguration.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui
