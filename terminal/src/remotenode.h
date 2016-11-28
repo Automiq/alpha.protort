@@ -50,7 +50,7 @@ signals:
 
 private:
 
-    friend class client_t;
+    friend class alpha::protort::protolink::client<RemoteNode>;
 
     //! Колбеки для protolink::client
     //@{
