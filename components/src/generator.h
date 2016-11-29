@@ -37,7 +37,6 @@ public:
 
         // TODO generate meaningful data
         data d;
-        d.port = 0;
         d.val = rand(100,0,3);
         d.time = std::time(NULL);
         router_.do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
