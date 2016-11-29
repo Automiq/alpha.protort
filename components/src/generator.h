@@ -6,10 +6,6 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "component.h"
-#include <cstring>
-#include <cstdlib>
-#include <sstream>
-
 #include "router.h"
 
 namespace alpha {
@@ -40,12 +36,11 @@ public:
             return;
 
         // TODO generate meaningful data
-        std::ostringstream o;
-        o << rand(100,0,3) << ' ' << std::time(NULL);
-        //std::string res(std::to_string(rand(100,0,3)) + std::to_string(std::time(NULL)));
-
-
-        router_.do_route(comp_inst_,{ {o.str() , {0 , 1}} });
+        data d;
+        d.port = 0;
+        d.val = rand(100,0,3);
+        d.time = std::time(NULL);
+        router_.do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
 
         generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
         generate_timer_.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));

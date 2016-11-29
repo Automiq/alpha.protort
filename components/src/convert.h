@@ -13,6 +13,10 @@ namespace components {
             return protocol::ComponentKind::Retranslator;
         else if (kind == "terminator")
             return protocol::ComponentKind::Terminator;
+        else if (kind == "calc")
+            return protocol::ComponentKind::Calc;
+        else if (kind == "history")
+            return protocol::ComponentKind::History;
         else
             assert(false);
     }
@@ -26,6 +30,10 @@ namespace components {
             return "retranslator";
         case protocol::ComponentKind::Terminator:
             return "terminator";
+        case protocol::ComponentKind::Calc:
+            return "calc";
+        case protocol::ComponentKind::History:
+            return "history";
         default:
             assert(false);
             return {};

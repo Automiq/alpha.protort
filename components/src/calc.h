@@ -24,17 +24,12 @@ public:
     }
     void process(port_id input_port, std::string const & payload) final override
     {
-        float val;
-        unsigned int t;
         output_list out(1);
-        std::ostringstream o;
-        std::istringstream i(payload);
+        data d;
 
-        i >> val >> t;
-        val *= 100;
-
-        o << val << ' '  << t << ' ' << input_port;
-        out[0].payload = o.str();
+        d.unpack(payload);
+        d.val *= 100;
+        out[0].payload = d.pack();
         out[0].ports.push_back(0);
 
         if (comp_inst_ != nullptr)

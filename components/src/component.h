@@ -4,6 +4,9 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <ctime>
+#include <cstdlib>
+#include <sstream>
 
 // node, router forward declaration
 namespace alpha {
@@ -14,17 +17,6 @@ template<class app> class router;
 } // node
 } // protort
 } // alpha
-
-
-namespace alpha {
-namespace protort {
-namespace node {
-class node;
-template<class app> class router;
-
-}
-}
-}
 
 namespace alpha {
 namespace protort {
@@ -40,9 +32,19 @@ struct output
 };
 
 struct data{
-    float val;
-    int time;
-    port_id port;
+    float val; //значение, которое генерирует генератор
+    std::time_t time; //метка времени
+
+    void unpack(std::string const & str){
+        std::istringstream i(str);
+        i >> this->val >> this->time;
+    }
+
+    std::string pack(){
+        std::ostringstream o;
+        o << ' ' << this->val << ' ' << this->time;
+        return o.str();
+    }
 };
 
 using output_list = std::vector<output>;
