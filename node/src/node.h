@@ -37,7 +37,7 @@ public:
         : server_(*this, service_),
           server_for_conf_(*this,service_),
           signals_(service_, SIGINT, SIGTERM),
-          router_(service_)
+          router_(std::make_shared<router<node>>(service_))
     {
     }
 
@@ -46,7 +46,7 @@ public:
           server_for_conf_(*this,service_),
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM),
-          router_(service_)
+          router_(std::make_shared<router<node>>(service_))
     {
     }
 
@@ -65,7 +65,7 @@ public:
     //! Останавливает работу роутера и I/O сервиса
     void stop()
     {
-        router_.stop();
+        router_->stop();
         service_.stop();
     }
 
@@ -106,8 +106,8 @@ public:
 #ifdef _DEBUG
         std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
 #endif
-        router_.in_bytes_ += sizeof(payload);
-        router_.route(payload.communication_packet().destination().name(),
+        router_->in_bytes_ += sizeof(payload);
+        router_->route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
                       payload.communication_packet().payload());
     }
@@ -154,28 +154,28 @@ public:
             if (comp_to_node[comp.name].name == node_name_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
                 component_shared_ptr new_comp = alpha::protort::components::factory::create(comp.kind, router_);
-                router_.components_[comp.name] = {new_comp, comp.name, {}};
-                new_comp->set_comp_inst(&router_.components_[comp.name]);
+                router_->components_[comp.name] = {new_comp, comp.name, {}};
+                new_comp->set_comp_inst(&router_->components_[comp.name]);
             }
         }
 
         // Для каждого локального компонента
         for (const auto& conn : conf.connections) {
-            auto name_to_comp_inst = router_.components_.find(conn.source);
-            if (name_to_comp_inst != router_.components_.end()) {
+            auto name_to_comp_inst = router_->components_.find(conn.source);
+            if (name_to_comp_inst != router_->components_.end()) {
                 auto& comp_inst = name_to_comp_inst->second;
                 const auto& dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
                 if (dest_node_name == node_name_) {
-                    router<node>::component_instance* dest_ptr = &(router_.components_[conn.dest]);
+                    router<node>::component_instance* dest_ptr = &(router_->components_[conn.dest]);
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
-                    auto client = router_.clients_.find(dest_node_name);
-                    if (client == router_.clients_.end()) {
+                    auto client = router_->clients_.find(dest_node_name);
+                    if (client == router_->clients_.end()) {
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
@@ -184,7 +184,7 @@ public:
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
-                        router_.clients_[dest_node_name] = client_ptr;
+                        router_->clients_[dest_node_name] = std::move(client_ptr);
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
@@ -224,15 +224,19 @@ private:
         switch (packet.kind()) {
 
         case protocol::deploy::PacketKind::DeployConfig:
-            router_.stop();
-            router_.clear();
+        {
+            router_->stop();
+            router_->clear();
+            std::shared_ptr<router<node>> new_router = std::make_shared<router<node>>(service_);
+            std::atomic_exchange(&router_, new_router);
             deploy_from_packet(packet.request().deploy_config().config());
             return {};
+        }
         case protocol::deploy::PacketKind::Start:
-            router_.start();
+            router_->start();
             return {};
         case protocol::deploy::PacketKind::Stop:
-            router_.stop();
+            router_->stop();
             return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
@@ -253,12 +257,12 @@ private:
         uint32_t uptime = uptime_period.count();
         response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
 
-        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_.in_bytes_);
-        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_.out_bytes_);
-        response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_.in_packets_);
-        response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_.out_packets_);
+        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_->in_bytes_);
+        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
+        response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
+        response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
 
-        for (auto & component : router_.components_) {
+        for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
             comp_status->set_in_packet_count(component.second.component_->in_packet_count());
             comp_status->set_out_packet_count(component.second.component_->in_packet_count());
@@ -328,7 +332,7 @@ private:
 public:
     //! Роутер пакетов
     //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
-    router<node> router_;
+    std::shared_ptr<router<node>> router_;
 };
 
 } // namespace node

@@ -40,7 +40,7 @@ using output_list = std::vector<output>;
 class component : public boost::enable_shared_from_this<component>
 {
 public:
-    component(node::router<node::node>& router):
+    component(std::shared_ptr<node::router<node::node>> router):
         router_(router)
     {
 
@@ -68,7 +68,7 @@ public:
 
 protected:
     uint32_t in_packet_count_ = 0;
-    node::router<node::node>& router_;
+    std::shared_ptr<node::router<node::node>> router_;
     void *comp_inst_ = nullptr;
 
 };

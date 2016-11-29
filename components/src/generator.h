@@ -20,7 +20,7 @@ namespace components {
 class generator : public component
 {
 public:
-    generator(node::router<node::node>& router):
+    generator(std::shared_ptr<node::router<node::node>> router):
         component(router),
         gen_(rd_()),
         dis_(0,100)
