@@ -8,9 +8,7 @@ HEADERS += \
            $$PWD/src/factory.h \
            $$PWD/src/component.h \
            $$PWD/src/reduce.h \
-           $$PWD/src/average.h \
-           $$PWD/src/min.h \
-           $$PWD/src/max.h \
            $$PWD/src/sensor.h \
            $$PWD/src/calc.h \
-           $$PWD/src/history.h
+           $$PWD/src/history.h \
+           $$PWD/src/convert.h

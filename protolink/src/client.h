@@ -6,6 +6,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/signals2.hpp>
 #include <map>
+#include <boost/shared_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 
 #include "packet.pb.h"
@@ -27,16 +29,17 @@ using alpha::protort::link::max_packet_size;
  * Временной интервал, через который будет выполнена повторная попытка подключения
  * если предыдущая попытка не увенчалась успехом.
  */
-static const int proto_reconnect_interval = 5000;
+static const int reconnect_interval = 5000;
 
 /*!
  * Шаблонный класс клиента
  */
 template<class Callback>
-class client
+class client : public boost::enable_shared_from_this<client<Callback>>
 {
     using error_code = boost::system::error_code;
-    using request_ptr = boost::shared_ptr<request_callbacks>;
+    using request_callbacks_ptr = boost::shared_ptr<request_callbacks>;
+    using callback_ptr = boost::shared_ptr<Callback>;
 
 public:
 
@@ -45,7 +48,7 @@ public:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    client(Callback &callback, boost::asio::io_service& service)
+    client(callback_ptr const& callback, boost::asio::io_service& service)
         : socket_(service),
           buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
@@ -60,7 +63,7 @@ public:
      * \param service Ссылка на объект, реализующий концепцию Callback
      * \param ep Объект класса endpoint
      */
-    client(Callback &callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
+    client(callback_ptr const& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
           buffer_(new char[header_size + max_packet_size]),
           callback_(callback),
@@ -96,28 +99,37 @@ public:
     }
 
     /*!
-     * \brief Метод для отправки пакета данных
-     * \param msg Строка для отправки
+     * \brief Отправить сообщение
+     * \param payload Пакет сообщения
      */
     void async_send_message(const protocol::Packet_Payload& payload)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Message);
         packet.mutable_payload()->CopyFrom(payload);
-        do_send_packet(packet.SerializeAsString(),packet.kind());
+        do_send_packet(packet.SerializeAsString(), packet.kind());
     }
 
-    request_ptr async_send_request(protocol::Packet_Payload& payload)
+    /*!
+     * \brief Отправить запрос
+     * \param payload Пакет запроса
+     * \param callbacks Объект колбеков
+     */
+    void async_send_request(protocol::Packet_Payload& payload, request_callbacks_ptr callbacks)
     {
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Request);
         packet.mutable_transaction()->set_id(transaction_id_);
         packet.mutable_payload()->CopyFrom(payload);
 
-        request_ptr ptr_(new request_ptr);
-        transactions_.emplace(transaction_id_++, ptr_);
-        do_send_packet(packet.SerializeAsString(),packet.kind());
-        return ptr_;
+        transactions_.emplace(transaction_id_++, callbacks);
+        do_send_packet(packet.SerializeAsString(), packet.kind());
+    }
+
+    void prepare_shutdown()
+    {
+        shutdown_ = true;
+        reconnect_timer_.cancel();
     }
 
 private:
@@ -128,8 +140,9 @@ private:
     void do_connect(boost::asio::ip::tcp::endpoint ep)
     {
         socket_.async_connect(
-            ep, boost::bind(&client::on_connect, this,
-                            boost::asio::placeholders::error));
+                    ep, boost::bind(&client::on_connect,
+                                    this->shared_from_this(),
+                                    boost::asio::placeholders::error));
     }
 
     /*!
@@ -139,11 +152,19 @@ private:
      */
     void on_connect(const error_code& err)
     {
-        callback_.on_connected(err);
+        if (shutdown_)
+            return;
+
+        callback_->on_connected(err);
+
         if (err)
         {
-            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(proto_reconnect_interval));
-            reconnect_timer_.async_wait(boost::bind(&client::do_connect, this, ep_));
+            // Переподключаемся в случае ошибки подключения
+            reconnect_timer_.expires_from_now(boost::posix_time::milliseconds(reconnect_interval));
+            reconnect_timer_.async_wait(
+                        boost::bind(&client::do_connect,
+                                    this->shared_from_this(),
+                                    ep_));
         }
     }
 
@@ -162,12 +183,13 @@ private:
 
         // Добавляем асинхронный таск на отправку
         async_write(
-            socket_,
-            boost::asio::buffer(buffer_.get(), header_size + packet.size()),
-            boost::bind(&client::on_packet_sent, this,
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::bytes_transferred,
-                        kind_));
+                    socket_,
+                    boost::asio::buffer(buffer_.get(), header_size + packet.size()),
+                    boost::bind(&client::on_packet_sent,
+                                this->shared_from_this(),
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred,
+                                kind_));
     }
 
     /*!
@@ -185,13 +207,12 @@ private:
         }
         else
         {
+            callback_->on_packet_sent(err, bytes);
             switch(kind_)
             {
             case protocol::Packet::Kind::Packet_Kind_Message:
-                callback_.on_packet_sent(err, bytes);
                 break;
             case protocol::Packet::Kind::Packet_Kind_Request:
-                callback_.on_packet_sent(err, bytes);
                 do_read_header();
                 break;
             }
@@ -204,13 +225,13 @@ private:
     void do_read_header()
     {
         async_read(
-            socket_,
-            boost::asio::buffer(&packet_header_, header_size),
-            boost::asio::transfer_exactly(header_size),
-            boost::bind(&client::on_header_read,
-                        this,
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::bytes_transferred));
+                    socket_,
+                    boost::asio::buffer(&packet_header_, header_size),
+                    boost::asio::transfer_exactly(header_size),
+                    boost::bind(&client::on_header_read,
+                                this->shared_from_this(),
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
     }
 
     void on_header_read(const error_code& err, size_t bytes)
@@ -241,13 +262,13 @@ private:
 
         // Добавим асинхронный таск чтения пакета заданного размера
         async_read(
-            socket_,
-            boost::asio::buffer(buffer_.get(), packet_size),
-            boost::asio::transfer_exactly(packet_size),
-            boost::bind(&client::on_packet_read,
-                        this,
-                        boost::asio::placeholders::error,
-                        boost::asio::placeholders::bytes_transferred));
+                    socket_,
+                    boost::asio::buffer(buffer_.get(), packet_size),
+                    boost::asio::transfer_exactly(packet_size),
+                    boost::bind(&client::on_packet_read,
+                                this->shared_from_this(),
+                                boost::asio::placeholders::error,
+                                boost::asio::placeholders::bytes_transferred));
     }
 
     /*!
@@ -273,7 +294,7 @@ private:
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
-        packet.ParseFromString(std::string(buffer, nbytes));
+        packet.ParseFromArray(buffer, nbytes);
 
         switch(packet.kind())
         {
@@ -303,7 +324,7 @@ private:
     std::unique_ptr<char> buffer_;
 
     //! Ссылка на объект, предоставляющий callback-функции
-    Callback& callback_;
+    boost::shared_ptr<Callback> callback_;
 
     //! Эндпоинт, используется при повторном подключении
     boost::asio::ip::tcp::endpoint ep_;
@@ -315,10 +336,13 @@ private:
     link::packet_header packet_header_;
 
     //! Мэп с идентификатором транзакции и транзакцией
-    std::map<int, request_ptr> transactions_;
+    std::map<int, request_callbacks_ptr> transactions_;
 
     //! Идентификатор транзакции
-    int transaction_id_ = 0;
+    uint32_t transaction_id_ = 0;
+
+    //! Флаг завершения работы клиента
+    bool shutdown_ = false;
 };
 
 } // namespace protolink
