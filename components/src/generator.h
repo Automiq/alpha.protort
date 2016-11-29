@@ -37,7 +37,7 @@ public:
 
         // TODO generate meaningful data
         data d;
-        d.val = rand(100,0,3);
+        d.val = rand(0,100,3);
         d.time = std::time(NULL);
         router_.do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
 
@@ -58,10 +58,10 @@ public:
     }
 private:
 
-    float rand(int max,int min,int chars_after_point)
+    float rand(int min,int max,int chars_after_point)
     {
         int div = std::pow(10,chars_after_point);
-        return float((std::rand() + min * div) % (max * div)) / div;
+        return min + (std::rand() % ((max - min)*div)) / float(div);;
     }
 
     boost::asio::deadline_timer generate_timer_;
