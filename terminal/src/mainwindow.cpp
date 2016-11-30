@@ -65,25 +65,27 @@ MainWindow::~MainWindow()
 void MainWindow::save_session()
 {
     QSettings session("last_session.conf", QSettings::IniFormat);
-    session.beginGroup("files");
-    session.setValue("tabs_count",ui->tabWidget->count());
+    session.beginWriteArray("files");
     for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
+        session.setArrayIndex(i);
         session.setValue(QString(i), document(i)->filePath());
-    session.endGroup();
+    }
+    session.endArray();
 }
 
 void MainWindow::load_session()
 {
     QSettings session("last_session.conf", QSettings::IniFormat);
-    session.beginGroup("files");
-    int tabs_count = session.value("tabs_count", -1).toInt();
+    int tabs_count = session.beginReadArray("files");
     for (int i = 0; i < tabs_count; ++i)
     {
-        QString fileName = session.value(QString(i), "").toString();
+        session.setArrayIndex(i);
+        QString fileName = session.value(QString(i)).toString();
         if (QFile(fileName).exists())
             load_file(fileName);
     }
-    session.endGroup();
+    session.endArray();
 }
 
 void MainWindow::on_save_file_triggered()
