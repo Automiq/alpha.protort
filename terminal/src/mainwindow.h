@@ -112,6 +112,9 @@ private:
     void deploy();
     void createRemoteNodes();
     void connectRemoteNodeSignals(RemoteNode* node);
+    void save_session();
+    void load_session();
+    void load_file(const QString& fileName);
 
     Document* document(int index);
 

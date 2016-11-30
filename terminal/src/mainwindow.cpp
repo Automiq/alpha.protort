@@ -16,10 +16,8 @@
 #include <QObject>
 #include <QPushButton>
 #include <QWidget>
+#include <QSettings>
 #include <boost/make_shared.hpp>
-
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,15 +33,57 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     createConfigurationToolBar();
+
+    load_session();
 }
 
 MainWindow::~MainWindow()
 {
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        if (!QFile(document(i)->filePath()).exists())
+        {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this,
+                                          "Выход",
+                                          "Файл " + ui->tabWidget->tabText(i) +
+                                          " не сохранён. Сохранить?",
+                                          QMessageBox::Yes|QMessageBox::No);
+
+            if (reply == QMessageBox::Yes)
+            {
+                saveDocument(i);
+            }
+        }
+    save_session();
     work_.reset();
     service_.stop();
     if (serviceThread_.joinable())
         serviceThread_.join();
     delete ui;
+}
+
+void MainWindow::save_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    session.setValue("tabs_count",ui->tabWidget->count());
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        session.setValue(QString(i), document(i)->filePath());
+    session.endGroup();
+}
+
+void MainWindow::load_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    int tabs_count = session.value("tabs_count", -1).toInt();
+    for (int i = 0; i < tabs_count; ++i)
+    {
+        QString fileName = session.value(QString(i), "").toString();
+        if (QFile(fileName).exists())
+            load_file(fileName);
+    }
+    session.endGroup();
 }
 
 void MainWindow::on_save_file_triggered()
@@ -63,11 +103,8 @@ void MainWindow::on_exit_triggered()
     close();
 }
 
-void MainWindow::on_load_file_triggered()
+void MainWindow::load_file(const QString& fileName)
 {
-    QString fileName = QFileDialog::getOpenFileName(this,
-                                                    tr("Открыть файл"), QString(),
-                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
     if (fileName.isEmpty())
         return;
 
@@ -86,6 +123,14 @@ void MainWindow::on_load_file_triggered()
     addDocument(doc);
     setIcon(doc);
     addConfig(doc);
+}
+
+void MainWindow::on_load_file_triggered()
+{
+    QString fileName = QFileDialog::getOpenFileName(this,
+                                                    tr("Открыть файл"), QString(),
+                                                    tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
+    load_file(fileName);
 }
 
 void MainWindow::deleteConfig(QComboBox *ptr, const QString &name)
@@ -173,10 +218,10 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
 {
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(
-        packet.has_error() ?
-        tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
-        tr("Конфигурация успешно развернута на узел %1").arg(node->info())
-    );
+                packet.has_error() ?
+                    tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
+                    tr("Конфигурация успешно развернута на узел %1").arg(node->info())
+                    );
 }
 
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
@@ -194,11 +239,11 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
     writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
     writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
-                      .arg(QString::number(status.in_packets_count()))
-                      .arg(QString::number(status.in_bytes_count())));
+                   .arg(QString::number(status.in_packets_count()))
+                   .arg(QString::number(status.in_bytes_count())));
     writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
-                      .arg(QString::number(status.out_packets_count()))
-                      .arg(QString::number(status.out_bytes_count())));
+                   .arg(QString::number(status.out_packets_count()))
+                   .arg(QString::number(status.out_bytes_count())));
 
     writeStatusLog(tr("<Информация о компонентах>"));
     for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
@@ -206,11 +251,11 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         auto component = status.component_statuses(i);
 
         writeStatusLog(tr("\t<Название компонента - %1>")
-                          .arg(QString::fromStdString(component.name())));
+                       .arg(QString::fromStdString(component.name())));
         writeStatusLog(tr("\t\t<Количество принятых пакетов - %1>")
-                          .arg(QString::number(component.in_packet_count())));
+                       .arg(QString::number(component.in_packet_count())));
         writeStatusLog(tr("\t\t<Количество переданных пакетов - %1>")
-                          .arg(QString::number(status.component_statuses(i).out_packet_count())));
+                       .arg(QString::number(status.component_statuses(i).out_packet_count())));
     }
 
     writeStatusLog("\r\n");
@@ -220,20 +265,20 @@ void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::
 {
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(
-        packet.has_error() ?
-        tr("Ошибка запуска узла %1").arg(node->info()) :
-        tr("Узел %1 успешно запущен").arg(node->info())
-    );
+                packet.has_error() ?
+                    tr("Ошибка запуска узла %1").arg(node->info()) :
+                    tr("Узел %1 успешно запущен").arg(node->info())
+                    );
 }
 
 void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(
-        packet.has_error() ?
-        tr("Ошибка останова узла %1").arg(node->info()) :
-        tr("Узел %1 успешно остановлен").arg(node->info())
-    );
+                packet.has_error() ?
+                    tr("Ошибка останова узла %1").arg(node->info()) :
+                    tr("Узел %1 успешно остановлен").arg(node->info())
+                    );
 }
 
 void MainWindow::onConnected()
@@ -287,7 +332,7 @@ void MainWindow::showMessage()
     reply = QMessageBox::question(this,
                                   "Смена конфигурации",
                                   "Старая конфигурация будет остановлена и загружена новая, вы уверены?",
-                                QMessageBox::Yes|QMessageBox::No);
+                                  QMessageBox::Yes|QMessageBox::No);
     if (reply == QMessageBox::Yes)
     {
         deploy();
