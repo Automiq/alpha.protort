@@ -16,6 +16,7 @@
 #include <QObject>
 #include <QPushButton>
 #include <QWidget>
+#include <QSettings>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -23,11 +24,36 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     setupWindowConfigurations();
+    load_session();
 }
 
 MainWindow::~MainWindow()
 {
+    save_session();
     delete ui;
+}
+
+void MainWindow::save_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    session.setValue("tabs_count",ui->tabWidget->count());
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        session.setValue(QString(i), document(i)->filePath());
+    session.endGroup();
+}
+
+void MainWindow::load_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    int tabs_count = session.value("tabs_count", -1).toInt();
+    for (int i = 0; i < tabs_count; ++i)
+    {
+        QString fileName = session.value(QString(i), "").toString();
+        load_file(fileName);
+    }
+    session.endGroup();
 }
 
 void MainWindow::on_save_file_triggered()
@@ -55,6 +81,11 @@ void MainWindow::on_load_file_triggered()
     if (fileName.isEmpty())
         return;
 
+    load_file(fileName);
+}
+
+void MainWindow::load_file(const QString& fileName)
+{
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
     {
@@ -215,31 +246,7 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_request_triggered()
 {
-    ui->text_browser_status->clear();
-    for (int i = 0; i < m_statOut.size(); ++i)
-    {
-        ui->text_browser_status->insertPlainText("<Название узла - " +
-                                                 QString::fromStdString(m_statOut[i].node_name())
-                                                 + ">\n<Время работы - " +
-                                                 QString::number(m_statOut[i].uptime()) + ">\n<Количество принятых пакетов - "
-                                                 + QString::number(m_statOut[i].in_packets_count()) +
-                                                 " (" + QString::number(m_statOut[i].in_bytes_count())
-                                                 + " б)" + ">\n<Количество переданных пакетов - "
-                                                 + QString::number(m_statOut[i].out_packets_count()) + " ("
-                                                 + QString::number(m_statOut[i].out_bytes_count())
-                                                 + " б)"+ ">\n\n<Информация о компонентах>\n\n");
-        for (int j = 0; j < m_statOut[i].component_statuses_size(); ++j)
-        {
-            ui->text_browser_status->insertPlainText("<Название компонента - " +
-                                                     QString::fromStdString(m_statOut[i].component_statuses(i).name()) +
-                                                     "\n<Количество принятых пакетов - "
-                                                     + QString::number(m_statOut[i].component_statuses(i).in_packet_count()) +
-                                                     ">\n<Количество переданных пакетов - " +
-                                                     QString::number(m_statOut[i].component_statuses(i).out_packet_count()) +
-                                                     ">\n\n");
-        }
-        ui->text_browser_status->insertPlainText("\n\n");
-    }
+
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const

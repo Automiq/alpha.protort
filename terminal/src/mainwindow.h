@@ -74,6 +74,7 @@ private:
     QString m_app;
     QString m_deploySchema;
     std::vector<StatusResponse> m_statOut;
+    QAbstractItemModel *status;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
@@ -93,6 +94,9 @@ private:
     void resetDeployActions() const;
     void showMessage();
     void deployOk();
+    void save_session();
+    void load_session();
+    void load_file(const QString& fileName);
     Document* document(int index);
 };
 

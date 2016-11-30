@@ -136,7 +136,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QTextBrowser" name="text_browser_status"/>
+      <widget class="QTreeView" name="treeView"/>
      </item>
     </layout>
    </widget>
