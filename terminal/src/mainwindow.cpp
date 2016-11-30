@@ -81,7 +81,7 @@ void MainWindow::load_session()
     {
         session.setArrayIndex(i);
         QString fileName = session.value("filePath").toString();
-            load_file(fileName);
+        load_file(fileName);
     }
     session.endArray();
 }
@@ -108,24 +108,24 @@ void MainWindow::load_file(const QString& fileName)
     if (fileName.isEmpty())
         return;
 
-    if (QFile(fileName).exists())
-    {
-        QFile file(fileName);
-        if (!file.open(QIODevice::ReadOnly))
-        {
-            QMessageBox::warning(this,
-                                 tr("Ошибка"),
-                                 tr("Ошибка открытия файла\n%1").arg(fileName));
-            return;
-        }
+    if (!QFile(fileName).exists())
+        return;
 
-        Document *doc = new Document();
-        doc->setText(file.readAll());
-        doc->setFileName(fileName);
-        addDocument(doc);
-        setIcon(doc);
-        addConfig(doc);
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this,
+                             tr("Ошибка"),
+                             tr("Ошибка открытия файла\n%1").arg(fileName));
+        return;
     }
+
+    Document *doc = new Document();
+    doc->setText(file.readAll());
+    doc->setFileName(fileName);
+    addDocument(doc);
+    setIcon(doc);
+    addConfig(doc);
 }
 
 void MainWindow::on_load_file_triggered()
