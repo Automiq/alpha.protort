@@ -17,13 +17,24 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QSettings>
+#include <boost/make_shared.hpp>
+
+#include "mainwindow.h"
+#include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    service_(),
+    work_(new boost::asio::io_service::work(service_)),
+    serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
+    qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
+    qRegisterMetaType<boost::system::error_code>();
+
     ui->setupUi(this);
-    setupWindowConfigurations();
+    createConfigurationToolBar();
     load_session();
 }
 
@@ -45,6 +56,10 @@ MainWindow::~MainWindow()
             }
         }
     save_session();
+    work_.reset();
+    service_.stop();
+    if (serviceThread_.joinable())
+        serviceThread_.join();
     delete ui;
 }
 
@@ -201,6 +216,87 @@ void MainWindow::showLog() const
 {
 }
 
+void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
+        tr("Конфигурация успешно развернута на узел %1").arg(node->info())
+    );
+}
+
+void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+
+    if (packet.has_error())
+    {
+        writeLog(tr("Ошибка получения статуса узла %1").arg(node->info()));
+        return;
+    }
+
+    auto status = packet.response().status();
+
+    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
+    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
+    writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
+                      .arg(QString::number(status.in_packets_count()))
+                      .arg(QString::number(status.in_bytes_count())));
+    writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
+                      .arg(QString::number(status.out_packets_count()))
+                      .arg(QString::number(status.out_bytes_count())));
+
+    writeStatusLog(tr("<Информация о компонентах>"));
+    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    {
+        auto component = status.component_statuses(i);
+
+        writeStatusLog(tr("\t<Название компонента - %1>")
+                          .arg(QString::fromStdString(component.name())));
+        writeStatusLog(tr("\t\t<Количество принятых пакетов - %1>")
+                          .arg(QString::number(component.in_packet_count())));
+        writeStatusLog(tr("\t\t<Количество переданных пакетов - %1>")
+                          .arg(QString::number(status.component_statuses(i).out_packet_count())));
+    }
+
+    writeStatusLog("\r\n");
+}
+
+void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка запуска узла %1").arg(node->info()) :
+        tr("Узел %1 успешно запущен").arg(node->info())
+    );
+}
+
+void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+        packet.has_error() ?
+        tr("Ошибка останова узла %1").arg(node->info()) :
+        tr("Узел %1 успешно остановлен").arg(node->info())
+    );
+}
+
+void MainWindow::onConnected()
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
+}
+
+void MainWindow::onConnectionFailed(const boost::system::error_code& err)
+{
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(tr("Невозможно подключиться к %1: %2")
+             .arg(node->info())
+             .arg(QString::fromStdString(err.message())));
+}
+
 void MainWindow::setTabName(int index, const QString &name)
 {
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
@@ -211,6 +307,12 @@ void MainWindow::on_start_triggered()
     ui->deploy->setDisabled(true);
     ui->start->setDisabled(true);
     ui->stop->setEnabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload;
+    payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_start(payload);
 }
 
 void MainWindow::on_stop_triggered()
@@ -218,6 +320,12 @@ void MainWindow::on_stop_triggered()
     if(! ui->deploy->isEnabled())
         ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
+
+    alpha::protort::protocol::Packet_Payload payload;
+    payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_stop(payload);
 }
 
 void MainWindow::showMessage()
@@ -229,15 +337,18 @@ void MainWindow::showMessage()
                                 QMessageBox::Yes|QMessageBox::No);
     if (reply == QMessageBox::Yes)
     {
-        deployOk();
+        deploy();
     }
 }
 
-void MainWindow::deployOk()
+void MainWindow::deploy()
 {
     resetDeployActions();
     ui->deploy->setDisabled(true);
     ui->status_request->setEnabled(true);
+
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_deploy(deploy_config_);
 }
 
 void MainWindow::on_deploy_triggered()
@@ -245,7 +356,7 @@ void MainWindow::on_deploy_triggered()
     if(ui->start->isEnabled() || ui->stop->isEnabled())
         showMessage();
     else
-        deployOk();
+        deploy();
 }
 
 void MainWindow::on_close_file_triggered()
@@ -263,7 +374,11 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_request_triggered()
 {
+    alpha::protort::protocol::Packet_Payload status;
+    status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
+    for (auto &remoteNode: remoteNodes_)
+        remoteNode->async_status(status);
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
@@ -300,6 +415,41 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
             break;
     }
     return result;
+}
+
+void MainWindow::createRemoteNodes()
+{
+    {
+        alpha::protort::parser::configuration config_;
+        config_.parse_app(m_app.toStdString());
+        config_.parse_deploy(m_deploySchema.toStdString());
+
+        deploy_config_.parse_deploy(config_);
+    }
+
+    for (auto &remoteNode : remoteNodes_)
+        remoteNode->shutdown();
+    remoteNodes_.clear();
+
+    for (auto node : deploy_config_.map_node)
+    {
+        auto remoteNode = boost::make_shared<RemoteNode>(node.second);
+        remoteNodes_.append(remoteNode);
+
+        connectRemoteNodeSignals(remoteNode.get());
+
+        remoteNode->init(service_);
+    }
+}
+
+void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
+{
+    connect(node, &RemoteNode::connected, this, &MainWindow::onConnected);
+    connect(node, &RemoteNode::connectionFailed, this, &MainWindow::onConnectionFailed);
+    connect(node, &RemoteNode::deployConfigRequestFinished, this, &MainWindow::onDeployConfigRequestFinished);
+    connect(node, &RemoteNode::statusRequestFinished, this, &MainWindow::onStatusRequestFinished);
+    connect(node, &RemoteNode::startRequestFinished, this, &MainWindow::onStartRequestFinished);
+    connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
 }
 
 void MainWindow::saveDocument(int index)
@@ -361,7 +511,7 @@ void MainWindow::addWidgetOnBar(QWidget* newWidget) const
     ui->mainToolBar->addWidget(newWidget);
 }
 
-void MainWindow::setupWindowConfigurations()
+void MainWindow::createConfigurationToolBar()
 {
     m_deploys = new QComboBox();
     m_apps = new QComboBox();
@@ -397,7 +547,8 @@ void MainWindow::button_clickedSetup()
 {
     setupConfigMembers();
     setActiveConfig();
-    activateDeploy();
+    //activateDeploy();
+    createRemoteNodes();
 }
 
 void MainWindow::setActiveConfig()
@@ -425,4 +576,14 @@ void MainWindow::setupActiveIcon(const int &index)
 Document* MainWindow::document(int index)
 {
     return dynamic_cast<Document*> (ui->tabWidget->widget(index));
+}
+
+void MainWindow::writeLog(const QString &message)
+{
+    ui->deployLog->append(message);
+}
+
+void MainWindow::writeStatusLog(const QString &message)
+{
+    ui->statusLog->append(message);
 }

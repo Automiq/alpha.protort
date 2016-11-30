@@ -8,22 +8,32 @@
 #include <QPushButton>
 #include <QSyntaxHighlighter>
 
-#include "configdialog.h"
+#include <QMessageBox>
+#include <QList>
+#include <vector>
+#include <boost/thread.hpp>
+#include <QThread>
+#include <boost/asio.hpp>
+
 #include "document.h"
 #include "deploy.pb.h"
 #include "configdialog.h"
+#include "configdialog.h"
+#include "remotenode.h"
+#include "deployconfiguration.h"
 
 class QTextEdit;
 
 namespace Ui {
+
 class MainWindow;
 }
-
-using namespace alpha::protort::protocol::deploy;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+
+    using RemoteNodePtr = boost::shared_ptr<RemoteNode>;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -65,6 +75,14 @@ private slots:
 public slots:
     void showLog() const;
 
+private slots:
+    void onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& status);
+    void onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onConnected();
+    void onConnectionFailed(const boost::system::error_code&);
+
 private:
     Ui::MainWindow *ui;
     ConfigDialog *dlg;
@@ -73,8 +91,6 @@ private:
     QPushButton *m_setupConfig;
     QString m_app;
     QString m_deploySchema;
-    std::vector<StatusResponse> m_statOut;
-    QAbstractItemModel *status;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
@@ -82,7 +98,7 @@ private:
     void addDocument(Document *doc);
     void addWidgetOnBar(QWidget* newWidget) const;
     void setIcon(Document *doc);
-    void setupWindowConfigurations();
+    void createConfigurationToolBar();
     void addConfig(Document *doc);
     void delConfig(Document *doc);
     void deleteConfig(QComboBox *ptr, const QString &name);
@@ -97,7 +113,24 @@ private:
     void save_session();
     void load_session();
     void load_file(const QString& fileName);
+    void deploy();
+    void createRemoteNodes();
+    void connectRemoteNodeSignals(RemoteNode* node);
+
     Document* document(int index);
+
+    void writeLog(const QString& message);
+    void writeStatusLog(const QString& message);
+
+    boost::asio::io_service service_;
+
+    boost::scoped_ptr<boost::asio::io_service::work> work_;
+
+    QList<RemoteNodePtr> remoteNodes_;
+
+    deploy_configuration deploy_config_;
+
+    boost::thread serviceThread_;
 };
 
 #endif // MAINWINDOW_H
