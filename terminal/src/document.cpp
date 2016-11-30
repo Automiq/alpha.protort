@@ -41,6 +41,11 @@ QString Document::filePath() const
     return m_name;
 }
 
+QString Document::fileName() const
+{
+    return QFileInfo(m_name).fileName();
+}
+
 Document::Kind Document::kind() const
 {
     QXmlStreamReader xml(toPlainText());
@@ -55,7 +60,7 @@ Document::Kind Document::kind() const
     return Kind::Unknown;
 }
 
-void Document::setFileName(const QString &fileName)
+void Document::setFilePath(const QString &fileName)
 {
     m_name = fileName;
 }

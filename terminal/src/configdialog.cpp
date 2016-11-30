@@ -15,24 +15,26 @@ ConfigDialog::~ConfigDialog()
     delete cd;
 }
 
-QString ConfigDialog::app() const
+Document *ConfigDialog::app() const
 {
-    return cd->appComboBox->currentText();
+    QTextEdit *qte_ptr = qvariant_cast<QTextEdit *>(cd->appComboBox->currentData());
+    return qobject_cast<Document *>(qte_ptr);
 }
 
-QString ConfigDialog::deploySchema() const
+Document *ConfigDialog::deploySchema() const
 {
-    return cd->deploySchemaComboBox->currentText();
+    QTextEdit *qte_ptr = qvariant_cast<QTextEdit *>(cd->deploySchemaComboBox->currentData());
+    return qobject_cast<Document *>(qte_ptr);
 }
 
-void ConfigDialog::loadApp(const QString &app)
+void ConfigDialog::loadApp(Document *doc)
 {
-    cd->appComboBox->addItem(QFileInfo(app).fileName());
+    cd->appComboBox->addItem(doc->fileName(), QVariant::fromValue(doc));
 }
 
-void ConfigDialog::loadDeploy(const QString &deploy)
+void ConfigDialog::loadDeploy(Document *doc)
 {
-    cd->deploySchemaComboBox->addItem(QFileInfo(deploy).fileName());
+    cd->deploySchemaComboBox->addItem(doc->fileName(), QVariant::fromValue(doc));
 }
 
 void ConfigDialog::on_buttonBox_accepted()

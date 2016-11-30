@@ -89,8 +89,8 @@ private:
     QComboBox *m_apps;
     QComboBox *m_deploys;
     QPushButton *m_setupConfig;
-    QString m_app;
-    QString m_deploySchema;
+    Document *m_app;
+    Document *m_deploySchema;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);

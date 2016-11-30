@@ -82,7 +82,7 @@ void MainWindow::on_load_file_triggered()
 
     Document *doc = new Document();
     doc->setText(file.readAll());
-    doc->setFileName(fileName);
+    doc->setFilePath(fileName);
     addDocument(doc);
     setIcon(doc);
     addConfig(doc);
@@ -122,13 +122,13 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(Document *doc)
 {
-    QString name = doc->filePath();
+    QString name = doc->fileName();
 
     if(doc->isApp() && (m_apps->findText(name) == -1))
-        m_apps->addItem(QFileInfo(name).fileName());
+        m_apps->addItem(name, QVariant::fromValue(doc));
 
     if(doc->isDeploy() && (m_deploys->findText(name) == -1))
-        m_deploys->addItem(QFileInfo(name).fileName());
+        m_deploys->addItem(name, QVariant::fromValue(doc));
 }
 
 void MainWindow::on_config_triggered()
@@ -140,20 +140,18 @@ void MainWindow::on_config_triggered()
         if (!doc)
             continue;
 
-        QString nname = doc->filePath();
-
         if (doc->isApp())
-            dlg.loadApp(nname);
+            dlg.loadApp(doc);
         else if (doc->isDeploy())
-            dlg.loadDeploy(nname);
+            dlg.loadDeploy(doc);
     }
 
     if (dlg.exec())
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        m_apps->setCurrentIndex(m_apps->findText(m_app));
-        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
+        m_apps->setCurrentIndex(m_apps->findText(m_app->fileName()));
+        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema->fileName()));
         setActiveConfig();
         activateDeploy();
     }
@@ -373,8 +371,8 @@ void MainWindow::createRemoteNodes()
 {
     {
         alpha::protort::parser::configuration config_;
-        config_.parse_app(m_app.toStdString());
-        config_.parse_deploy(m_deploySchema.toStdString());
+        config_.parse_app(m_app->fileName().toStdString());
+        config_.parse_deploy(m_deploySchema->fileName().toStdString());
 
         deploy_config_.parse_deploy(config_);
     }
@@ -485,8 +483,11 @@ void MainWindow::createConfigurationToolBar()
 
 void MainWindow::setupConfigMembers()
 {
-    m_app = m_apps->currentText();
-    m_deploySchema = m_deploys->currentText();
+    QTextEdit *qte_ptr_app = qvariant_cast<QTextEdit *>(m_apps->currentData());
+    m_app = qobject_cast<Document *>(qte_ptr_app);
+
+    QTextEdit *qte_ptr_deploy = qvariant_cast<QTextEdit *>(m_deploys->currentData());
+    m_deploySchema = qobject_cast<Document *>(qte_ptr_deploy);
 }
 
 void MainWindow::activateDeploy() const
