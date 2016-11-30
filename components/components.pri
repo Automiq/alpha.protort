@@ -6,5 +6,4 @@ HEADERS += \
            $$PWD/src/terminator.h \
            $$PWD/src/components.h \
            $$PWD/src/factory.h \
-           $$PWD/src/component.h \
-    $$PWD/src/convert.h
+           $$PWD/src/component.h

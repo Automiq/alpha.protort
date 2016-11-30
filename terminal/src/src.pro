@@ -20,14 +20,11 @@ LIBS += \
 SOURCES += main.cpp\
         mainwindow.cpp \
     configdialog.cpp \
-    document.cpp \
-    remotenode.cpp
+    document.cpp
 
 HEADERS  += mainwindow.h \
     configdialog.h \
-    document.h \
-    remotenode.h \
-    deployconfiguration.h
+    document.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui
@@ -43,9 +40,6 @@ include(../../boost.pri)
 
 # Линкуемся с библиотекой бинарного протокола
 include(../../protocol/protocol.pri)
-
-# Библиотека alpha.protort.components
-include(../../components/components.pri)
 
 RESOURCES += \
     images.qrc

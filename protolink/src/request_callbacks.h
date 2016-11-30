@@ -2,7 +2,6 @@
 #define REQUEST_CALLBACKS_H
 
 #include <boost/signals2.hpp>
-#include <boost/asio.hpp>
 
 #include "protocol.pb.h"
 
@@ -13,7 +12,7 @@ namespace protolink {
 class request_callbacks
 {
 public:
-    boost::signals2::signal<void(const protocol::Packet_Payload&)> on_finished;
+    boost::signals2::signal<void(protocol::Packet_Payload)> on_finished;
     boost::signals2::signal<void()> on_timeout;
     boost::signals2::signal<void()> on_abort;
 };

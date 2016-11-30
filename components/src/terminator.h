@@ -10,14 +10,9 @@ namespace components {
 class terminator : public component
 {
 public:
-    terminator(node::router<node::node>& router): component(router)
+    output_list process(port_id input_port, std::string const & payload) final override
     {
-
-    }
-
-    void process(port_id input_port, std::string const & payload) final override
-    {
-
+        return { };
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 0; }

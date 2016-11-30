@@ -7,10 +7,6 @@ SOURCES += \
     main.cpp \    
     test_components.cpp \
 
-LIBS += \
-    # Путь в рамках shadow build
-    -L$$OUT_PWD/../../../protocol/lib
-
 INCLUDEPATH += $$PWD/../../src
 
 DESTDIR = ../../bin
@@ -18,6 +14,10 @@ DESTDIR = ../../bin
 # Общие определения (требуется для LIBINFIX)
 include(../../../alpha.pri)
 
-include(../../../node/node.pri)
-
 TARGET = alpha.protort.components.autotests$$LIBINFIX
+
+# Линкуемся с boost
+include(../../../boost.pri)
+
+# Линкуемся с components
+include(../../components.pri)

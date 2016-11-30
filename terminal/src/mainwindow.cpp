@@ -16,6 +16,7 @@
 #include <QObject>
 #include <QPushButton>
 #include <QWidget>
+#include <QSettings>
 #include <boost/make_shared.hpp>
 
 #include "mainwindow.h"
@@ -33,17 +34,57 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<boost::system::error_code>();
 
     ui->setupUi(this);
-
     createConfigurationToolBar();
+    load_session();
 }
 
 MainWindow::~MainWindow()
 {
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        if (!QFile(document(i)->filePath()).exists())
+        {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this,
+                                          "Выход",
+                                          "Файл " + ui->tabWidget->tabText(i) +
+                                          " не сохранён. Сохранить?",
+                                        QMessageBox::Yes|QMessageBox::No);
+
+            if (reply == QMessageBox::Yes)
+            {
+                saveDocument(i);
+            }
+        }
+    save_session();
     work_.reset();
     service_.stop();
     if (serviceThread_.joinable())
         serviceThread_.join();
     delete ui;
+}
+
+void MainWindow::save_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    session.setValue("tabs_count",ui->tabWidget->count());
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        session.setValue(QString(i), document(i)->filePath());
+    session.endGroup();
+}
+
+void MainWindow::load_session()
+{
+    QSettings session("last_session.conf", QSettings::IniFormat);
+    session.beginGroup("files");
+    int tabs_count = session.value("tabs_count", -1).toInt();
+    for (int i = 0; i < tabs_count; ++i)
+    {
+        QString fileName = session.value(QString(i), "").toString();
+        if (QFile(fileName).exists())
+            load_file(fileName);
+    }
+    session.endGroup();
 }
 
 void MainWindow::on_save_file_triggered()
@@ -68,6 +109,12 @@ void MainWindow::on_load_file_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Открыть файл"), QString(),
                                                     tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
+
+    load_file(fileName);
+}
+
+void MainWindow::load_file(const QString& fileName)
+{
     if (fileName.isEmpty())
         return;
 
@@ -298,6 +345,7 @@ void MainWindow::deploy()
 {
     resetDeployActions();
     ui->deploy->setDisabled(true);
+    ui->status_request->setEnabled(true);
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_deploy(deploy_config_);

@@ -109,6 +109,10 @@ private:
     void setTabIco(Document *doc, const QString &srcPath) const;
     void resetDeployActions() const;
     void showMessage();
+    void deployOk();
+    void save_session();
+    void load_session();
+    void load_file(const QString& fileName);
     void deploy();
     void createRemoteNodes();
     void connectRemoteNodeSignals(RemoteNode* node);

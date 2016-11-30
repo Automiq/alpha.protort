@@ -84,7 +84,7 @@ public:
         protocol::Packet packet;
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Response);
         packet.mutable_transaction()->set_id(id);
-        packet.mutable_payload()->CopyFrom(payload);
+        packet.set_allocated_payload(&payload);
         async_send(packet.SerializeAsString());
     }
 
@@ -194,10 +194,8 @@ private:
 
         case protocol::Packet::Kind::Packet_Kind_Request:            
         {
+            // TODO
             protocol_payload response_payload = callback_.on_new_request(packet.payload());
-#ifdef _DEBUG
-            std::cout << "response packet id " << packet.transaction().id() << std::endl;
-#endif
             send_response(response_payload, packet.transaction().id());
             break;
         }
