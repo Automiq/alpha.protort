@@ -44,9 +44,8 @@ MainWindow::~MainWindow()
         {
             QMessageBox::StandardButton reply;
             reply = QMessageBox::question(this,
-                                          "Выход",
-                                          "Файл " + ui->tabWidget->tabText(i) +
-                                          " не сохранён. Сохранить?",
+                                          tr("Выход"),
+                                          tr("Файл %1 не сохранён. Сохранить?").arg(ui->tabWidget->tabText(i)),
                                           QMessageBox::Yes|QMessageBox::No);
 
             if (reply == QMessageBox::Yes)
@@ -64,25 +63,24 @@ MainWindow::~MainWindow()
 
 void MainWindow::save_session()
 {
-    QSettings session("last_session.conf", QSettings::IniFormat);
+    QSettings session("terminal.conf", QSettings::IniFormat);
     session.beginWriteArray("files");
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         session.setArrayIndex(i);
-        session.setValue(QString(i), document(i)->filePath());
+        session.setValue("filePath", document(i)->filePath());
     }
     session.endArray();
 }
 
 void MainWindow::load_session()
 {
-    QSettings session("last_session.conf", QSettings::IniFormat);
+    QSettings session("terminal.conf", QSettings::IniFormat);
     int tabs_count = session.beginReadArray("files");
     for (int i = 0; i < tabs_count; ++i)
     {
         session.setArrayIndex(i);
-        QString fileName = session.value(QString(i)).toString();
-        if (QFile(fileName).exists())
+        QString fileName = session.value("filePath").toString();
             load_file(fileName);
     }
     session.endArray();
@@ -110,21 +108,24 @@ void MainWindow::load_file(const QString& fileName)
     if (fileName.isEmpty())
         return;
 
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly))
+    if (QFile(fileName).exists())
     {
-        QMessageBox::warning(this,
-                             tr("Ошибка"),
-                             tr("Ошибка открытия файла\n%1").arg(fileName));
-        return;
-    }
+        QFile file(fileName);
+        if (!file.open(QIODevice::ReadOnly))
+        {
+            QMessageBox::warning(this,
+                                 tr("Ошибка"),
+                                 tr("Ошибка открытия файла\n%1").arg(fileName));
+            return;
+        }
 
-    Document *doc = new Document();
-    doc->setText(file.readAll());
-    doc->setFileName(fileName);
-    addDocument(doc);
-    setIcon(doc);
-    addConfig(doc);
+        Document *doc = new Document();
+        doc->setText(file.readAll());
+        doc->setFileName(fileName);
+        addDocument(doc);
+        setIcon(doc);
+        addConfig(doc);
+    }
 }
 
 void MainWindow::on_load_file_triggered()
