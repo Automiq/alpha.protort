@@ -29,6 +29,21 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        if (!QFile(document(i)->filePath()).exists())
+        {
+            QMessageBox::StandardButton reply;
+            reply = QMessageBox::question(this,
+                                          "Выход",
+                                          "Файл " + ui->tabWidget->tabText(i) +
+                                          " не сохранён. Сохранить?",
+                                        QMessageBox::Yes|QMessageBox::No);
+
+            if (reply == QMessageBox::Yes)
+            {
+                saveDocument(i);
+            }
+        }
     save_session();
     delete ui;
 }
@@ -51,7 +66,8 @@ void MainWindow::load_session()
     for (int i = 0; i < tabs_count; ++i)
     {
         QString fileName = session.value(QString(i), "").toString();
-        load_file(fileName);
+        if (QFile(fileName).exists())
+            load_file(fileName);
     }
     session.endGroup();
 }
@@ -78,14 +94,15 @@ void MainWindow::on_load_file_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("Открыть файл"), QString(),
                                                     tr("Описание приложения/Схема развёртывания (*.xml);; Все типы (*)"));
-    if (fileName.isEmpty())
-        return;
 
     load_file(fileName);
 }
 
 void MainWindow::load_file(const QString& fileName)
 {
+    if (fileName.isEmpty())
+        return;
+
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly))
     {
