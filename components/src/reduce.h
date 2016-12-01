@@ -3,11 +3,16 @@
 
 #include "component.h"
 #include <algorithm>
+#include <numeric>
 
 namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ *\brief Шаблонный клас reduce
+ * Принимает сообшения со всех портов
+ */
 template <data (*T)(std::vector<data>&)>
 class reduce : public component
 {
