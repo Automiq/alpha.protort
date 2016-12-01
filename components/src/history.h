@@ -8,6 +8,10 @@ namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ * \brief Компонент "history"
+ * ведёт запись сообщений, принятых на свои порты
+ */
 class history : public component
 {
 public:

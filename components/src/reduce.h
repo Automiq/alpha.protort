@@ -64,6 +64,9 @@ static data do_max(std::vector<data> &v)
                             {return a.val < b.val;});
 }
 
+//!\brief Вычисляет максимальное значение для пакетов всех портов
+//! метка времени у отправляемого пакета совпадает с временем в
+//! во входящем пакете с максимальным значением
 using max = reduce<do_max>;
 
 static data do_min(std::vector<data> &v)
@@ -73,6 +76,9 @@ static data do_min(std::vector<data> &v)
                             {return a.val < b.val;});
 }
 
+//!\brief Вычисляет минимальное значение для пакетов всех портов
+//! метка времени у отправляемого пакета совпадает с временем в
+//! во входящем пакете с минимальным значением
 using min = reduce<do_min>;
 
 static data do_average(std::vector<data> &v)
@@ -83,6 +89,9 @@ static data do_average(std::vector<data> &v)
                                {return {a.val + b.val, a.time};});
 }
 
+//!\brief Вычисляет среднее значение для пакетов всех портов
+//! метка времени у отправляемого пакета равна моменту вычисления
+//! среднего значения
 using average = reduce<do_average>;
 
 } // namespace components

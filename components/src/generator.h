@@ -13,6 +13,9 @@ namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ * \brief Генератор, генерирует поток случайных чисел
+ */
 class generator : public component
 {
 public:
@@ -38,7 +41,6 @@ public:
         if (!started_)
             return;
 
-        // TODO generate meaningful data
         data d;
         d.val = dis_(gen_);
         d.time = std::time(NULL);

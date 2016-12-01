@@ -14,6 +14,10 @@ namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ * \brief Calc- принимает сообщение, обрабатывает и передаёт дальше
+ * (на данный момент просто умножает значение на 100)
+ */
 class calc: public component
 {
 public:
