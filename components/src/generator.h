@@ -60,13 +60,6 @@ public:
         generate_timer_.cancel();
     }
 private:
-
-    float rand(int min,int max,int chars_after_point)
-    {
-        int div = std::pow(10,chars_after_point);
-        return min + (std::rand() % ((max - min)*div)) / float(div);;
-    }
-
     std::random_device rd_;
     std::mt19937 gen_;
     std::uniform_real_distribution<> dis_;
