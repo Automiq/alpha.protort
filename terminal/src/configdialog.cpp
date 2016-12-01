@@ -1,5 +1,6 @@
 #include "configdialog.h"
 #include "ui_configdialog.h"
+#include "mainwindow.h"
 #include <QFileInfo>
 #include <QDialogButtonBox>
 
@@ -17,14 +18,12 @@ ConfigDialog::~ConfigDialog()
 
 Document *ConfigDialog::app() const
 {
-    QTextEdit *qte_ptr = qvariant_cast<QTextEdit *>(cd->appComboBox->currentData());
-    return qobject_cast<Document *>(qte_ptr);
+    return MainWindow::current_doc(cd->appComboBox);
 }
 
 Document *ConfigDialog::deploySchema() const
 {
-    QTextEdit *qte_ptr = qvariant_cast<QTextEdit *>(cd->deploySchemaComboBox->currentData());
-    return qobject_cast<Document *>(qte_ptr);
+    return MainWindow::current_doc(cd->deploySchemaComboBox);
 }
 
 void ConfigDialog::loadApp(Document *doc)
@@ -39,4 +38,9 @@ void ConfigDialog::loadDeploy(Document *doc)
 
 void ConfigDialog::on_buttonBox_accepted()
 {
+}
+
+bool ConfigDialog::ready()
+{
+    return cd->appComboBox->count() > 0 && cd->deploySchemaComboBox->count() > 0;
 }

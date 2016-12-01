@@ -146,12 +146,12 @@ void MainWindow::on_config_triggered()
             dlg.loadDeploy(doc);
     }
 
-    if (dlg.exec())
+    if (dlg.exec() && dlg.ready())
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        m_apps->setCurrentIndex(m_apps->findText(m_app->fileName()));
-        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema->fileName()));
+        set_current_index(m_apps, m_app);
+        set_current_index(m_deploys, m_deploySchema);
         setActiveConfig();
         activateDeploy();
     }
@@ -483,11 +483,8 @@ void MainWindow::createConfigurationToolBar()
 
 void MainWindow::setupConfigMembers()
 {
-    QTextEdit *qte_ptr_app = qvariant_cast<QTextEdit *>(m_apps->currentData());
-    m_app = qobject_cast<Document *>(qte_ptr_app);
-
-    QTextEdit *qte_ptr_deploy = qvariant_cast<QTextEdit *>(m_deploys->currentData());
-    m_deploySchema = qobject_cast<Document *>(qte_ptr_deploy);
+    m_app = current_doc(m_apps);
+    m_deploySchema = current_doc(m_deploys);
 }
 
 void MainWindow::activateDeploy() const
@@ -498,10 +495,12 @@ void MainWindow::activateDeploy() const
 
 void MainWindow::button_clickedSetup()
 {
-    setupConfigMembers();
-    setActiveConfig();
-    //activateDeploy();
-    createRemoteNodes();
+    if (m_apps->count()> 0 && m_deploys->count() > 0) {
+        setupConfigMembers();
+        setActiveConfig();
+        //activateDeploy();
+        createRemoteNodes();
+    }
 }
 
 void MainWindow::setActiveConfig()
@@ -539,4 +538,14 @@ void MainWindow::writeLog(const QString &message)
 void MainWindow::writeStatusLog(const QString &message)
 {
     ui->statusLog->append(message);
+}
+
+Document *MainWindow::current_doc(QComboBox *combobox)
+{
+    return qobject_cast<Document *>(qvariant_cast<QTextEdit *>(combobox->currentData()));
+}
+
+void MainWindow::set_current_index(QComboBox * combobox, Document *doc)
+{
+    combobox->setCurrentIndex(combobox->findText(doc->fileName()));
 }
