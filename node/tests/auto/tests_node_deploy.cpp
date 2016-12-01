@@ -28,7 +28,6 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
 
     node n(node_settings_);
 
-
     alpha::protort::parser::configuration cnfg;
     cnfg.parse_app("../tests/auto/testdata/app_test.xml");
     cnfg.parse_deploy("../tests/auto/testdata/deploy_test.xml");

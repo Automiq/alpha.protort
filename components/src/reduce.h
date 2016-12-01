@@ -2,6 +2,7 @@
 #define REDUCE_H
 
 #include "component.h"
+#include <algorithm>
 
 namespace alpha {
 namespace protort {
@@ -30,10 +31,7 @@ public:
             out.ports.push_back(0);
             res.push_back(out);
             router_.do_route(comp_inst_,res);
-            return;
-        }else
-            return;
-
+        }
     }
 
     port_id in_port_count() const final override { return max_in_port_; }
@@ -43,15 +41,14 @@ protected:
 
     bool is_all_relevant()
     {
-        for(bool rel: is_relevant_)
-            if (!rel) return false;
-        return true;
+        return std::all_of(is_relevant_.begin(),is_relevant_.end(),
+                           [](bool p) -> bool
+                           { return p;});
     }
 
     void make_all_unrelevant()
     {
-        for(bool &&rel: is_relevant_)
-            rel=false;
+        std::fill(is_relevant_.begin(),is_relevant_.end(),false);
     }
 
     port_id max_in_port_ = 3;
@@ -62,33 +59,28 @@ protected:
 
 static data do_max(std::vector<data> &v)
 {
-    data max = v[0];
-    for(data &d: v)
-        if(d.val > max.val) max = d;
-    return max;
+    return *std::max_element(v.begin(),v.end(),
+                            [](data a, data b) -> bool
+                            {return a.val < b.val;});
 }
 
 using max = reduce<do_max>;
 
 static data do_min(std::vector<data> &v)
 {
-    data min = v[0];
-    for(data &d: v)
-        if(d.val < min.val) min = d;
-    return min;
+    return *std::min_element(v.begin(),v.end(),
+                            [](data a, data b) -> bool
+                            {return a.val < b.val;});
 }
 
 using min = reduce<do_min>;
 
 static data do_average(std::vector<data> &v)
 {
-    float sum;
-    data res;
-    for(data &d: v)
-        sum += d.val;
-    res.val = sum / v.size();
-    res.time = std::time(NULL);
-    return res;
+    return std::accumulate(v.begin(),v.end(),
+                           data({0,std::time(NULL)}),
+                           [](data a, data b) -> data
+                               {return {a.val + b.val, a.time};});
 }
 
 using average = reduce<do_average>;

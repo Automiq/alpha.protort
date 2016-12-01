@@ -25,8 +25,6 @@ public:
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 0; }
-    void start() final override { }
-    void stop() final override { }
 private:
     std::fstream f_;
 };

@@ -19,8 +19,6 @@ BOOST_AUTO_TEST_CASE(test_generator)
 //    BOOST_CHECK_EQUAL(0, result[0].ports[0]);
 }
 
-
-
 BOOST_AUTO_TEST_CASE(test_retranslator)
 {
     boost::asio::io_service service;

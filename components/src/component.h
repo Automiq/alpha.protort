@@ -35,14 +35,14 @@ struct data{
     std::time_t time; //метка времени
 
     void unpack(std::string const & str){
-        std::istringstream i(str);
-        i >> this->val >> this->time;
+        const data *d = reinterpret_cast<const data*> (str.data());
+        val = d->val;
+        time = d->time;
     }
 
     std::string pack(){
-        std::ostringstream o;
-        o << ' ' << this->val << ' ' << this->time;
-        return o.str();
+        std::string s(reinterpret_cast<char*>(this),sizeof(data));
+        return s;
     }
 };
 
