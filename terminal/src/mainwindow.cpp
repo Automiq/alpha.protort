@@ -547,5 +547,5 @@ Document *MainWindow::currentDocument(QComboBox *combobox)
 
 void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
 {
-    combobox->setCurrentIndex(combobox->findText(doc->fileName()));
+    combobox->setCurrentIndex(combobox->findData(QVariant::fromValue(doc)));
 }
