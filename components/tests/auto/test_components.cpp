@@ -28,6 +28,7 @@ BOOST_AUTO_TEST_CASE(test_retranslator)
     BOOST_CHECK_EQUAL(2, retr.in_port_count());
     BOOST_CHECK_EQUAL(1, retr.in_packet_count());
 }
+
 BOOST_AUTO_TEST_SUITE_END()
 
 } // namespace tests

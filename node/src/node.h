@@ -59,7 +59,7 @@ public:
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
-                     default_port));
+                     settings_.configuration_port));
         service_.run();
     }
 

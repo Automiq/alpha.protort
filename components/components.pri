@@ -7,4 +7,7 @@ HEADERS += \
            $$PWD/src/components.h \
            $$PWD/src/factory.h \
            $$PWD/src/component.h \
-    $$PWD/src/convert.h
+           $$PWD/src/reduce.h \
+           $$PWD/src/calc.h \
+           $$PWD/src/history.h \
+           $$PWD/src/convert.h

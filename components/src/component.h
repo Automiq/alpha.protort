@@ -4,6 +4,8 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <ctime>
+#include <sstream>
 
 // node, router forward declaration
 namespace alpha {
@@ -26,6 +28,28 @@ struct output
 {
     std::string payload;
     port_list ports;
+};
+
+/*!
+ * \brief data - структура для передачи сообщений
+ */
+struct data
+{
+    float val; //значение, которое генерирует генератор
+    std::time_t time; //метка времени
+
+    //!\brief распаковывает строку и инициализирует this
+    void unpack(std::string const & str){
+        const data *d = reinterpret_cast<const data*> (str.data());
+        val = d->val;
+        time = d->time;
+    }
+
+    //!\brief запаковывает данные в строку
+    std::string pack(){
+        std::string s(reinterpret_cast<char*>(this),sizeof(data));
+        return s;
+    }
 };
 
 using output_list = std::vector<output>;
