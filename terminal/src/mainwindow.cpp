@@ -150,8 +150,8 @@ void MainWindow::on_config_triggered()
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        set_current_index(m_apps, m_app);
-        set_current_index(m_deploys, m_deploySchema);
+        setCurrentDocument(m_apps, m_app);
+        setCurrentDocument(m_deploys, m_deploySchema);
         setActiveConfig();
         activateDeploy();
     }
@@ -371,8 +371,8 @@ void MainWindow::createRemoteNodes()
 {
     {
         alpha::protort::parser::configuration config_;
-        config_.parse_app(m_app->fileName().toStdString());
-        config_.parse_deploy(m_deploySchema->fileName().toStdString());
+        config_.parse_app(m_app->filePath().toStdString());
+        config_.parse_deploy(m_deploySchema->filePath().toStdString());
 
         deploy_config_.parse_deploy(config_);
     }
@@ -483,8 +483,8 @@ void MainWindow::createConfigurationToolBar()
 
 void MainWindow::setupConfigMembers()
 {
-    m_app = current_doc(m_apps);
-    m_deploySchema = current_doc(m_deploys);
+    m_app = currentDocument(m_apps);
+    m_deploySchema = currentDocument(m_deploys);
 }
 
 void MainWindow::activateDeploy() const
@@ -540,12 +540,12 @@ void MainWindow::writeStatusLog(const QString &message)
     ui->statusLog->append(message);
 }
 
-Document *MainWindow::current_doc(QComboBox *combobox)
+Document *MainWindow::currentDocument(QComboBox *combobox)
 {
     return qobject_cast<Document *>(qvariant_cast<QTextEdit *>(combobox->currentData()));
 }
 
-void MainWindow::set_current_index(QComboBox * combobox, Document *doc)
+void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
 {
     combobox->setCurrentIndex(combobox->findText(doc->fileName()));
 }

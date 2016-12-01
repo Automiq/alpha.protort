@@ -41,8 +41,8 @@ public:
     ~MainWindow();
 
     void setTabName(int index, const QString &name);
-    static Document *current_doc(QComboBox *combobox);
-    static void set_current_index(QComboBox * combobox, Document *doc);
+    static Document *currentDocument(QComboBox *combobox);
+    static void setCurrentDocument(QComboBox * combobox, Document *doc);
 
 public slots:
     void button_clickedSetup();

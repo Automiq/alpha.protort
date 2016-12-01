@@ -24,7 +24,7 @@ public:
 
     void loadApp(Document *doc);
     void loadDeploy(Document *doc);
-    bool ready();
+    bool ready() const;
 
 private slots:
     void on_buttonBox_accepted();

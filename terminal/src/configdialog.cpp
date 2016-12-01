@@ -18,12 +18,12 @@ ConfigDialog::~ConfigDialog()
 
 Document *ConfigDialog::app() const
 {
-    return MainWindow::current_doc(cd->appComboBox);
+    return MainWindow::currentDocument(cd->appComboBox);
 }
 
 Document *ConfigDialog::deploySchema() const
 {
-    return MainWindow::current_doc(cd->deploySchemaComboBox);
+    return MainWindow::currentDocument(cd->deploySchemaComboBox);
 }
 
 void ConfigDialog::loadApp(Document *doc)
@@ -40,7 +40,7 @@ void ConfigDialog::on_buttonBox_accepted()
 {
 }
 
-bool ConfigDialog::ready()
+bool ConfigDialog::ready() const
 {
     return cd->appComboBox->count() > 0 && cd->deploySchemaComboBox->count() > 0;
 }
