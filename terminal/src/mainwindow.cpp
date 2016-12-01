@@ -122,7 +122,7 @@ void MainWindow::load_file(const QString& fileName)
 
     Document *doc = new Document();
     doc->setText(file.readAll());
-    doc->setFileName(fileName);
+    doc->setFilePath(fileName);
     addDocument(doc);
     setIcon(doc);
     addConfig(doc);
@@ -170,13 +170,13 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(Document *doc)
 {
-    QString name = doc->filePath();
+    QString name = doc->fileName();
 
     if(doc->isApp() && (m_apps->findText(name) == -1))
-        m_apps->addItem(QFileInfo(name).fileName());
+        m_apps->addItem(name, QVariant::fromValue(doc));
 
     if(doc->isDeploy() && (m_deploys->findText(name) == -1))
-        m_deploys->addItem(QFileInfo(name).fileName());
+        m_deploys->addItem(name, QVariant::fromValue(doc));
 }
 
 void MainWindow::on_config_triggered()
@@ -188,20 +188,18 @@ void MainWindow::on_config_triggered()
         if (!doc)
             continue;
 
-        QString nname = doc->filePath();
-
         if (doc->isApp())
-            dlg.loadApp(nname);
+            dlg.loadApp(doc);
         else if (doc->isDeploy())
-            dlg.loadDeploy(nname);
+            dlg.loadDeploy(doc);
     }
 
-    if (dlg.exec())
+    if (dlg.exec() && dlg.ready())
     {
         m_app = dlg.app();
         m_deploySchema = dlg.deploySchema();
-        m_apps->setCurrentIndex(m_apps->findText(m_app));
-        m_deploys->setCurrentIndex(m_deploys->findText(m_deploySchema));
+        setCurrentDocument(m_apps, m_app);
+        setCurrentDocument(m_deploys, m_deploySchema);
         setActiveConfig();
         activateDeploy();
     }
@@ -421,8 +419,8 @@ void MainWindow::createRemoteNodes()
 {
     {
         alpha::protort::parser::configuration config_;
-        config_.parse_app(m_app.toStdString());
-        config_.parse_deploy(m_deploySchema.toStdString());
+        config_.parse_app(m_app->filePath().toStdString());
+        config_.parse_deploy(m_deploySchema->filePath().toStdString());
 
         deploy_config_.parse_deploy(config_);
     }
@@ -533,8 +531,8 @@ void MainWindow::createConfigurationToolBar()
 
 void MainWindow::setupConfigMembers()
 {
-    m_app = m_apps->currentText();
-    m_deploySchema = m_deploys->currentText();
+    m_app = currentDocument(m_apps);
+    m_deploySchema = currentDocument(m_deploys);
 }
 
 void MainWindow::activateDeploy() const
@@ -545,10 +543,12 @@ void MainWindow::activateDeploy() const
 
 void MainWindow::button_clickedSetup()
 {
-    setupConfigMembers();
-    setActiveConfig();
-    //activateDeploy();
-    createRemoteNodes();
+    if (m_apps->count()> 0 && m_deploys->count() > 0) {
+        setupConfigMembers();
+        setActiveConfig();
+        //activateDeploy();
+        createRemoteNodes();
+    }
 }
 
 void MainWindow::setActiveConfig()
@@ -586,4 +586,14 @@ void MainWindow::writeLog(const QString &message)
 void MainWindow::writeStatusLog(const QString &message)
 {
     ui->statusLog->append(message);
+}
+
+Document *MainWindow::currentDocument(QComboBox *combobox)
+{
+    return qobject_cast<Document *>(qvariant_cast<QTextEdit *>(combobox->currentData()));
+}
+
+void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
+{
+    combobox->setCurrentIndex(combobox->findData(QVariant::fromValue(doc)));
 }

@@ -41,6 +41,8 @@ public:
     ~MainWindow();
 
     void setTabName(int index, const QString &name);
+    static Document *currentDocument(QComboBox *combobox);
+    static void setCurrentDocument(QComboBox * combobox, Document *doc);
 
 public slots:
     void button_clickedSetup();
@@ -89,8 +91,8 @@ private:
     QComboBox *m_apps;
     QComboBox *m_deploys;
     QPushButton *m_setupConfig;
-    QString m_app;
-    QString m_deploySchema;
+    Document *m_app = nullptr;
+    Document *m_deploySchema = nullptr;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);

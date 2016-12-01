@@ -1,5 +1,6 @@
 #include "configdialog.h"
 #include "ui_configdialog.h"
+#include "mainwindow.h"
 #include <QFileInfo>
 #include <QDialogButtonBox>
 
@@ -15,26 +16,31 @@ ConfigDialog::~ConfigDialog()
     delete cd;
 }
 
-QString ConfigDialog::app() const
+Document *ConfigDialog::app() const
 {
-    return cd->appComboBox->currentText();
+    return MainWindow::currentDocument(cd->appComboBox);
 }
 
-QString ConfigDialog::deploySchema() const
+Document *ConfigDialog::deploySchema() const
 {
-    return cd->deploySchemaComboBox->currentText();
+    return MainWindow::currentDocument(cd->deploySchemaComboBox);
 }
 
-void ConfigDialog::loadApp(const QString &app)
+void ConfigDialog::loadApp(Document *doc)
 {
-    cd->appComboBox->addItem(QFileInfo(app).fileName());
+    cd->appComboBox->addItem(doc->fileName(), QVariant::fromValue(doc));
 }
 
-void ConfigDialog::loadDeploy(const QString &deploy)
+void ConfigDialog::loadDeploy(Document *doc)
 {
-    cd->deploySchemaComboBox->addItem(QFileInfo(deploy).fileName());
+    cd->deploySchemaComboBox->addItem(doc->fileName(), QVariant::fromValue(doc));
 }
 
 void ConfigDialog::on_buttonBox_accepted()
 {
+}
+
+bool ConfigDialog::ready() const
+{
+    return cd->appComboBox->count() > 0 && cd->deploySchemaComboBox->count() > 0;
 }

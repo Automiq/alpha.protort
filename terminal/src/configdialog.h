@@ -3,7 +3,9 @@
 
 #include <QDialog>
 #include <QDialogButtonBox>
+#include <QComboBox>
 #include "document.h"
+
 
 namespace Ui {
 class ConfigDialog;
@@ -17,11 +19,12 @@ public:
     explicit ConfigDialog(QWidget *parent = 0);
     ~ConfigDialog();
 
-    QString app() const;
-    QString deploySchema() const;
+    Document *app() const;
+    Document *deploySchema() const;
 
-    void loadApp(const QString &app);
-    void loadDeploy(const QString &deploy);
+    void loadApp(Document *doc);
+    void loadDeploy(Document *doc);
+    bool ready() const;
 
 private slots:
     void on_buttonBox_accepted();

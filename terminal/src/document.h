@@ -27,8 +27,9 @@ public:
     bool save();
 
     QString filePath() const;
+    QString fileName() const;
     Kind kind() const;
-    void setFileName(const QString &filePath);
+    void setFilePath(const QString &filePath);
     bool isApp() const;
     bool isDeploy() const;
     bool isUnknown() const;
