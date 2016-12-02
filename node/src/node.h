@@ -24,8 +24,6 @@ namespace node {
 
 using namespace alpha::protort::protolink;
 
-static const int default_port = 100;
-
 /*!
  * \brief Класс сетевого узла
  */
@@ -188,11 +186,12 @@ public:
                         const auto& n_info = comp_to_node[conn.dest];
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
-                        std::shared_ptr<protolink::client<node>> client_ptr(new protolink::client<node>(shared_from_this(), service_, ep));
+                        auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_);
+                        client_ptr->async_connect(ep);
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
-                        router_.clients_[dest_node_name] = std::move(client_ptr);
+                        router_.clients_[dest_node_name] = client_ptr;
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
@@ -204,10 +203,7 @@ public:
         }
 
         // Начинаем прослушивать порт
-        if (port_)
-            server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
-        else
-            server_.listen(settings_.source);
+        server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
     }
 
 

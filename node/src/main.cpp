@@ -8,8 +8,8 @@ int main(int argc, const char *argv[])
     if (!settings.parse(argc,argv))
         return 1;
 
-    node::node n;
-    n.start();
+    auto n = boost::make_shared<node::node>(settings);
+    n->start();
 
     return 0;
 }

@@ -57,22 +57,6 @@ public:
     }
 
     /*!
-     * \brief client Конструктор класса, в котором происходит инициализация сокета и колбека,
-     * а также вызывается метод для асинхронного подключения
-     * \param callback Ссылка на объект, реализующий концепцию Callback
-     * \param service Ссылка на объект, реализующий концепцию Callback
-     * \param ep Объект класса endpoint
-     */
-    client(callback_ptr const& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
-        : socket_(service),
-          buffer_(new char[header_size + max_packet_size]),
-          callback_(callback),
-          reconnect_timer_(service)
-    {
-        async_connect(ep);
-    }
-
-    /*!
      * \brief Деструктор
      */
     ~client()
@@ -324,7 +308,7 @@ private:
     std::unique_ptr<char> buffer_;
 
     //! Ссылка на объект, предоставляющий callback-функции
-    boost::shared_ptr<Callback> callback_;
+    callback_ptr callback_;
 
     //! Эндпоинт, используется при повторном подключении
     boost::asio::ip::tcp::endpoint ep_;

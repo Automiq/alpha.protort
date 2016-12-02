@@ -15,7 +15,7 @@ void RemoteNode::init(boost::asio::io_service &service)
 
     boost::asio::ip::tcp::endpoint ep(
                 boost::asio::ip::address::from_string(node_information_.address),
-                100);
+                node_information_.config_port);
 
     client_->async_connect(ep);
 }
@@ -136,7 +136,7 @@ void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet)
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
 
     callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
-        emit statusRequestFinished(packet.deploy_packet());
+        emit startRequestFinished(packet.deploy_packet());
     });
     client_->async_send_request(packet, callbacks);
 }
@@ -157,7 +157,7 @@ void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
 
     callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
-        emit startRequestFinished(packet.deploy_packet());
+        emit statusRequestFinished(packet.deploy_packet());
     });
 
     client_->async_send_request(status, callbacks);

@@ -33,10 +33,10 @@ class factory
 public:
     factory() = delete;
 
-    static std::shared_ptr<components::component> create(protocol::ComponentKind kind,
+    static component_ptr create(protocol::ComponentKind kind,
                                                          node::router<node::node>& router)
     {
-        std::shared_ptr<components::component> ptr;
+        component_ptr ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
@@ -62,7 +62,7 @@ public:
         return ptr;
     }
 
-    static std::shared_ptr<components::component> create(const std::string& kind,
+    static component_ptr create(const std::string& kind,
                                                          node::router<node::node>& router)
     {
         return create(get_component_kind(kind), router);

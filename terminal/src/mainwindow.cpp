@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::Packet>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
 
@@ -546,7 +547,7 @@ void MainWindow::button_clickedSetup()
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();
         setActiveConfig();
-        //activateDeploy();
+        activateDeploy();
         createRemoteNodes();
     }
 }
