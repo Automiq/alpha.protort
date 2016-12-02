@@ -546,7 +546,7 @@ void MainWindow::button_clickedSetup()
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();
         setActiveConfig();
-        //activateDeploy();
+        activateDeploy();
         createRemoteNodes();
     }
 }

@@ -47,7 +47,7 @@ public:
         router_.do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
 
         generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
-        generate_timer_.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));
+        generate_timer_.async_wait(boost::bind(&generator::generate, boost::static_pointer_cast<generator>(this->shared_from_this())));
     }
 
     void start() final override

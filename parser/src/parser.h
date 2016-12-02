@@ -48,6 +48,7 @@ struct node
     std::string name;
     std::string address;
     port_id port;
+    port_id config_port;
 };
 
 /*!
@@ -141,6 +142,7 @@ struct configuration
                     n.name = v.second.get<std::string>("<xmlattr>.name");
                     n.address = v.second.get<std::string>("<xmlattr>.address");
                     n.port = v.second.get<port_id>("<xmlattr>.port");
+                    n.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
                     nodes.push_back(n);
                 }
                 else if( v.first == "map" ) {

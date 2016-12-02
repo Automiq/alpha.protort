@@ -53,7 +53,7 @@ void test_node_router()
     for(int i = 0;i < 7;i++)
     {
         router<node>::component_instance component_instance;
-        component_instance.component_ = std::shared_ptr<components::component>(components[i]);
+        component_instance.component_ = components::component_ptr(components[i]);
 
         if(typeid(*components[i]) == typeid(components::generator))
             component_instance.name = "g1";

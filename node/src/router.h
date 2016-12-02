@@ -25,7 +25,7 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using component_shared_ptr = std::shared_ptr<alpha::protort::components::component>;
+using component_shared_ptr = boost::shared_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
@@ -68,7 +68,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        std::shared_ptr<protolink::client<app>> client;
+        boost::shared_ptr<protolink::client<app>> client;
     };
 
     /*!
@@ -241,7 +241,7 @@ private:
     std::map<std::string, component_instance> components_;
 
     //! Таблица удаленных получателей пакетов
-    std::map<std::string, std::shared_ptr<protolink::client<app>>> clients_;
+    std::map<std::string, boost::shared_ptr<protolink::client<app>>> clients_;
 
     //! I/O сервис
     boost::asio::io_service& service_;

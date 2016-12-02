@@ -15,7 +15,7 @@ void RemoteNode::init(boost::asio::io_service &service)
 
     boost::asio::ip::tcp::endpoint ep(
                 boost::asio::ip::address::from_string(node_information_.address),
-                100);
+                node_information_.config_port);
 
     client_->async_connect(ep);
 }

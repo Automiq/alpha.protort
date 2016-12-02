@@ -98,7 +98,7 @@ struct node_settings
                     ("app", boost::program_options::value<std::string>(&path_app)->default_value("./app.xml"), "path to app.xml")
                     ("deploy", boost::program_options::value<std::string>(&path_deploy)->default_value("./deploy.xml"), "path to deploy.xml")
                     ("name", boost::program_options::value<std::string>(&name)->default_value("node"), "node name")
-                    ("config-port", boost::program_options::value<int32_t>(&configuration_port)->default_value(100), "configuration port");
+                    ("config-port,c", boost::program_options::value<int32_t>(&configuration_port)->default_value(100), "configuration port");
 
 
             boost::program_options::variables_map vm;

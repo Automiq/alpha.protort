@@ -52,6 +52,8 @@ public:
     void listen(boost::asio::ip::tcp::endpoint ep)
     {
         // Настраиваем акцептор
+        if (acceptor_.is_open())
+            acceptor_.close();
         acceptor_.open(ep.protocol());
         acceptor_.set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
         acceptor_.bind(ep);
