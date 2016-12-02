@@ -14,6 +14,7 @@
 #include <boost/thread.hpp>
 #include <QThread>
 #include <boost/asio.hpp>
+#include <QModelIndex>
 
 #include "document.h"
 #include "deploy.pb.h"
@@ -73,6 +74,8 @@ private slots:
     void close_tab(int index);
 
     void on_status_request_triggered();
+
+    void create_model();
 
 public slots:
     void showLog() const;

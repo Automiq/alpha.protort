@@ -5,6 +5,7 @@
 #include "connection.h"
 #include "parser.h"
 #include "configdialog.h"
+#include "treemodel.h"
 
 #include <QComboBox>
 #include <QIcon>
@@ -71,6 +72,23 @@ void MainWindow::save_session()
         session.setValue("filePath", document(i)->filePath());
     }
     session.endArray();
+}
+
+void MainWindow::create_model()
+{
+    QStringList headers;
+    headers << tr("Имя узла") << tr("Связь") << tr("Время работы")
+            << tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
+            << tr("Скорость");
+
+    QFile file(":/default.txt");
+    file.open(QIODevice::ReadOnly);
+    TreeModel *model = new TreeModel(headers, file.readAll());
+    file.close();
+
+    ui->treeStatus->setModel(model);
+    for (int column = 0; column < model->columnCount(); ++column)
+        ui->treeStatus->resizeColumnToContents(column);
 }
 
 void MainWindow::load_session()
@@ -372,6 +390,7 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_request_triggered()
 {
+    create_model();
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
@@ -585,7 +604,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    ui->statusLog->append(message);
+//    ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)
