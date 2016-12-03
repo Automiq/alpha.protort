@@ -35,7 +35,7 @@ public:
             out.payload = T(values_).pack();
             out.ports.push_back(0);
             res.push_back(out);
-            router_.do_route(comp_inst_,res);
+            router_->do_route(comp_inst_,res);
         }
     }
 

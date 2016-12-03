@@ -28,7 +28,7 @@ void test_node_router()
 
     // Создаем node_router
     boost::asio::io_service service;
-    auto router_ = std::make_shared<router<node>>(service);
+    auto router_ = boost::make_shared<router<node>>(service);
 
     // Создаем компоненты
     components::generator generator1_(router_);

@@ -37,7 +37,7 @@ public:
         : server_(*this, service_),
           server_for_conf_(*this,service_),
           signals_(service_, SIGINT, SIGTERM),
-          router_(std::make_shared<router<node>>(service_))
+          router_(boost::make_shared<router<node>>(service_))
     {
     }
 
@@ -46,7 +46,7 @@ public:
           server_for_conf_(*this,service_),
           settings_(settings),
           signals_(service_, SIGINT, SIGTERM),
-          router_(std::make_shared<router<node>>(service_))
+          router_(boost::make_shared<router<node>>(service_))
     {
     }
 
@@ -225,10 +225,10 @@ private:
 
         case protocol::deploy::PacketKind::DeployConfig:
         {
-            router_->stop();
-            router_->clear();
-            std::shared_ptr<router<node>> new_router = std::make_shared<router<node>>(service_);
-            std::atomic_exchange(&router_, new_router);
+//            router_->stop();
+//            router_->clear();
+            boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
+            boost::atomic_exchange(&router_, new_router);
             deploy_from_packet(packet.request().deploy_config().config());
             return {};
         }
@@ -332,7 +332,7 @@ private:
 public:
     //! Роутер пакетов
     //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
-    std::shared_ptr<router<node>> router_;
+    boost::shared_ptr<router<node>> router_;
 };
 
 } // namespace node

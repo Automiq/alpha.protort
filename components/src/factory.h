@@ -33,8 +33,9 @@ class factory
 public:
     factory() = delete;
 
-    static component_ptr create(protocol::ComponentKind kind,
-                                                         node::router<node::node>& router)
+    static component_ptr create(
+            protocol::ComponentKind kind,
+            boost::shared_ptr<node::router<node::node>> router)
     {
         component_ptr ptr;
 
@@ -65,8 +66,9 @@ public:
         return ptr;
     }
 
-    static component_ptr create(const std::string& kind,
-                                                         node::router<node::node>& router)
+    static component_ptr create(
+            const std::string& kind,
+            boost::shared_ptr<node::router<node::node>> router)
     {
         return create(get_component_kind(kind), router);
     }

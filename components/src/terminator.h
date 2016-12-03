@@ -10,7 +10,7 @@ namespace components {
 class terminator : public component
 {
 public:
-    terminator(std::shared_ptr<node::router<node::node>> router): component(router)
+    terminator(boost::shared_ptr<node::router<node::node>> router): component(router)
     {
 
     }

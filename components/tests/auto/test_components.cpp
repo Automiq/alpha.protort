@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(test_generator)
 BOOST_AUTO_TEST_CASE(test_retranslator)
 {
     boost::asio::io_service service;
-    auto r = std::make_shared<node::router<node::node>>(service);
+    auto r = boost::make_shared<node::router<node::node>>(service);
     alpha::protort::components::retranslator retr(r);
     retr.do_process(3, "smth");
     BOOST_CHECK_EQUAL(2, retr.in_port_count());

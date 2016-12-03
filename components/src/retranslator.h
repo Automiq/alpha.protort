@@ -10,7 +10,7 @@ namespace components {
 class retranslator : public component
 {
 public:
-    retranslator(std::shared_ptr<node::router<node::node>> router): component(router)
+    retranslator(boost::shared_ptr<node::router<node::node>> router): component(router)
     {
 
     }
