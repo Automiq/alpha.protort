@@ -77,14 +77,15 @@ void MainWindow::save_session()
 void MainWindow::create_model()
 {
     QStringList headers;
-    headers << tr("Имя узла") << tr("Связь") << tr("Время работы")
-            << tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
-            << tr("Скорость");
+    headers << tr("Имя узла") << tr("Связь");// << tr("Время работы")
+            //<< tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
+            //<< tr("Скорость");
 
-    QFile file(":/default.txt");
-    file.open(QIODevice::ReadOnly);
-    TreeModel *model = new TreeModel(headers, file.readAll());
-    file.close();
+//    QFile file(":/status.txt");
+//    file.open(QIODevice::ReadOnly);
+    TreeModel *model = new TreeModel(headers, "node");
+    model->children();
+//    file.close();
 
     ui->treeStatus->setModel(model);
     for (int column = 0; column < model->columnCount(); ++column)
@@ -361,7 +362,10 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
+    create_model();
+    ui->status_request->setEnabled(true);
     ui->deploy->setDisabled(true);
+//    ui->
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_deploy(deploy_config_);
@@ -390,7 +394,6 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_request_triggered()
 {
-    create_model();
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
