@@ -11,4 +11,5 @@ HEADERS += \
            $$PWD/src/calc.h \
            $$PWD/src/history.h \
            $$PWD/src/convert.h \
-           $$PWD/src/data.h
+           $$PWD/src/data.h \
+           $$PWD/src/generator_timer.h

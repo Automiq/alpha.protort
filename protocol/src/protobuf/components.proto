@@ -9,6 +9,7 @@ enum ComponentKind
     Terminator = 2;
     Calc = 3;
     History = 4;
+    Generator_timer = 5;
 }
 
 message ComponentEndpoint
