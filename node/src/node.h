@@ -149,14 +149,6 @@ public:
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
         }
 
-#ifdef _DEBUG
-        if (node_name_.empty()) {
-            std::cout << "node_name_ is empty" << std::endl;
-            node_name_ = settings_.name;
-            std::cout << node_name_ << " name was set\n";
-        }
-#endif
-
         // Создаем экземпляры локальных компонентов
         for (const auto& comp : conf.components) {
             if (comp_to_node[comp.name].name == node_name_) {
