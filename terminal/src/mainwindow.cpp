@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QSettings>
+#include <QToolTip>
 #include <boost/make_shared.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -168,11 +169,20 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(Document *doc)
 {
-    if(doc->isApp() && (m_apps->findData(QVariant::fromValue(doc)) == -1))
+    if(doc->isApp() && (m_apps->findData(QVariant::fromValue(doc)) == -1)){
         m_apps->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
+        setComboBoxToolTip(m_apps, doc);
+    }
 
-    if(doc->isDeploy() && (m_deploys->findData(QVariant::fromValue(doc)) == -1))
+    if(doc->isDeploy() && (m_deploys->findData(QVariant::fromValue(doc)) == -1)){
         m_deploys->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
+        setComboBoxToolTip(m_deploys, doc);
+    }
+}
+
+void MainWindow::setComboBoxToolTip(QComboBox *combobox, Document *doc)
+{
+     combobox->setItemData(combobox->findData(QVariant::fromValue(doc)), doc->filePath(), Qt::ToolTipRole);
 }
 
 void MainWindow::on_config_triggered()
@@ -376,18 +386,23 @@ void MainWindow::on_status_triggered()
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
-    QString title = doc->filePath();
+    QString result = doc->fileName();
 
-    if (title.isEmpty())
-        title = tr("Безымянный");
-    else
-        title = QFileInfo(title).fileName();
-
-    QString result;
+    switch(doc->kind())
+    {
+    case Document::Kind::App:
+        return result;
+    case Document::Kind::Deploy:
+        return result;
+    default:
+        result = tr("Безымянный");
+        break;
+    }
 
     for (int i = 0; ; ++i)
     {
-        result = title;
+        if (i > 1)
+            result.chop(1);
         if (i > 0)
             result += QString::number(i);
 
@@ -476,6 +491,7 @@ void MainWindow::addDocument(Document *doc)
     ui->tabWidget->setTabEnabled(index, true);
     ui->tabWidget->setCurrentWidget(doc);
     setIcon(doc);
+    ui->tabWidget->setTabToolTip(ui->tabWidget->currentIndex(), doc->filePath());
 }
 
 void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
