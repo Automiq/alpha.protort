@@ -80,7 +80,7 @@ void MainWindow::createTable()
 {
     QStringList headers;
     headers << tr("Имя узла") << tr("Связь") << tr("Время работы")
-            << tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
+            << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
             << tr("Скорость");
 
     TreeModel *model = new TreeModel(headers, "");
