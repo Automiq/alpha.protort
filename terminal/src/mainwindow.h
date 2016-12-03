@@ -72,7 +72,7 @@ private slots:
 
     void close_tab(int index);
 
-    void on_status_request_triggered();
+    void on_status_triggered();
 
 public slots:
     void showLog() const;
@@ -97,6 +97,7 @@ private:
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
     void activateDeploy() const;
+    void activateStatus() const;
     void addDocument(Document *doc);
     void addWidgetOnBar(QWidget* newWidget) const;
     void setIcon(Document *doc);

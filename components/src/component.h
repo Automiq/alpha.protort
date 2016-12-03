@@ -6,7 +6,6 @@
 #include <memory>
 #include <ctime>
 #include <sstream>
-
 #include <boost/shared_ptr.hpp>
 
 // node, router forward declaration

@@ -202,7 +202,6 @@ void MainWindow::on_config_triggered()
         setCurrentDocument(m_apps, m_app);
         setCurrentDocument(m_deploys, m_deploySchema);
         setActiveConfig();
-        activateDeploy();
     }
 }
 
@@ -252,11 +251,11 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     {
         auto component = status.component_statuses(i);
 
-        writeStatusLog(tr("\t<Название компонента - %1>")
+        writeStatusLog(tr("<Название компонента - %1>")
                        .arg(QString::fromStdString(component.name())));
-        writeStatusLog(tr("\t\t<Количество принятых пакетов - %1>")
+        writeStatusLog(tr("<Количество принятых пакетов - %1>")
                        .arg(QString::number(component.in_packet_count())));
-        writeStatusLog(tr("\t\t<Количество переданных пакетов - %1>")
+        writeStatusLog(tr("<Количество переданных пакетов - %1>")
                        .arg(QString::number(status.component_statuses(i).out_packet_count())));
     }
 
@@ -287,6 +286,8 @@ void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
+    activateDeploy();
+    activateStatus();
 }
 
 void MainWindow::onConnectionFailed(const boost::system::error_code& err)
@@ -371,7 +372,7 @@ void MainWindow::close_tab(int index)
     ui->tabWidget->removeTab(index);
 }
 
-void MainWindow::on_status_request_triggered()
+void MainWindow::on_status_triggered()
 {
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
@@ -541,13 +542,16 @@ void MainWindow::activateDeploy() const
     if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
         ui->deploy->setEnabled(true);
 }
+void MainWindow::activateStatus() const
+{
+        ui->status->setEnabled(true);
+}
 
 void MainWindow::button_clickedSetup()
 {
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();
         setActiveConfig();
-        activateDeploy();
         createRemoteNodes();
     }
 }
