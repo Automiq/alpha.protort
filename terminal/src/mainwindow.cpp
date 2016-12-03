@@ -124,9 +124,10 @@ void MainWindow::load_file(const QString& fileName)
     Document *doc = new Document();
     doc->setText(file.readAll());
     doc->setFilePath(fileName);
+    addConfig(doc);
     addDocument(doc);
     setIcon(doc);
-    addConfig(doc);
+
 }
 
 void MainWindow::on_load_file_triggered()
@@ -137,19 +138,15 @@ void MainWindow::on_load_file_triggered()
     load_file(fileName);
 }
 
-void MainWindow::deleteConfig(QComboBox *ptr, const QString &name)
+void MainWindow::delDocFromComboBox(QComboBox* combobox, Document* doc)
 {
-    int indx = ptr->findText(QFileInfo(name).fileName());
-    if(indx != -1)
-        ptr->removeItem(indx);
+    combobox->removeItem(combobox->findData(QVariant::fromValue(doc)));
 }
 
 void MainWindow::delConfig(Document *doc)
 {
-    QString name = doc->filePath();
-
-    deleteConfig(m_apps, name);
-    deleteConfig(m_deploys, name);
+    delDocFromComboBox(m_apps, doc);
+    delDocFromComboBox(m_deploys, doc);
 }
 
 void MainWindow::updateConfig(Document *doc)
@@ -171,13 +168,11 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(Document *doc)
 {
-    QString name = doc->fileName();
+    if(doc->isApp() && (m_apps->findData(QVariant::fromValue(doc)) == -1))
+        m_apps->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
 
-    if(doc->isApp() && (m_apps->findText(name) == -1))
-        m_apps->addItem(name, QVariant::fromValue(doc));
-
-    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
-        m_deploys->addItem(name, QVariant::fromValue(doc));
+    if(doc->isDeploy() && (m_deploys->findData(QVariant::fromValue(doc)) == -1))
+        m_deploys->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
 }
 
 void MainWindow::on_config_triggered()

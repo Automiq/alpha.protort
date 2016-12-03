@@ -104,7 +104,7 @@ private:
     void createConfigurationToolBar();
     void addConfig(Document *doc);
     void delConfig(Document *doc);
-    void deleteConfig(QComboBox *ptr, const QString &name);
+    void delDocFromComboBox(QComboBox* combobox, Document* doc);
     void updateConfig(Document *doc);
     void setActiveConfig();
     void setupConfigMembers();
