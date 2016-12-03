@@ -36,6 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     createConfigurationToolBar();
 
     load_session();
+
+    createTable();
 }
 
 MainWindow::~MainWindow()
@@ -74,22 +76,23 @@ void MainWindow::save_session()
     session.endArray();
 }
 
-void MainWindow::create_model()
+void MainWindow::createTable()
 {
     QStringList headers;
-    headers << tr("Имя узла") << tr("Связь");// << tr("Время работы")
-            //<< tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
-            //<< tr("Скорость");
+    headers << tr("Имя узла") << tr("Связь") << tr("Время работы")
+            << tr("Пакетов принято (пак./байт)") << tr("Пакетов отправлено (пак./байт)")
+            << tr("Скорость");
 
-//    QFile file(":/status.txt");
-//    file.open(QIODevice::ReadOnly);
-    TreeModel *model = new TreeModel(headers, "node");
-    model->children();
-//    file.close();
+    TreeModel *model = new TreeModel(headers, "");
 
     ui->treeStatus->setModel(model);
     for (int column = 0; column < model->columnCount(); ++column)
         ui->treeStatus->resizeColumnToContents(column);
+}
+
+void MainWindow::createModel()
+{
+
 }
 
 void MainWindow::load_session()
@@ -362,7 +365,7 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
-    create_model();
+    createModel();
     ui->status_request->setEnabled(true);
     ui->deploy->setDisabled(true);
 //    ui->

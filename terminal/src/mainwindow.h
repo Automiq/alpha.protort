@@ -75,8 +75,6 @@ private slots:
 
     void on_status_request_triggered();
 
-    void create_model();
-
 public slots:
     void showLog() const;
 
@@ -120,6 +118,8 @@ private:
     void save_session();
     void load_session();
     void load_file(const QString& fileName);
+    void createTable();
+    void createModel();
 
     Document* document(int index);
 
