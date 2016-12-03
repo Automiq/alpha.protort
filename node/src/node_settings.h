@@ -19,7 +19,7 @@ namespace node {
  */
 struct node_settings
 {
-    uint32_t configuration_port;
+    uint16_t configuration_port;
 
     /*!
      * \brief Парсит настройки узла из массива строк
