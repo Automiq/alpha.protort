@@ -182,3 +182,8 @@ void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 {
 
 }
+
+QList<QString>& RemoteNode::components()
+{
+    return components_;
+}
