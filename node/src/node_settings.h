@@ -60,7 +60,7 @@ struct node_settings
             boost::program_options::options_description desc{ "Node Options" };
             desc.add_options()
                     ("help,h", "Help screen")
-                    ("config-port,c", boost::program_options::value<uint32_t>(&configuration_port)->default_value(100), "configuration port");
+                    ("config-port,c", boost::program_options::value<uint16_t>(&configuration_port)->default_value(100), "configuration port");
 
 
             boost::program_options::variables_map vm;
