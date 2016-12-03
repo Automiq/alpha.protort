@@ -119,7 +119,7 @@ private:
     void load_session();
     void load_file(const QString& fileName);
     void createTable();
-    void createModel();
+    void fillModel(Document *doc);
 
     Document* document(int index);
 

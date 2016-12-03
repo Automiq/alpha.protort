@@ -16,8 +16,10 @@
 #include <QToolBar>
 #include <QObject>
 #include <QPushButton>
-#include <QWidget>
 #include <QSettings>
+#include <QXmlStreamReader>
+#include <QWidget>
+
 #include <boost/make_shared.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -79,7 +81,7 @@ void MainWindow::save_session()
 void MainWindow::createTable()
 {
     QStringList headers;
-    headers << tr("Имя узла") << tr("Связь") << tr("Время работы")
+    headers << tr("Узел") << tr("Связь") << tr("Время работы")
             << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
             << tr("Скорость");
 
@@ -90,9 +92,16 @@ void MainWindow::createTable()
         ui->treeStatus->resizeColumnToContents(column);
 }
 
-void MainWindow::createModel()
+void MainWindow::fillModel(Document  *doc)
 {
-
+    QXmlStreamReader xml(doc->toPlainText());
+    xml.readNextStartElement();
+    while (xml.name() != "/deploy")
+    {
+        xml.readNext();
+        if (xml.name() == "node")
+            m_deploys->addItem(xml.text().toString());
+    }
 }
 
 void MainWindow::load_session()
@@ -365,7 +374,7 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
-    createModel();
+    fillModel(m_deploySchema);
     ui->status_request->setEnabled(true);
     ui->deploy->setDisabled(true);
 //    ui->
@@ -558,6 +567,7 @@ void MainWindow::setupConfigMembers()
 {
     m_app = currentDocument(m_apps);
     m_deploySchema = currentDocument(m_deploys);
+    fillModel(m_deploySchema);
 }
 
 void MainWindow::activateDeploy() const
