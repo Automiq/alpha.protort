@@ -13,7 +13,7 @@ BOOST_AUTO_TEST_SUITE(tests_node_settings)
 BOOST_AUTO_TEST_CASE(test_node_setiings_parse)
 {
     alpha::protort::node::node_settings ns;
-    const char *argv[] = { "node.exe", "--name", "node" };
+    const char *argv[] = { "node.exe", "-c", "101" };
     BOOST_CHECK(ns.parse(3, argv));
 }
 
