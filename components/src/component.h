@@ -37,10 +37,6 @@ struct output
     port_list ports;
 };
 
-/*!
- * \brief data - структура для передачи сообщений
- */
-
 using output_list = std::vector<output>;
 
 class component : public boost::enable_shared_from_this<component>

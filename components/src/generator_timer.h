@@ -1,11 +1,7 @@
 #ifndef GENERATOR_TIMER_H
 #define GENERATOR_TIMER_H
 
-#include <boost/thread.hpp>
-#include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <random>
-#include <iostream>
 
 #include "component.h"
 #include "router.h"

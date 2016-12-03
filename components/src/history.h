@@ -3,7 +3,6 @@
 
 #include "component.h"
 #include <fstream>
-#include <iostream>
 
 namespace alpha {
 namespace protort {
