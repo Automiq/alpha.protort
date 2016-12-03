@@ -207,8 +207,8 @@ void MainWindow::on_config_triggered()
 
 void MainWindow::resetDeployActions() const
 {
-    ui->stop->setDisabled(true);
-    ui->start->setEnabled(true);
+    if (!ui->start->isEnabled() && !ui->stop->isEnabled())
+        ui->start->setEnabled(true);
 }
 
 void MainWindow::showLog() const
@@ -305,7 +305,6 @@ void MainWindow::setTabName(int index, const QString &name)
 
 void MainWindow::on_start_triggered()
 {
-    ui->deploy->setDisabled(true);
     ui->start->setDisabled(true);
     ui->stop->setEnabled(true);
 
@@ -318,8 +317,7 @@ void MainWindow::on_start_triggered()
 
 void MainWindow::on_stop_triggered()
 {
-    if(! ui->deploy->isEnabled())
-        ui->start->setEnabled(true);
+    ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
 
     alpha::protort::protocol::Packet_Payload payload;
@@ -558,24 +556,10 @@ void MainWindow::button_clickedSetup()
 
 void MainWindow::setActiveConfig()
 {
-    for (int i = 0; i < ui->tabWidget->count(); ++i)
-    {
-        setupActiveIcon(i);
-    }
-}
-
-void MainWindow::setupActiveIcon(const int &index)
-{
-    auto doc = document(index);
-    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
-    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
-
-    setIcon(doc);
-    if((QFileInfo(doc->filePath()).fileName() == nameApp) && (doc->isApp()))
-        setTabIco(doc,":/images/greenPen.png");
-
-    if((QFileInfo(doc->filePath()).fileName() == nameDeploy) && (doc->isDeploy()))
-        setTabIco(doc,":/images/greenCog.png");
+    for (int i = 0; i != ui->tabWidget->count(); ++i)
+        setIcon(document(i));
+    setTabIco(m_app,":/images/greenPen.png");
+    setTabIco(m_deploySchema,":/images/greenCog.png");
 }
 
 Document* MainWindow::document(int index)

@@ -184,7 +184,7 @@ public:
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
-                        router_->clients_[dest_node_name] = std::move(client_ptr);
+                        router_->clients_[dest_node_name] = client_ptr;
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
@@ -225,11 +225,14 @@ private:
 
         case protocol::deploy::PacketKind::DeployConfig:
         {
-//            router_->stop();
-//            router_->clear();
+            bool router_previous_state = router_->started_;
+            router_->stop();
+            router_->clear();
             boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
             boost::atomic_exchange(&router_, new_router);
             deploy_from_packet(packet.request().deploy_config().config());
+            if (router_previous_state)
+                router_->start();
             return {};
         }
         case protocol::deploy::PacketKind::Start:

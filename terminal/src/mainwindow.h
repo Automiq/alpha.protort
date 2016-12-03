@@ -107,7 +107,6 @@ private:
     void deleteConfig(QComboBox *ptr, const QString &name);
     void updateConfig(Document *doc);
     void setActiveConfig();
-    void setupActiveIcon(const int &index);
     void setupConfigMembers();
     void setTabIco(Document *doc, const QString &srcPath) const;
     void resetDeployActions() const;
