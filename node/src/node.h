@@ -5,6 +5,7 @@
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono.hpp>
+#include <boost/make_shared.hpp>
 
 #include "server.h"
 #include "client.h"

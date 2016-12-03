@@ -79,7 +79,7 @@
     <addaction name="deploy"/>
     <addaction name="start"/>
     <addaction name="stop"/>
-    <addaction name="status_request"/>
+    <addaction name="status"/>
    </widget>
    <addaction name="menu_file"/>
    <addaction name="menu_project"/>
@@ -104,7 +104,7 @@
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
-   <addaction name="status_request"/>
+   <addaction name="status"/>
    <addaction name="separator"/>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
@@ -264,9 +264,9 @@
     <string>F5</string>
    </property>
   </action>
-  <action name="status_request">
+  <action name="status">
    <property name="enabled">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="icon">
     <iconset resource="images.qrc">
