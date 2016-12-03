@@ -3,6 +3,7 @@
 
 #include "component.h"
 #include <fstream>
+#include <iostream>
 
 namespace alpha {
 namespace protort {
@@ -15,7 +16,9 @@ namespace components {
 class history : public component
 {
 public:
-    history(node::router<node::node>& router) : component(router),f_("history.txt")
+    history(node::router<node::node>& router) :
+        component(router),
+        f_("history.txt", std::ios_base::out)
     {
 
     }
@@ -25,7 +28,7 @@ public:
         data d;
         d.unpack(payload);
 
-        f_ << d.val << ' ' << std::asctime(std::localtime(&d.time)) << std::endl;
+        f_ << d.val << ' ' << std::asctime(std::localtime(&d.time));
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 0; }
