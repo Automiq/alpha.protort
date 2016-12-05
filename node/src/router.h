@@ -108,6 +108,7 @@ public:
     {
 
     }
+    ~router() {std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;}
 
     //! Запускает каждый компонент
     void start()
@@ -142,6 +143,8 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
+        in_packets_++;
+
         if (!started_)
         {
 #ifdef _DEBUG
@@ -157,7 +160,6 @@ public:
                                      it->second.component_,
                                      in_port,
                                      payload));
-            in_packets_++;
         }
     }
 
@@ -174,7 +176,7 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
-            std::cout << "route packet at stopped router" << std::endl;
+            std::cout << "do_route at stopped router" << std::endl;
 #endif
             return;
         }

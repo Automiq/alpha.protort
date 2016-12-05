@@ -226,11 +226,14 @@ private:
         case protocol::deploy::PacketKind::DeployConfig:
         {
             bool router_previous_state = router_->started_;
-            router_->stop();
-            router_->clear();
+            boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
+            auto old_router = boost::atomic_exchange(&router_, new_router);
             deploy_from_packet(packet.request().deploy_config().config());
             if (router_previous_state)
                 router_->start();
+            old_router->stop();
+            //TODO заменить clear на weak pointers в отношениях router-components
+            new_router->clear();
             return {};
         }
         case protocol::deploy::PacketKind::Start:

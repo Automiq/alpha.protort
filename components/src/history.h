@@ -18,7 +18,7 @@ namespace components {
 class history : public component
 {
 public:
-    history(boost::shared_ptr<node::router<node::node>> router) : component(router),f_("history.txt")
+    history(router_ptr router) :
         component(router),
         f_("history.txt", std::ios_base::out)
     {
