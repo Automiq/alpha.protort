@@ -1,4 +1,4 @@
-#ifndef TERMINAL_CLIENT_H
+﻿#ifndef TERMINAL_CLIENT_H
 #define TERMINAL_CLIENT_H
 
 #include <iostream>
@@ -83,9 +83,9 @@ public:
     uint32_t input();
 
     //! Методы получения данных компоненты
-    QString compName();
-    uint32_t compOutput();
-    uint32_t compInput();
+    QString compName(int index);
+    uint32_t compOutput(int index);
+    uint32_t compInput(int index);
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
