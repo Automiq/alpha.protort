@@ -2,6 +2,8 @@
 #define TERMINAL_CLIENT_H
 
 #include <iostream>
+#include <QList>
+#include <QString>
 #include <QMetaType>
 #include <QObject>
 #include <set>
@@ -25,6 +27,8 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
     using client_ptr = boost::shared_ptr<client_t>;
 
 public:
+    QList<QString>& components();
+
     RemoteNode(alpha::protort::parser::node const& node);
 
     void init(boost::asio::io_service& service);
@@ -64,6 +68,14 @@ private:
 
     //! Клиент для подключения к узлу
     client_ptr client_;
+
+    struct Component
+    {
+        QString name;
+        RemoteNode
+    };
+
+    QList <Component> components_;
 };
 
 #endif // TERMINAL_CLIENT_H

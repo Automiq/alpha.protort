@@ -4,6 +4,9 @@
 #include <QAbstractItemModel>
 #include <QModelIndex>
 #include <QVariant>
+#include <QList>
+
+#include "remotenode.h"
 
 class TreeItem;
 
@@ -12,7 +15,7 @@ class TreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    TreeModel(const QStringList &headers, const QString &data,
+    TreeModel(const QString &data,
               QObject *parent = 0);
     ~TreeModel();
 
@@ -27,26 +30,23 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-    Qt::ItemFlags flags(const QModelIndex &index) const Q_DECL_OVERRIDE;
-    bool setData(const QModelIndex &index, const QVariant &value,
-                 int role = Qt::EditRole) Q_DECL_OVERRIDE;
-    bool setHeaderData(int section, Qt::Orientation orientation,
-                       const QVariant &value, int role = Qt::EditRole) Q_DECL_OVERRIDE;
-
-    bool insertColumns(int position, int columns,
-                       const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
-    bool removeColumns(int position, int columns,
-                       const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
-    bool insertRows(int position, int rows,
-                    const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
-    bool removeRows(int position, int rows,
-                    const QModelIndex &parent = QModelIndex()) Q_DECL_OVERRIDE;
-
 private:
-    void setupModelData(const QStringList &lines, TreeItem *parent);
-    TreeItem *getItem(const QModelIndex &index) const;
+    void setupModelData(const QList<RemoteNodePtr> nodes);
 
-    TreeItem *rootItem;
+    QList<RemoteNodePtr> m_nodes;
+
+    enum Column
+    {
+        Name,
+        Connect,
+        Uptime,
+        Input,
+        Output,
+        Speed,
+
+
+        MaxColumn = Speed + 1,
+    }
 };
 
 #endif // TREEMODEL_H

@@ -70,11 +70,13 @@ void MainWindow::save_session()
 {
     QSettings session("terminal.conf", QSettings::IniFormat);
     session.beginWriteArray("files");
+
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         session.setArrayIndex(i);
         session.setValue("filePath", document(i)->filePath());
     }
+
     session.endArray();
 }
 
@@ -88,8 +90,9 @@ void MainWindow::createTable()
     TreeModel *model = new TreeModel(headers, "");
 
     ui->treeStatus->setModel(model);
-    for (int column = 0; column < model->columnCount(); ++column)
-        ui->treeStatus->resizeColumnToContents(column);
+
+    //for (int column = 0; column < model->columnCount(); ++column)
+    //    ui->treeStatus->resizeColumnToContents(column);
 }
 
 void MainWindow::fillModel(Document  *doc)
@@ -457,6 +460,7 @@ void MainWindow::createRemoteNodes()
         config_.parse_deploy(m_deploySchema->filePath().toStdString());
 
         deploy_config_.parse_deploy(config_);
+        //скопировать список в модель
     }
 
     for (auto &remoteNode : remoteNodes_)
