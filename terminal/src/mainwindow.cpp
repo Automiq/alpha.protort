@@ -83,11 +83,11 @@ void MainWindow::save_session()
 void MainWindow::createTable()
 {
     QStringList headers;
-    headers << tr("Узел") << tr("Связь") << tr("Время работы")
+    headers << tr("Узел") << tr("Связь") << tr("Скорость")
             << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
-            << tr("Скорость");
+            << tr("Время работы");
 
-    TreeModel *model = new TreeModel(headers, "");
+    TreeModel *model = new TreeModel("");
 
     ui->treeStatus->setModel(model);
 

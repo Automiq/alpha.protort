@@ -7,6 +7,7 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
+    name_ = QString::fromStdString(node_information_.name);
 }
 
 void RemoteNode::init(boost::asio::io_service &service)
@@ -183,7 +184,8 @@ void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 
 }
 
-QList<QString>& RemoteNode::components()
+QList<RemoteNode::Component> RemoteNode::components()
 {
     return components_;
 }
+

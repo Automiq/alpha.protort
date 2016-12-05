@@ -31,22 +31,23 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
 private:
-    void setupModelData(const QList<RemoteNodePtr> nodes);
+    void setupModelData(const QList<RemoteNode> nodes);
 
-    QList<RemoteNodePtr> m_nodes;
+    QList<RemoteNode> m_nodes;
 
     enum Column
     {
         Name,
         Connect,
+        Speed,
         Uptime,
         Input,
-        Output,
-        Speed,
+        Output,        
 
 
-        MaxColumn = Speed + 1,
-    }
+        MaxColumn = Output + 1,
+    };
 };
+
 
 #endif // TREEMODEL_H
