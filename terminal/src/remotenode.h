@@ -60,7 +60,7 @@ public:
     void async_status(alpha::protort::protocol::Packet_Payload& status);
 
 
-    //! Методы изменения данных
+    //! Методы изменения данных узла
     void setName();
     void setConnect();
     void setUptime();
@@ -68,13 +68,24 @@ public:
     void setOutput();
     void setInput();
 
-    //! Методы получения данных
+    //! Методы изменения данных компоненты
+    void setCompName();
+    void setCompInput();
+    void setCompOutput();
+    void setCompNode();
+
+    //! Методы получения данных узла
     QString name();
     bool isConnect();
     uint32_t uptime();
     uint32_t speed();
     uint32_t output();
     uint32_t input();
+
+    //! Методы получения данных компоненты
+    QString compName();
+    uint32_t compOutput();
+    uint32_t compInput();
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
