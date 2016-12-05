@@ -1,4 +1,4 @@
-#ifndef TERMINAL_CLIENT_H
+﻿#ifndef TERMINAL_CLIENT_H
 #define TERMINAL_CLIENT_H
 
 #include <iostream>
@@ -68,13 +68,18 @@ public:
     void setOutput();
     void setInput();
 
-    //! Методы получения данных
+    //! Методы получения данных c узла
     QString name();
     bool isConnect();
     uint32_t uptime();
     uint32_t speed();
     uint32_t output();
     uint32_t input();
+
+    //! Методы получения данных c компоненты
+    QString nameComp(int index);
+    uint32_t output(int index);
+    uint32_t input(int index);
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
