@@ -1,4 +1,4 @@
-﻿#ifndef TERMINAL_CLIENT_H
+#ifndef TERMINAL_CLIENT_H
 #define TERMINAL_CLIENT_H
 
 #include <iostream>
@@ -26,8 +26,23 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
     using client_t = alpha::protort::protolink::client<RemoteNode>;
     using client_ptr = boost::shared_ptr<client_t>;
 
+private:
+    /*!
+     * \brief Информация о компоненте
+     * \param name - название компоненты
+     * \param info - список состояний компонента
+     * \param node - указатель на узел, на котором размещена данная компонента
+     */
+    struct Component
+    {
+        QString name_;
+        uint32_t input_;
+        uint32_t output_;
+        RemoteNode *node_;
+    };
+
 public:
-    QList<QString>& components();
+    QList<Component> components();
 
     RemoteNode(alpha::protort::parser::node const& node);
 
@@ -86,12 +101,10 @@ private:
     //! Клиент для подключения к узлу
     client_ptr client_;
 
-    struct Component
-    {
-        QString name;
-    };
-
-    QList <Component> components_;
+    QString name_;
+    uint32_t uptime_;
+    uint32_t speed_;
+    QList<Component> components_;
 };
 
 #endif // TERMINAL_CLIENT_H
