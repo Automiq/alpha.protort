@@ -54,6 +54,9 @@ public:
         case protocol::ComponentKind::History:
             ptr.reset(new components::history(router));
             break;
+        case protocol::ComponentKind::TimedGenerator:
+            ptr.reset(new components::timed_generator(router));
+            break;
         default:
             assert(false);
             break;
