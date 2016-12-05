@@ -61,18 +61,18 @@ public:
 
 
     //! Методы изменения данных узла
-    void setName();
-    void setConnect();
-    void setUptime();
-    void setSpeed();
-    void setOutput();
-    void setInput();
+    void setName(QString name);
+    void setConnect(uint32_t con);
+    void setUptime(uint32_t time);
+    void setSpeed(uint32_t speed);
+    void setOutput(uint32_t packets, uint32_t bytes);
+    void setInput(uint32_t packets, uint32_t bytes);
 
     //! Методы изменения данных компоненты
-    void setCompName();
-    void setCompInput();
-    void setCompOutput();
-    void setCompNode();
+    void setCompName(const int &index, QString name);
+    void setCompInput(const int &index, uint32_t packets);
+    void setCompOutput(const int &index, uint32_t packets);
+//    void setCompNode(const int &index, );
 
     //! Методы получения данных узла
     QString name();
@@ -83,9 +83,9 @@ public:
     uint32_t input();
 
     //! Методы получения данных компоненты
-    QString compName(int index);
-    uint32_t compOutput(int index);
-    uint32_t compInput(int index);
+    QString compName(const int &index);
+    uint32_t compOutput(const int &index);
+    uint32_t compInput(const int &index);
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);

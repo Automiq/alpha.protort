@@ -194,3 +194,8 @@ RemoteNode *RemoteNode::get()
 {
     return NULL;
 }
+
+RemoteNode::Component* RemoteNode::operator [](int index)
+{
+    return this->components()[index];
+}
