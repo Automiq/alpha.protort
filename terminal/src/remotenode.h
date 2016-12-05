@@ -1,4 +1,4 @@
-#ifndef TERMINAL_CLIENT_H
+﻿#ifndef TERMINAL_CLIENT_H
 #define TERMINAL_CLIENT_H
 
 #include <iostream>
@@ -44,6 +44,23 @@ public:
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);
     void async_status(alpha::protort::protocol::Packet_Payload& status);
 
+
+    //! Методы изменения данных
+    void setName();
+    void setConnect();
+    void setUptime();
+    void setSpeed();
+    void setOutput();
+    void setInput();
+
+    //! Методы получения данных
+    QString name();
+    bool isConnect();
+    uint32_t uptime();
+    uint32_t speed();
+    uint32_t output();
+    uint32_t input();
+
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void statusRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -72,7 +89,6 @@ private:
     struct Component
     {
         QString name;
-        RemoteNode
     };
 
     QList <Component> components_;

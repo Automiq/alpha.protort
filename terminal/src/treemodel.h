@@ -46,7 +46,7 @@ private:
 
 
         MaxColumn = Speed + 1,
-    }
+    };
 };
 
 #endif // TREEMODEL_H
