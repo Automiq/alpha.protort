@@ -25,33 +25,48 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole)
         return QVariant();
 
-     //проверка на столбец
+    //проверка на столбец
     if(index.parent().isValid())
         switch(index.column())
         {
-            case Name:
-                return m_nodes[index.parent().row()].components()[index.row()].components().name();
-            case Connect:
-                return m_nodes[index.parent().row()].components()[index.row()].components().connect();
-            case Speed:
-                    return m_nodes[index.parent().row()].components()[index.row()].components().speed();
-            case Uptime:
-                return m_nodes[index.parent().row()].components()[index.row()].components().uptime();
-            case Input:
-                return m_nodes[index.parent().row()].components()[index.row()].components().input();
-            case Output:
-                return m_nodes[index.parent().row()].components()[index.row()].components().output();
+        case Name:
+            return m_nodes[index.parent().row()].components()[index.row()].components().name();
+        case Connect:
+            return m_nodes[index.parent().row()].components()[index.row()].components().connection();
+        case Speed:
+            return m_nodes[index.parent().row()].components()[index.row()].components().speed();
+        case Uptime:
+            return m_nodes[index.parent().row()].components()[index.row()].components().uptime();
+        case Input:
+            return m_nodes[index.parent().row()].components()[index.row()].components().input();
+        case Output:
+            return m_nodes[index.parent().row()].components()[index.row()].components().output();
         }
 
-    return m_nodes[index.row()].listInfo()[index.column()];
-//    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
-//    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
-//    writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
-//                   .arg(QString::number(status.in_packets_count()))
-//                   .arg(QString::number(status.in_bytes_count())));
-//    writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
-//                   .arg(QString::number(status.out_packets_count()))
-//                   .arg(QString::number(status.out_bytes_count())));
+
+    switch(index.column())
+    {
+    case Name:
+        return m_nodes[index.row()].name();
+    case Connect:
+        return m_nodes[index.row()].connection();
+    case Speed:
+        return m_nodes[index.row()].speed();
+    case Uptime:
+        return m_nodes[index.row()].uptime();
+    case Input:
+        return m_nodes[index.row()].input();
+    case Output:
+        return m_nodes[index.row()].output();
+    }
+    //    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
+    //    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
+    //    writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
+    //                   .arg(QString::number(status.in_packets_count()))
+    //                   .arg(QString::number(status.in_bytes_count())));
+    //    writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
+    //                   .arg(QString::number(status.out_packets_count()))
+    //                   .arg(QString::number(status.out_bytes_count())));
 }
 
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
@@ -72,7 +87,7 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
         case Output:
             return tr("Отправлено (пак./байт)");
         case Speed:
-                return tr("Скорость");
+            return tr("Скорость");
 
         }
     }
@@ -99,7 +114,7 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
         return QModelIndex();
 
 
-  // TODO
+    // TODO
 
     return createIndex( parentItem->childNumber(), 0, parentItem);
 }

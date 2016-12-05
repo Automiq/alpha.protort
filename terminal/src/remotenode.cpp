@@ -189,3 +189,8 @@ QList<RemoteNode::Component> RemoteNode::components()
     return components_;
 }
 
+
+RemoteNode *RemoteNode::get()
+{
+    return NULL;
+}

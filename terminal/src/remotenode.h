@@ -59,6 +59,7 @@ public:
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);
     void async_status(alpha::protort::protocol::Packet_Payload& status);
 
+    RemoteNode* get();
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
