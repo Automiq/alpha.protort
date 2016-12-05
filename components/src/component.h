@@ -8,8 +8,6 @@
 #include <sstream>
 #include <boost/shared_ptr.hpp>
 
-#include "data.h"
-
 // node, router forward declaration
 namespace alpha {
 namespace protort {

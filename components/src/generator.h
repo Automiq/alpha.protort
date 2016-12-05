@@ -7,6 +7,8 @@
 
 #include "component.h"
 #include "router.h"
+#include "data.h"
+
 
 namespace alpha {
 namespace protort {

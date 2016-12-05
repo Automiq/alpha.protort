@@ -17,8 +17,8 @@ namespace components {
             return protocol::ComponentKind::Calc;
         else if (kind == "history")
             return protocol::ComponentKind::History;
-        else if (kind == "generator_timer")
-            return protocol::ComponentKind::Generator_timer;
+        else if (kind == "timed_generator")
+            return protocol::ComponentKind::TimedGenerator;
         else
             assert(false);
     }
@@ -36,8 +36,8 @@ namespace components {
             return "calc";
         case protocol::ComponentKind::History:
             return "history";
-        case protocol::ComponentKind::Generator_timer:
-            return "generator_timer";
+        case protocol::ComponentKind::TimedGenerator:
+            return "timed_generator";
         default:
             assert(false);
             return {};

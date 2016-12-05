@@ -1,7 +1,6 @@
 #ifndef CALC_H
 #define CALC_H
 
-#include "component.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -9,6 +8,8 @@
 #include <sstream>
 
 #include "router.h"
+#include "component.h"
+#include "data.h"
 
 namespace alpha {
 namespace protort {

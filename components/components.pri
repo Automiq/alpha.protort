@@ -12,4 +12,4 @@ HEADERS += \
            $$PWD/src/history.h \
            $$PWD/src/convert.h \
            $$PWD/src/data.h \
-           $$PWD/src/generator_timer.h
+           $$PWD/src/timed_generator.h

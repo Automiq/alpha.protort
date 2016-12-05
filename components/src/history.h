@@ -1,8 +1,11 @@
 #ifndef HISTORY_H
 #define HISTORY_H
 
-#include "component.h"
 #include <fstream>
+
+#include "data.h"
+#include "component.h"
+
 
 namespace alpha {
 namespace protort {

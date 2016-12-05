@@ -8,6 +8,6 @@
 //#include "reduce.h"
 #include "history.h"
 #include "calc.h"
-#include "generator_timer.h"
+#include "timed_generator.h"
 
 #endif // COMPONENTS_H

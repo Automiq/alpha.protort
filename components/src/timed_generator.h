@@ -6,6 +6,7 @@
 #include "component.h"
 #include "router.h"
 #include "generator.h"
+#include "data.h"
 
 namespace alpha {
 namespace protort {
@@ -14,10 +15,10 @@ namespace components {
 /*!
  * \brief Генератор, генерирует поток случайных чисел
  */
-class generator_timer : public generator
+class timed_generator : public generator
 {
 public:
-    generator_timer(node::router<node::node>& router):
+    timed_generator(node::router<node::node>& router):
         generator(router),
         generate_interval_(3000),
         generate_timer_(router.get_service())
@@ -27,10 +28,9 @@ public:
 
     void generate_next()
     {
-        std::cout << "going to next generation with timer" << std::endl;
         generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
-        generate_timer_.async_wait(boost::bind(&generator_timer::generate,
-                                                   boost::static_pointer_cast<generator_timer>(this->shared_from_this())));
+        generate_timer_.async_wait(boost::bind(&timed_generator::generate,
+                                                   boost::static_pointer_cast<timed_generator>(this->shared_from_this())));
     }
 
     void stop()
