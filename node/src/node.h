@@ -228,8 +228,6 @@ private:
             bool router_previous_state = router_->started_;
             router_->stop();
             router_->clear();
-            boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
-            boost::atomic_exchange(&router_, new_router);
             deploy_from_packet(packet.request().deploy_config().config());
             if (router_previous_state)
                 router_->start();
