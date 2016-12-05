@@ -35,7 +35,7 @@ public:
 
     static component_ptr create(
             protocol::ComponentKind kind,
-            boost::shared_ptr<node::router<node::node>> router)
+            router_ptr router)
     {
         component_ptr ptr;
 
@@ -68,7 +68,7 @@ public:
 
     static component_ptr create(
             const std::string& kind,
-            boost::shared_ptr<node::router<node::node>> router)
+            router_ptr router)
     {
         return create(get_component_kind(kind), router);
     }

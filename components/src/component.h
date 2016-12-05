@@ -28,6 +28,7 @@ using port_list = std::vector<port_id>;
 class component;
 
 using component_ptr = boost::shared_ptr<component>;
+using router_ptr = boost::shared_ptr<node::router<node::node>>;
 
 struct output
 {
@@ -40,7 +41,7 @@ using output_list = std::vector<output>;
 class component : public boost::enable_shared_from_this<component>
 {
 public:
-    component(boost::shared_ptr<node::router<node::node>> router):
+    component(router_ptr router):
         router_(router)
     {
 
@@ -68,7 +69,7 @@ public:
 
 protected:
     uint32_t in_packet_count_ = 0;
-    boost::shared_ptr<node::router<node::node>> router_;
+    router_ptr router_;
     void *comp_inst_ = nullptr;
 
 };

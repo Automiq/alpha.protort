@@ -22,7 +22,7 @@ namespace components {
 class calc: public component
 {
 public:
-    calc(boost::shared_ptr<node::router<node::node>> router): component(router)
+    calc(router_ptr router): component(router)
     {
 
     }
