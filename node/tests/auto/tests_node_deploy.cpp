@@ -23,7 +23,7 @@ BOOST_FIXTURE_TEST_SUITE(tests_node_deploy,fixture)
 BOOST_AUTO_TEST_CASE(test_node_deploy)
 {
     alpha::protort::node::node_settings node_settings_;
-    const char *argv[] = { "name_of_exe", "--name", "node1" };
+    const char *argv[] = { "name_of_exe", "--threads", "0" };
     node_settings_.parse(3, argv);
 
     node n(node_settings_);
@@ -34,14 +34,11 @@ BOOST_AUTO_TEST_CASE(test_node_deploy)
 
     n.deploy_from_config(cnfg);
     n.router_->start();
-    boost::asio::deadline_timer t(n.router_->get_service());
-    t.expires_from_now(boost::posix_time::milliseconds(1000));
-    t.async_wait(boost::bind(&router<node>::stop, n.router_));
     boost::asio::deadline_timer timer(n.router_->get_service());
     timer.expires_from_now(boost::posix_time::milliseconds(2000));
     timer.async_wait(boost::bind(&node::stop, &n));
+    n.router_->stop();
     n.start();
-    n.router_->clear();
 }
 BOOST_AUTO_TEST_SUITE_END()
 

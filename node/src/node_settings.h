@@ -64,7 +64,7 @@ struct node_settings
             desc.add_options()
                     ("help,h", "Help screen")
                     ("config-port,c", boost::program_options::value<uint16_t>(&configuration_port)
-                     ->default_value(100), "configuration port"),
+                     ->default_value(100), "configuration port")
                     ("threads,t", boost::program_options::value<uint16_t>(&threads)
                      ->default_value(boost::thread::hardware_concurrency()), "threads");
 

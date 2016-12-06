@@ -240,7 +240,6 @@ private:
             if (router_previous_state)
                 router_->start();
             old_router->stop();
-            //old_router->clear();
             return {};
         }
         case protocol::deploy::PacketKind::Start:

@@ -5,7 +5,7 @@
 #include <map>
 #include <vector>
 #include <boost/bind.hpp>
-#include <atomic>
+#include <boost/atomic.hpp>
 
 #include "packet.pb.h"
 #include "client.h"
@@ -267,16 +267,16 @@ private:
     bool started_ = false;
 
     //! Статистика по принятым байтам
-    std::atomic_uint32_t in_bytes_ = 0;
+    boost::atomic_uint32_t in_bytes_{0};
 
     //! Статистика по отправленным байтам
-    std::atomic_uint32_t out_bytes_ = 0;
+    boost::atomic_uint32_t out_bytes_{0};
 
     //! Статистика по принятым пакетам
-    std::atomic_uint32_t in_packets_ = 0;
+    boost::atomic_uint32_t in_packets_{0};
 
     //! Статистика по отправленным пакетам
-    std::atomic_uint32_t out_packets_ = 0;
+    boost::atomic_uint32_t out_packets_{0};
 
 #ifdef _DEBUG
     boost::mutex cout_mutex;

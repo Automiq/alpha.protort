@@ -7,7 +7,7 @@
 #include <ctime>
 #include <sstream>
 #include <boost/shared_ptr.hpp>
-#include <atomic>
+#include <boost/atomic.hpp>
 
 // node, router forward declaration
 namespace alpha {
@@ -70,7 +70,7 @@ public:
     }
 
 protected:
-    std::atomic_uint32_t in_packet_count_ = 0;
+    boost::atomic_uint32_t in_packet_count_{0};
     router_weak_ptr router_;
     void *comp_inst_ = nullptr;
 
