@@ -232,8 +232,7 @@ private:
             if (router_previous_state)
                 router_->start();
             old_router->stop();
-            //TODO заменить clear на weak pointers в отношениях router-components
-            new_router->clear();
+            old_router->clear();
             return {};
         }
         case protocol::deploy::PacketKind::Start:
