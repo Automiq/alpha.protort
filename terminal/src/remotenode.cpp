@@ -208,12 +208,6 @@ void RemoteNode::setSpeed(uint32_t speed){ speed_ = speed; }
 void RemoteNode::setOutput(uint32_t packets, uint32_t bytes){ in_(packets, bytes); }
 void RemoteNode::setInput(uint32_t packets, uint32_t bytes){ out_(packets, bytes); }
 
-//! Методы изменения данных компоненты
-void RemoteNode::setCompName(const int &index, QString name){ this[index].name_  = name; }
-void RemoteNode::setCompInput(const int &index, uint32_t packets){ this->components()[index].input_ = packets; }
-void RemoteNode::setCompOutput(const int &index, uint32_t packets){ this->components()[index].output_ = packets; }
-// void setCompNode(const int &index, );
-
 //! Методы получения данных узла
 QString RemoteNode::name() { return name_; }
 bool RemoteNode::isConnect(){ return connection_; }
@@ -221,11 +215,6 @@ uint32_t RemoteNode::uptime(){ return uptime_; }
 uint32_t RemoteNode::speed(){ return speed_; }
 RemoteNode::Packet RemoteNode::output(){ return in_; }
 RemoteNode::Packet RemoteNode::input(){ return out_; }
-
-//! Методы получения данных компоненты
-QString RemoteNode::compName(int &index){ return this->components_[index].name_; }
-uint32_t RemoteNode::compOutput(int &index){ return this->components()[index].output_; }
-uint32_t RemoteNode::compInput(int &index){ return this->components()[index].input_; }
 
 RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b){ return RemoteNode::Packet(p, b); }
 void RemoteNode::Packet::clear(){packets_ = 0; bytes_ = 0;}

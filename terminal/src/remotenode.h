@@ -33,26 +33,42 @@ private:
      * \param info - список состояний компонента
      * \param node - указатель на узел, на котором размещена данная компонента
      */
-    struct Packet
+    class Packet
     {
         uint32_t bytes_;
         uint32_t packets_;
 
+    public:
         Packet(){ packets_ = 0; bytes_ = 0; }
         Packet(const Packet &pac){ packets_ = pac.packets_, bytes_ = pac.bytes_; }
         Packet operator =(const Packet &pac){ return Packet(pac.packets_, pac.bytes_); }
         Packet(uint32_t p, uint32_t b){ packets_ = p; bytes_ = b; }
+        void setBytes(uint32_t b){ bytes_ = b; }
+        void setPackets(uint32_t p){ packets_ = p; }
+        uint32_t getBytes(){ return bytes_; }
+        uint32_t getPackets(){ return packets_; }
         void clear();
         Packet operator()(uint32_t p, uint32_t b);
     };
 
-    struct Component
+    class Component
     {
         uint32_t input_;
         uint32_t output_;
         
         QString name_;
-        RemoteNode *node_;
+        RemoteNode *parent_;
+
+    public:
+        uint32_t Input(){ return input_; }
+        QString Name(){ return name_; }
+        uint32_t Output(){ return output_; }
+        RemoteNode* Parent(){ return parent_; }
+
+        void setInput(uint32_t packets){ input_ = packets; }
+        void setName(QString name){ name_ = name; }
+        void setOutput(uint32_t packets){ output_ = packets; }
+        void setParent(RemoteNode* p){ parent_ = p; }
     };
 
 public:
@@ -82,12 +98,6 @@ public:
     void setOutput(uint32_t packets, uint32_t bytes);
     void setInput(uint32_t packets, uint32_t bytes);
 
-    //! Методы изменения данных компоненты
-    void setCompName(const int &index, QString name);
-    void setCompInput(const int &index, uint32_t packets);
-    void setCompOutput(const int &index, uint32_t packets);
-    // void setCompNode(const int &index, );
-
     //! Методы получения данных узла
     QString name();
     bool isConnect();
@@ -95,11 +105,6 @@ public:
     uint32_t speed();
     Packet output();
     Packet input();
-
-    //! Методы получения данных компоненты
-    QString compName(int &index);
-    uint32_t compOutput(int &index);
-    uint32_t compInput(int &index);
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
