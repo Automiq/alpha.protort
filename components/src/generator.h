@@ -46,7 +46,13 @@ public:
         d.val = dis_(gen_);
         d.time = std::time(NULL);
 
-        router_->do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
+        output_list data = { {d.pack() , {0 , 1}} };
+
+        router_->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                router_.get(),
+                                                comp_inst_,
+                                                data));
+        //router_->do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
         generate_next();
     }
 

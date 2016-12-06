@@ -148,6 +148,7 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
             std::cout << "route packet at stopped router" << std::endl;
 #endif
             return;
@@ -176,6 +177,7 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
             std::cout << "do_route at stopped router" << std::endl;
 #endif
             return;
@@ -193,6 +195,7 @@ public:
                 for (auto &local_route : port_routes.local_routes)
                 {
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "using do_route: \nfrom comp " << this_component->name
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
@@ -225,6 +228,7 @@ public:
                     out_bytes_ += sizeof(payload);
                     out_packets_++;
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
 #endif
                 }
@@ -262,6 +266,10 @@ private:
 
     //! Статистика по отправленным пакетам
     uint32_t out_packets_ = 0;
+
+#ifdef _DEBUG
+    boost::mutex cout_mutex;
+#endif
 };
 
 } // namespae node

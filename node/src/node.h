@@ -50,8 +50,13 @@ public:
     {
     }
 
+    ~node()
+    {
+        stop();
+    }
+
     //! Запускает сетевой узел
-    void start()
+    void start(int worker_count)
     {
         start_time_ = boost::chrono::steady_clock::now();
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
@@ -59,6 +64,8 @@ public:
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
                      settings_.configuration_port));
+        for (int i = 0; i != worker_count; i++)
+            workers_.create_thread([this](){ service_.run(); });
         service_.run();
     }
 
@@ -67,6 +74,7 @@ public:
     {
         router_->stop();
         service_.stop();
+        workers_.join_all();
     }
 
     /*!
@@ -232,7 +240,7 @@ private:
             if (router_previous_state)
                 router_->start();
             old_router->stop();
-            old_router->clear();
+            //old_router->clear();
             return {};
         }
         case protocol::deploy::PacketKind::Start:
@@ -331,6 +339,8 @@ private:
 
     //! Время запуска узла
     boost::chrono::steady_clock::time_point start_time_;
+
+    boost::thread_group workers_;
 
 public:
     //! Роутер пакетов
