@@ -35,8 +35,15 @@ private:
      */
     struct Packet
     {
-        uint32_t packets;
-        uint32_t bytes;
+        uint32_t bytes_;
+        uint32_t packets_;
+
+        Packet(){ packets_ = 0; bytes_ = 0; }
+        Packet(const Packet &pac){ packets_ = pac.packets_, bytes_ = pac.bytes_; }
+        Packet operator =(const Packet &pac){ return Packet(pac.packets_, pac.bytes_); }
+        Packet(uint32_t p, uint32_t b){ packets_ = p; bytes_ = b; }
+        void clear();
+        Packet operator()(uint32_t p, uint32_t b);
     };
 
     struct Component
@@ -86,13 +93,13 @@ public:
     bool isConnect();
     uint32_t uptime();
     uint32_t speed();
-    uint32_t output();
-    uint32_t input();
+    Packet output();
+    Packet input();
 
     //! Методы получения данных компоненты
-    QString compName(const int &index);
-    uint32_t compOutput(const int &index);
-    uint32_t compInput(const int &index);
+    QString compName(int &index);
+    uint32_t compOutput(int &index);
+    uint32_t compInput(int &index);
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -119,9 +126,7 @@ private:
     //! Клиент для подключения к узлу
     client_ptr client_;
 
-    Packet(uint32_t p, uint32_t b){packets = p; bytes = b;};
-    Packet operator()(uint32_t p, uint32_t b){packets = p; bytes = b;}
-    Packet clear(){packets = 0; bytes = 0;}
+    Component operator [](int index);
 
     uint32_t uptime_;
     uint32_t speed_;

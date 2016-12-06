@@ -7,7 +7,7 @@ TreeModel::TreeModel(const QString &data, QObject *parent)
     : QAbstractItemModel(parent)
 {
 
-    setupModelData(/*QList<RemoteNode>xml*/);
+//    setupModelData(/*QList<RemoteNode>xml*/);
 }
 
 TreeModel::~TreeModel(){}
@@ -30,7 +30,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case Name:
-            return m_nodes[index.parent().row()].components()[index.row()].components().name();
+            return m_nodes[index.parent().row()].compName(index.row());
         case Connect:
             return m_nodes[index.parent().row()].components()[index.row()].components().connection();
         case Speed:
