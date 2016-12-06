@@ -30,17 +30,13 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case Name:
-            return m_nodes[index.parent().row()].compName(index.row());
-        case Connect:
-            return m_nodes[index.parent().row()].components()[index.row()].components().connection();
-        case Speed:
-            return m_nodes[index.parent().row()].components()[index.row()].components().speed();
-        case Uptime:
-            return m_nodes[index.parent().row()].components()[index.row()].components().uptime();
+            return m_nodes[index.parent().row()].components()[index.row()].Name();
         case Input:
-            return m_nodes[index.parent().row()].components()[index.row()].components().input();
+            return m_nodes[index.parent().row()].components()[index.row()].Input();
         case Output:
-            return m_nodes[index.parent().row()].components()[index.row()].components().output();
+            return m_nodes[index.parent().row()].components()[index.row()].Output();
+        default:
+            return 0;
         }
 
 
