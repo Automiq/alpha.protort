@@ -33,11 +33,18 @@ private:
      * \param info - список состояний компонента
      * \param node - указатель на узел, на котором размещена данная компонента
      */
+    struct Packet
+    {
+        uint32_t packets;
+        uint32_t bytes;
+    };
+
     struct Component
     {
-        QString name_;
         uint32_t input_;
         uint32_t output_;
+        
+        QString name_;
         RemoteNode *node_;
     };
 
@@ -72,7 +79,7 @@ public:
     void setCompName(const int &index, QString name);
     void setCompInput(const int &index, uint32_t packets);
     void setCompOutput(const int &index, uint32_t packets);
-//    void setCompNode(const int &index, );
+    // void setCompNode(const int &index, );
 
     //! Методы получения данных узла
     QString name();
@@ -112,9 +119,19 @@ private:
     //! Клиент для подключения к узлу
     client_ptr client_;
 
-    QString name_;
+    Packet(uint32_t p, uint32_t b){packets = p; bytes = b;};
+    Packet operator()(uint32_t p, uint32_t b){packets = p; bytes = b;}
+    Packet clear(){packets = 0; bytes = 0;}
+
     uint32_t uptime_;
     uint32_t speed_;
+
+    Packet in_;
+    Packet out_;
+
+    bool connection_;
+
+    QString name_;
     QList<Component> components_;
 };
 
