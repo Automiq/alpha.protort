@@ -56,7 +56,7 @@ public:
     }
 
     //! Запускает сетевой узел
-    void start(int worker_count)
+    void start()
     {
         start_time_ = boost::chrono::steady_clock::now();
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
@@ -64,7 +64,7 @@ public:
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
                      settings_.configuration_port));
-        for (int i = 0; i != worker_count; i++)
+        for (int i = 0; i != settings_.threads; i++)
             workers_.create_thread([this](){ service_.run(); });
         service_.run();
     }

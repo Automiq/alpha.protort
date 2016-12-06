@@ -36,7 +36,7 @@ public:
         out[0].payload = d.pack();
         out[0].ports.push_back(0);
 
-        if (comp_inst_ != nullptr)
+        if (!router_.expired())
             router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
                                                     router_.lock(),
                                                     comp_inst_,

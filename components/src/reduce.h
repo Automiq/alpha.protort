@@ -35,7 +35,9 @@ public:
             out.payload = T(values_).pack();
             out.ports.push_back(0);
             res.push_back(out);
-            router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
+
+            if (!router_.expired())
+                router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
                                                     router_.lock(),
                                                     comp_inst_,
                                                     res));
