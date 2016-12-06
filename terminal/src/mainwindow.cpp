@@ -17,6 +17,7 @@
 #include <QPushButton>
 #include <QWidget>
 #include <QSettings>
+#include <QToolTip>
 #include <boost/make_shared.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -124,9 +125,10 @@ void MainWindow::load_file(const QString& fileName)
     Document *doc = new Document();
     doc->setText(file.readAll());
     doc->setFilePath(fileName);
+    addConfig(doc);
     addDocument(doc);
     setIcon(doc);
-    addConfig(doc);
+
 }
 
 void MainWindow::on_load_file_triggered()
@@ -137,19 +139,15 @@ void MainWindow::on_load_file_triggered()
     load_file(fileName);
 }
 
-void MainWindow::deleteConfig(QComboBox *ptr, const QString &name)
+void MainWindow::delDocFromComboBox(QComboBox* combobox, Document* doc)
 {
-    int indx = ptr->findText(QFileInfo(name).fileName());
-    if(indx != -1)
-        ptr->removeItem(indx);
+    combobox->removeItem(combobox->findData(QVariant::fromValue(doc)));
 }
 
 void MainWindow::delConfig(Document *doc)
 {
-    QString name = doc->filePath();
-
-    deleteConfig(m_apps, name);
-    deleteConfig(m_deploys, name);
+    delDocFromComboBox(m_apps, doc);
+    delDocFromComboBox(m_deploys, doc);
 }
 
 void MainWindow::updateConfig(Document *doc)
@@ -171,13 +169,20 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
 
 void MainWindow::addConfig(Document *doc)
 {
-    QString name = doc->fileName();
+    if(doc->isApp() && (m_apps->findData(QVariant::fromValue(doc)) == -1)){
+        m_apps->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
+        setComboBoxToolTip(m_apps, doc);
+    }
 
-    if(doc->isApp() && (m_apps->findText(name) == -1))
-        m_apps->addItem(name, QVariant::fromValue(doc));
+    if(doc->isDeploy() && (m_deploys->findData(QVariant::fromValue(doc)) == -1)){
+        m_deploys->addItem(fixedWindowTitle(doc), QVariant::fromValue(doc));
+        setComboBoxToolTip(m_deploys, doc);
+    }
+}
 
-    if(doc->isDeploy() && (m_deploys->findText(name) == -1))
-        m_deploys->addItem(name, QVariant::fromValue(doc));
+void MainWindow::setComboBoxToolTip(QComboBox *combobox, Document *doc)
+{
+     combobox->setItemData(combobox->findData(QVariant::fromValue(doc)), doc->filePath(), Qt::ToolTipRole);
 }
 
 void MainWindow::on_config_triggered()
@@ -207,8 +212,8 @@ void MainWindow::on_config_triggered()
 
 void MainWindow::resetDeployActions() const
 {
-    ui->stop->setDisabled(true);
-    ui->start->setEnabled(true);
+    if (!ui->start->isEnabled() && !ui->stop->isEnabled())
+        ui->start->setEnabled(true);
 }
 
 void MainWindow::showLog() const
@@ -305,7 +310,6 @@ void MainWindow::setTabName(int index, const QString &name)
 
 void MainWindow::on_start_triggered()
 {
-    ui->deploy->setDisabled(true);
     ui->start->setDisabled(true);
     ui->stop->setEnabled(true);
 
@@ -318,8 +322,7 @@ void MainWindow::on_start_triggered()
 
 void MainWindow::on_stop_triggered()
 {
-    if(! ui->deploy->isEnabled())
-        ui->start->setEnabled(true);
+    ui->start->setEnabled(true);
     ui->stop->setDisabled(true);
 
     alpha::protort::protocol::Packet_Payload payload;
@@ -383,18 +386,23 @@ void MainWindow::on_status_triggered()
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
-    QString title = doc->filePath();
+    QString result = doc->fileName();
 
-    if (title.isEmpty())
-        title = tr("Безымянный");
-    else
-        title = QFileInfo(title).fileName();
-
-    QString result;
+    switch(doc->kind())
+    {
+    case Document::Kind::App:
+        return result;
+    case Document::Kind::Deploy:
+        return result;
+    default:
+        result = tr("Безымянный");
+        break;
+    }
 
     for (int i = 0; ; ++i)
     {
-        result = title;
+        if (i > 1)
+            result.chop(1);
         if (i > 0)
             result += QString::number(i);
 
@@ -483,6 +491,7 @@ void MainWindow::addDocument(Document *doc)
     ui->tabWidget->setTabEnabled(index, true);
     ui->tabWidget->setCurrentWidget(doc);
     setIcon(doc);
+    ui->tabWidget->setTabToolTip(ui->tabWidget->currentIndex(), doc->filePath());
 }
 
 void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
@@ -558,24 +567,10 @@ void MainWindow::button_clickedSetup()
 
 void MainWindow::setActiveConfig()
 {
-    for (int i = 0; i < ui->tabWidget->count(); ++i)
-    {
-        setupActiveIcon(i);
-    }
-}
-
-void MainWindow::setupActiveIcon(const int &index)
-{
-    auto doc = document(index);
-    QString nameApp = QFileInfo(m_apps->currentText()).fileName();
-    QString nameDeploy = QFileInfo(m_deploys->currentText()).fileName();
-
-    setIcon(doc);
-    if((QFileInfo(doc->filePath()).fileName() == nameApp) && (doc->isApp()))
-        setTabIco(doc,":/images/greenPen.png");
-
-    if((QFileInfo(doc->filePath()).fileName() == nameDeploy) && (doc->isDeploy()))
-        setTabIco(doc,":/images/greenCog.png");
+    for (int i = 0; i != ui->tabWidget->count(); ++i)
+        setIcon(document(i));
+    setTabIco(m_app,":/images/greenPen.png");
+    setTabIco(m_deploySchema,":/images/greenCog.png");
 }
 
 Document* MainWindow::document(int index)

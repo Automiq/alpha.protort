@@ -22,7 +22,7 @@ namespace components {
 class calc: public component
 {
 public:
-    calc(node::router<node::node>& router): component(router)
+    calc(router_ptr router): component(router)
     {
 
     }
@@ -37,7 +37,7 @@ public:
         out[0].ports.push_back(0);
 
         if (comp_inst_ != nullptr)
-            router_.do_route(comp_inst_, out);
+            router_->do_route(comp_inst_, out);
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 2; }

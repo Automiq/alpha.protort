@@ -18,7 +18,7 @@ namespace components {
 class history : public component
 {
 public:
-    history(node::router<node::node>& router) :
+    history(router_ptr router) :
         component(router),
         f_("history.txt", std::ios_base::out)
     {

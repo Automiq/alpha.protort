@@ -10,7 +10,7 @@ namespace components {
 class retranslator : public component
 {
 public:
-    retranslator(node::router<node::node>& router): component(router)
+    retranslator(router_ptr router): component(router)
     {
 
     }
@@ -19,13 +19,12 @@ public:
         if (input_port == 0 || input_port == 1)
         {
             assert(comp_inst_ != nullptr);
-            router_.do_route(comp_inst_, { { payload, {0, 1} } });
+            router_->do_route(comp_inst_, { { payload, {0, 1} } });
         }
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 2; }
     void start() final override { }
-    void stop() final override { }
 };
 
 } // namespace components

@@ -10,7 +10,7 @@ namespace components {
 class terminator : public component
 {
 public:
-    terminator(node::router<node::node>& router): component(router)
+    terminator(router_ptr router): component(router)
     {
 
     }
