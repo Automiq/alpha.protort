@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <boost/bind.hpp>
+#include <atomic>
 
 #include "packet.pb.h"
 #include "client.h"
@@ -108,7 +109,13 @@ public:
     {
 
     }
-    ~router() {std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;}
+
+    ~router()
+    {
+#ifdef _DEBUG
+        std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;
+#endif
+    }
 
     //! Запускает каждый компонент
     void start()
@@ -157,6 +164,10 @@ public:
         auto it = components_.find(component_name);
         if (it != components_.end())
         {
+#ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
+            std::cout << "route::post(do_process payload)" << std::endl;
+#endif
             service_.post(boost::bind(&protort::components::component::do_process,
                                      it->second.component_,
                                      in_port,
@@ -256,16 +267,16 @@ private:
     bool started_ = false;
 
     //! Статистика по принятым байтам
-    uint32_t in_bytes_ = 0;
+    std::atomic_uint32_t in_bytes_ = 0;
 
     //! Статистика по отправленным байтам
-    uint32_t out_bytes_ = 0;
+    std::atomic_uint32_t out_bytes_ = 0;
 
     //! Статистика по принятым пакетам
-    uint32_t in_packets_ = 0;
+    std::atomic_uint32_t in_packets_ = 0;
 
     //! Статистика по отправленным пакетам
-    uint32_t out_packets_ = 0;
+    std::atomic_uint32_t out_packets_ = 0;
 
 #ifdef _DEBUG
     boost::mutex cout_mutex;

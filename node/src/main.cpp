@@ -9,7 +9,7 @@ int main(int argc, const char *argv[])
         return 1;
 
     auto n = boost::make_shared<node::node>(settings);
-    n->start(4);
+    n->start(7);
 
     return 0;
 }

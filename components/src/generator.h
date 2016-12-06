@@ -39,20 +39,17 @@ public:
     {
         if (!started_)
             return;
-        assert(router_);
-
 
         data d;
         d.val = dis_(gen_);
         d.time = std::time(NULL);
 
-        output_list data = { {d.pack() , {0 , 1}} };
+        output_list data{ {d.pack() , {0 , 1}} };
 
-        router_->get_service().post(boost::bind(&node::router<node::node>::do_route,
-                                                router_.get(),
+        router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                router_.lock(),
                                                 comp_inst_,
                                                 data));
-        //router_->do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
         generate_next();
     }
 
@@ -62,7 +59,7 @@ public:
      */
     virtual void generate_next()
     {
-        router_->get_service().post(boost::bind(&generator::generate,
+        router_.lock()->get_service().post(boost::bind(&generator::generate,
                                                boost::static_pointer_cast<generator>(this->shared_from_this())));
     }
 

@@ -37,7 +37,10 @@ public:
         out[0].ports.push_back(0);
 
         if (comp_inst_ != nullptr)
-            router_->do_route(comp_inst_, out);
+            router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                    router_.lock(),
+                                                    comp_inst_,
+                                                    out));
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 2; }
