@@ -87,7 +87,9 @@ void MainWindow::createTable()
             << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
             << tr("Время работы");
 
-    TreeModel *model = new TreeModel("");
+    QList<RemoteNode> asd;
+
+    TreeModel *model = new TreeModel(asd);
 
     ui->treeStatus->setModel(model);
 

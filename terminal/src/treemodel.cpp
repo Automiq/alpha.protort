@@ -3,11 +3,11 @@
 #include "treemodel.h"
 #include <QList>
 
-TreeModel::TreeModel(const QString &data, QObject *parent)
+TreeModel::TreeModel(const QList<RemoteNode> &data, QObject *parent)
     : QAbstractItemModel(parent)
 {
 
-//    setupModelData(/*QList<RemoteNode>xml*/);
+    setupModelData(data);
 }
 
 TreeModel::~TreeModel(){}
@@ -30,11 +30,11 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case Name:
-            return m_nodes[index.parent().row()].components()[index.row()].Name();
+            return m_nodes[index.parent().row()].components()[index.row()].name();
         case Input:
-            return m_nodes[index.parent().row()].components()[index.row()].Input();
+            return m_nodes[index.parent().row()].components()[index.row()].input();
         case Output:
-            return m_nodes[index.parent().row()].components()[index.row()].Output();
+            return m_nodes[index.parent().row()].components()[index.row()].output();
         default:
             return 0;
         }
@@ -45,15 +45,15 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     case Name:
         return m_nodes[index.row()].name();
     case Connect:
-        return m_nodes[index.row()].connection();
+        return m_nodes[index.row()].isConnect();
     case Speed:
-        return m_nodes[index.row()].speed();
+        return QString::number(m_nodes[index.row()].speed());
     case Uptime:
         return m_nodes[index.row()].uptime();
     case Input:
-        return m_nodes[index.row()].input();
+        return m_nodes[index.row()].input().getPackets();
     case Output:
-        return m_nodes[index.row()].output();
+        return m_nodes[index.row()].output().getPackets();
     }
     //    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
     //    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
@@ -98,8 +98,8 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) con
 
     void *internal = nullptr;
 
-    if (parent.isValid())
-        internal = m_nodes[parent.row()].get();
+//    if (parent.isValid())
+//        internal = m_nodes[parent.row()].get();
 
     return createIndex(row, column, internal);
 }
@@ -109,10 +109,10 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-
+    return index.parent();
     // TODO
 
-    return createIndex( parentItem->childNumber(), 0, parentItem);
+    /*//return createIndex( parentItem->childNumber(), 0, parentItem);*/
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const

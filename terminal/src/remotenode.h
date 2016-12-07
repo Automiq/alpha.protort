@@ -60,21 +60,33 @@ private:
         RemoteNode *parent_;
 
     public:
-        uint32_t Input(){ return input_; }
-        QString Name(){ return name_; }
-        uint32_t Output(){ return output_; }
-        RemoteNode* Parent(){ return parent_; }
+        uint32_t input() const { return input_; }
+        QString name() const { return name_; }
+        uint32_t output() const { return output_; }
+        RemoteNode* parent(){ return parent_; }
 
         void setInput(uint32_t packets){ input_ = packets; }
         void setName(QString name){ name_ = name; }
         void setOutput(uint32_t packets){ output_ = packets; }
         void setParent(RemoteNode* p){ parent_ = p; }
+        Component(const Component &c)
+        {
+            input_ = c.input_;
+            output_ = c.output_;
+            name_ = c.name_;
+            parent_ = c.parent_;
+        }
+
+        Component operator =(const Component &c){ return Component(c); }
     };
 
 public:
-    QList<Component> components();
+    QList<Component> components() const;
+    Component operator [](int index) const;
 
     RemoteNode(alpha::protort::parser::node const& node);
+    RemoteNode(const RemoteNode &n);
+    RemoteNode operator =(const RemoteNode &n);
 
     void init(boost::asio::io_service& service);
 
@@ -100,11 +112,12 @@ public:
 
     //! Методы получения данных узла
     QString name();
-    bool isConnect();
-    uint32_t uptime();
-    uint32_t speed();
-    Packet output();
-    Packet input();
+    bool isConnect() const;
+    uint32_t uptime() const ;
+    uint32_t speed() const;
+    Packet output() const ;
+    Packet input() const ;
+    QModelIndex index() const;
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -131,8 +144,6 @@ private:
     //! Клиент для подключения к узлу
     client_ptr client_;
 
-    Component operator [](int index);
-
     uint32_t uptime_;
     uint32_t speed_;
 
@@ -143,6 +154,6 @@ private:
 
     QString name_;
     QList<Component> components_;
+    QModelIndex index_;
 };
-
 #endif // TERMINAL_CLIENT_H

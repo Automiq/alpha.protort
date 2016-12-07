@@ -15,7 +15,7 @@ class TreeModel : public QAbstractItemModel
     Q_OBJECT
 
 public:
-    TreeModel(const QString &data,
+    TreeModel(const QList<RemoteNode> &data,
               QObject *parent = 0);
     ~TreeModel();
 

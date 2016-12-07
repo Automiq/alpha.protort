@@ -184,7 +184,7 @@ void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 
 }
 
-QList<RemoteNode::Component> RemoteNode::components()
+QList<RemoteNode::Component> RemoteNode::components() const
 {
     return components_;
 }
@@ -195,7 +195,7 @@ QList<RemoteNode::Component> RemoteNode::components()
 //    return NULL;
 //}
 
-RemoteNode::Component RemoteNode::operator [](int index)
+RemoteNode::Component RemoteNode::operator [](int index) const
 {
     return this->components()[index];
 }
@@ -210,11 +210,34 @@ void RemoteNode::setInput(uint32_t packets, uint32_t bytes){ out_(packets, bytes
 
 //! Методы получения данных узла
 QString RemoteNode::name() { return name_; }
-bool RemoteNode::isConnect(){ return connection_; }
-uint32_t RemoteNode::uptime(){ return uptime_; }
-uint32_t RemoteNode::speed(){ return speed_; }
-RemoteNode::Packet RemoteNode::output(){ return in_; }
-RemoteNode::Packet RemoteNode::input(){ return out_; }
+bool RemoteNode::isConnect() const { return connection_; }
+uint32_t RemoteNode::uptime() const { return uptime_; }
+uint32_t RemoteNode::speed() const { return speed_; }
+RemoteNode::Packet RemoteNode::output() const { return in_; }
+RemoteNode::Packet RemoteNode::input() const { return out_; }
+QModelIndex RemoteNode::index() const { return index_; }
 
-RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b){ return RemoteNode::Packet(p, b); }
+RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b)
+{ return RemoteNode::Packet(p, b); }
+
 void RemoteNode::Packet::clear(){packets_ = 0; bytes_ = 0;}
+
+RemoteNode::RemoteNode (const RemoteNode &n)
+{
+    node_information_ = n.node_information_;
+    client_ = n.client_;
+
+    uptime_ = n.uptime_;
+    speed_ = n.speed_;
+
+    in_ = n.in_;
+    out_ = n.out_;
+
+    connection_ = n.connection_;
+
+    name_ = n.name_;
+    //components_ = n.components_;
+    index_ = n.index_;
+}
+
+RemoteNode RemoteNode::operator =(const RemoteNode &n) { return RemoteNode(n); }
