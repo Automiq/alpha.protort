@@ -55,14 +55,6 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     case Output:
         return m_nodes[index.row()].output().getPackets();
     }
-    //    writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
-    //    writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
-    //    writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
-    //                   .arg(QString::number(status.in_packets_count()))
-    //                   .arg(QString::number(status.in_bytes_count())));
-    //    writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
-    //                   .arg(QString::number(status.out_packets_count()))
-    //                   .arg(QString::number(status.out_bytes_count())));
 }
 
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
@@ -96,12 +88,12 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) con
     if (parent.isValid() && parent.column() > Column::MaxColumn)
         return QModelIndex();
 
-    void *internal = nullptr;
+//    void *internal = nullptr;
 
-//    if (parent.isValid())
-//        internal = m_nodes[parent.row()].get();
+    if (parent.isValid())
+//        internal = findParent(1);
 
-    return createIndex(row, column, internal);
+    return createIndex(row, column,);
 }
 
 QModelIndex TreeModel::parent(const QModelIndex &index) const
@@ -109,10 +101,8 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    return index.parent();
-    // TODO
-
-    /*//return createIndex( parentItem->childNumber(), 0, parentItem);*/
+    int parentRow = findParent(index.row());
+        return createIndex(parentRow, 0);
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const
@@ -126,4 +116,29 @@ int TreeModel::rowCount(const QModelIndex &parent) const
 void TreeModel::setupModelData(const QList<RemoteNode> nodes)
 {
     m_nodes = nodes;
+}
+
+int TreeModel::findParent(int index) const
+{
+    int i = 0;
+    int sum = m_nodes[i].components().size();
+
+    while (sum < index)
+    {
+        ++i;
+        sum += m_nodes[i].components().size() + 1;
+    }
+
+    if (i == 0)
+        return 0;
+
+    else
+    {
+        sum -= m_nodes[i].components().size() + 1;
+        --i;
+        if (!i)
+            return 0;
+
+        return sum + 1;
+    }
 }

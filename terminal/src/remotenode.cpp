@@ -238,6 +238,18 @@ RemoteNode::RemoteNode (const RemoteNode &n)
     name_ = n.name_;
     //components_ = n.components_;
     index_ = n.index_;
+
+    id_ = n.id_;
 }
 
 RemoteNode RemoteNode::operator =(const RemoteNode &n) { return RemoteNode(n); }
+
+void RemoteNode::setId(int id)
+{
+    id_ = id;
+}
+
+int RemoteNode::id() const
+{
+    return id_;
+}

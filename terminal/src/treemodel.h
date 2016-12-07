@@ -35,6 +35,8 @@ private:
 
     QList<RemoteNode> m_nodes;
 
+    int findParent(int index) const;
+
     enum Column
     {
         Name,
@@ -42,7 +44,7 @@ private:
         Speed,
         Uptime,
         Input,
-        Output,        
+        Output,
 
 
         MaxColumn = Output + 1,

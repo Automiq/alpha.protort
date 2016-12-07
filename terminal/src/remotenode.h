@@ -109,6 +109,7 @@ public:
     void setSpeed(uint32_t speed);
     void setOutput(uint32_t packets, uint32_t bytes);
     void setInput(uint32_t packets, uint32_t bytes);
+    void setId(int id);
 
     //! Методы получения данных узла
     QString name();
@@ -118,6 +119,7 @@ public:
     Packet output() const ;
     Packet input() const ;
     QModelIndex index() const;
+    int id() const;
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -151,6 +153,7 @@ private:
     Packet out_;
 
     bool connection_;
+    int id_;
 
     QString name_;
     QList<Component> components_;
