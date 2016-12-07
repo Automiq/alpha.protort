@@ -21,9 +21,10 @@ public:
             assert(comp_inst_ != nullptr);
             output_list data{ { payload, {0, 1} } };
 
-            if (!router_.expired())
-                router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
-                                                    router_.lock(),
+            router_ptr router = router_.lock();
+            if (router)
+                router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                    router,
                                                     comp_inst_,
                                                     data));
         }

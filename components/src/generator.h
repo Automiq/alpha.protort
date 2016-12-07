@@ -46,9 +46,10 @@ public:
 
         output_list data{ {d.pack() , {0 , 1}} };
 
-        if (!router_.expired())
-            router_.lock()->get_service().post(boost::bind(&node::router<node::node>::do_route,
-                                                router_.lock(),
+        router_ptr router = router_.lock();
+        if (router)
+            router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                router,
                                                 comp_inst_,
                                                 data));
         generate_next();
@@ -60,8 +61,9 @@ public:
      */
     virtual void generate_next()
     {
-        if (!router_.expired())
-            router_.lock()->get_service().post(boost::bind(&generator::generate,
+        router_ptr router = router_.lock();
+        if (router)
+            router->get_service().post(boost::bind(&generator::generate,
                                                boost::static_pointer_cast<generator>(this->shared_from_this())));
     }
 
