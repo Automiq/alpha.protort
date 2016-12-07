@@ -142,3 +142,28 @@ int TreeModel::findParent(int index) const
         return sum + 1;
     }
 }
+
+void TreeModel::setNodes(std::vector<alpha::protort::parser::node> n)
+{
+    int size = m_nodes.size();
+    for (int i = 0; i < size; ++i)
+        m_nodes[i].setName(QString::fromStdString(n[i].name));
+}
+
+void TreeModel::setComponents(const std::vector<alpha::protort::parser::mapping> &m)
+{
+    int size = m.size();
+    for (int i = 0; i < size; ++i)
+        findNAdd(QString::fromStdString(m[i].comp_name), QString::fromStdString(m[i].node_name));
+}
+
+void TreeModel::findNAdd(QString comp_name, QString node_name)
+{
+    int size = m_nodes.size();
+    for (int i = 0; i < size; ++i)
+        if (m_nodes[i].name() == node_name)
+        {
+            m_nodes[i].addComp(comp_name);
+            return;
+        }
+}

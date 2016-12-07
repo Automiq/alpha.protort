@@ -54,28 +54,25 @@ private:
     class Component
     {
         uint32_t input_;
-        uint32_t output_;
-        
+        uint32_t output_;        
         QString name_;
-        RemoteNode *parent_;
 
     public:
         uint32_t input() const { return input_; }
         QString name() const { return name_; }
         uint32_t output() const { return output_; }
-        RemoteNode* parent(){ return parent_; }
 
         void setInput(uint32_t packets){ input_ = packets; }
         void setName(QString name){ name_ = name; }
         void setOutput(uint32_t packets){ output_ = packets; }
-        void setParent(RemoteNode* p){ parent_ = p; }
         Component(const Component &c)
         {
             input_ = c.input_;
             output_ = c.output_;
             name_ = c.name_;
-            parent_ = c.parent_;
         }
+
+        Component(QString n){name_ = n; input_ = 0; output_ = 0;}
 
         Component operator =(const Component &c){ return Component(c); }
     };
@@ -109,7 +106,7 @@ public:
     void setSpeed(uint32_t speed);
     void setOutput(uint32_t packets, uint32_t bytes);
     void setInput(uint32_t packets, uint32_t bytes);
-    void setId(int id);
+    void addComp(QString comp);
 
     //! Методы получения данных узла
     QString name();
@@ -119,7 +116,6 @@ public:
     Packet output() const ;
     Packet input() const ;
     QModelIndex index() const;
-    int id() const;
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -153,7 +149,6 @@ private:
     Packet out_;
 
     bool connection_;
-    int id_;
 
     QString name_;
     QList<Component> components_;

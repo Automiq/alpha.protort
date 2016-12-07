@@ -22,6 +22,7 @@
 #include "configdialog.h"
 #include "remotenode.h"
 #include "deployconfiguration.h"
+#include "treemodel.h"
 
 class QTextEdit;
 
@@ -94,6 +95,7 @@ private:
     QPushButton *m_setupConfig;
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
+    TreeModel *m_model;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);

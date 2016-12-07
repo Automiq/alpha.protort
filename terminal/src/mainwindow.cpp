@@ -5,7 +5,6 @@
 #include "connection.h"
 #include "parser.h"
 #include "configdialog.h"
-#include "treemodel.h"
 
 #include <QComboBox>
 #include <QIcon>
@@ -87,26 +86,24 @@ void MainWindow::createTable()
             << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
             << tr("Время работы");
 
-    QList<RemoteNode> asd;
 
-    TreeModel *model = new TreeModel(asd);
+    QList<RemoteNode> scheme;// = m_deploySchema;
 
-    ui->treeStatus->setModel(model);
+    m_model = new TreeModel(scheme);
+
+    ui->treeStatus->setModel(m_model);
 
     //for (int column = 0; column < model->columnCount(); ++column)
     //    ui->treeStatus->resizeColumnToContents(column);
 }
 
-void MainWindow::fillModel(Document  *doc)
+void MainWindow::fillModel(Document *doc)
 {
-    QXmlStreamReader xml(doc->toPlainText());
-    xml.readNextStartElement();
-    while (xml.name() != "/deploy")
-    {
-        xml.readNext();
-        if (xml.name() == "node")
-            m_deploys->addItem(xml.text().toString());
-    }
+    alpha::protort::parser::configuration conf;
+//    conf.parse_app(m_app->filePath());
+//    conf.parse_deploy(m_deploySchema->filePath());
+//    m_model.setNodes(conf.nodes);
+    m_model->setComponents(conf.mappings);
 }
 
 void MainWindow::load_session()
