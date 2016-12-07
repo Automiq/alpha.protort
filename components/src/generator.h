@@ -42,7 +42,10 @@ public:
 
         data d;
         d.val = dis_(gen_);
+        time_mutex_.lock();
         d.time = std::time(NULL);
+        time_mutex_.unlock();
+        d.address = reinterpret_cast<uint64_t>(this);
 
         output_list data{ {d.pack() , {0 , 1}} };
 
@@ -85,6 +88,7 @@ private:
     std::random_device rd_;
     std::mt19937 gen_;
     std::uniform_real_distribution<> dis_;
+    boost::mutex time_mutex_;
 };
 
 } // namespace components

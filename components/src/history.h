@@ -30,7 +30,7 @@ public:
         d.unpack(payload);
 
         boost::mutex::scoped_lock lock(fstream_mutex_);
-        f_ << d.val << ' ' << std::asctime(std::localtime(&d.time));
+        f_ << d.address << ' ' << d.val << ' ' << std::asctime(std::localtime(&d.time)) << std::flush;
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 0; }
