@@ -264,7 +264,7 @@ private:
     boost::asio::io_service& service_;
 
     //! Статус роутера
-    bool started_ = false;
+    boost::atomic_bool started_{false};
 
     //! Статистика по принятым байтам
     boost::atomic_uint32_t in_bytes_{0};

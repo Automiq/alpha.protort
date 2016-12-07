@@ -79,7 +79,7 @@ public:
     }
 
 protected:
-    bool started_;
+    boost::atomic_bool started_{false};
 
 private:
     std::random_device rd_;
