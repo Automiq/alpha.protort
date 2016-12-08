@@ -19,7 +19,14 @@ public:
         if (input_port == 0 || input_port == 1)
         {
             assert(comp_inst_ != nullptr);
-            router_->do_route(comp_inst_, { { payload, {0, 1} } });
+            output_list data{ { payload, {0, 1} } };
+
+            router_ptr router = router_.lock();
+            if (router)
+                router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                    router,
+                                                    comp_inst_,
+                                                    data));
         }
     }
     port_id in_port_count() const final override { return 2; }

@@ -9,6 +9,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
@@ -158,6 +159,7 @@ private:
      */
     void do_send_packet(const std::string& packet, int kind_)
     {
+        boost::mutex::scoped_lock lock(write_buffer_mutex_);
         // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(buffer_.get());
         header->packet_size = packet.size();
@@ -327,6 +329,10 @@ private:
 
     //! Флаг завершения работы клиента
     bool shutdown_ = false;
+
+    boost::mutex write_buffer_mutex_;
+
+
 };
 
 } // namespace protolink

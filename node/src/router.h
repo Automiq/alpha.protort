@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <boost/bind.hpp>
+#include <boost/atomic.hpp>
 
 #include "packet.pb.h"
 #include "client.h"
@@ -108,7 +109,13 @@ public:
     {
 
     }
-    ~router() {std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;}
+
+    ~router()
+    {
+#ifdef _DEBUG
+        std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;
+#endif
+    }
 
     //! Запускает каждый компонент
     void start()
@@ -148,6 +155,7 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
             std::cout << "route packet at stopped router" << std::endl;
 #endif
             return;
@@ -156,6 +164,10 @@ public:
         auto it = components_.find(component_name);
         if (it != components_.end())
         {
+#ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
+            std::cout << "route::post(do_process payload)" << std::endl;
+#endif
             service_.post(boost::bind(&protort::components::component::do_process,
                                      it->second.component_,
                                      in_port,
@@ -176,6 +188,7 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
             std::cout << "do_route at stopped router" << std::endl;
 #endif
             return;
@@ -193,6 +206,7 @@ public:
                 for (auto &local_route : port_routes.local_routes)
                 {
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "using do_route: \nfrom comp " << this_component->name
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
@@ -225,6 +239,7 @@ public:
                     out_bytes_ += sizeof(payload);
                     out_packets_++;
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
 #endif
                 }
@@ -249,19 +264,23 @@ private:
     boost::asio::io_service& service_;
 
     //! Статус роутера
-    bool started_ = false;
+    boost::atomic_bool started_{false};
 
     //! Статистика по принятым байтам
-    uint32_t in_bytes_ = 0;
+    boost::atomic_uint32_t in_bytes_{0};
 
     //! Статистика по отправленным байтам
-    uint32_t out_bytes_ = 0;
+    boost::atomic_uint32_t out_bytes_{0};
 
     //! Статистика по принятым пакетам
-    uint32_t in_packets_ = 0;
+    boost::atomic_uint32_t in_packets_{0};
 
     //! Статистика по отправленным пакетам
-    uint32_t out_packets_ = 0;
+    boost::atomic_uint32_t out_packets_{0};
+
+#ifdef _DEBUG
+    boost::mutex cout_mutex;
+#endif
 };
 
 } // namespae node

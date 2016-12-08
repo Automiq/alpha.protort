@@ -7,6 +7,8 @@
 #include <ctime>
 #include <sstream>
 #include <boost/shared_ptr.hpp>
+#include <boost/atomic.hpp>
+#include <boost/thread.hpp>
 
 // node, router forward declaration
 namespace alpha {
@@ -29,6 +31,7 @@ class component;
 
 using component_ptr = boost::shared_ptr<component>;
 using router_ptr = boost::shared_ptr<node::router<node::node>>;
+using router_weak_ptr = boost::weak_ptr<node::router<node::node>>;
 
 struct output
 {
@@ -68,8 +71,8 @@ public:
     }
 
 protected:
-    uint32_t in_packet_count_ = 0;
-    router_ptr router_;
+    boost::atomic_uint32_t in_packet_count_{0};
+    router_weak_ptr router_;
     void *comp_inst_ = nullptr;
 
 };

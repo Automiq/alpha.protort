@@ -35,7 +35,13 @@ public:
             out.payload = T(values_).pack();
             out.ports.push_back(0);
             res.push_back(out);
-            router_->do_route(comp_inst_,res);
+
+            router_ptr router = router_.lock();
+            if (router)
+                router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                    router,
+                                                    comp_inst_,
+                                                    res));
         }
     }
 
