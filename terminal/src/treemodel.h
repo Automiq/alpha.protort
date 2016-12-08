@@ -9,16 +9,18 @@
 #include "parser.h"
 #include "remotenode.h"
 
-class TreeItem;
+using RemoteNodePtr = boost::shared_ptr<RemoteNode>;
 
 class TreeModel : public QAbstractItemModel
 {
     Q_OBJECT
 
 public:
-    TreeModel(const QList<RemoteNode> &data,
+    TreeModel(const QList<RemoteNodePtr> &data,
               QObject *parent = 0);
     ~TreeModel();
+
+    void setupModelData(const QList<RemoteNodePtr> &nodes);
 
     QVariant data(const QModelIndex &index, int role) const Q_DECL_OVERRIDE;
     QVariant headerData(int section, Qt::Orientation orientation,
@@ -36,9 +38,7 @@ public:
 //    void findNAdd(QString comp_name, QString node_name);
 
 private:
-    void setupModelData(const QList<RemoteNode> nodes);
-
-    QList<RemoteNode> m_nodes;
+    QList<RemoteNodePtr> m_nodes;
 
     int findParent(int index) const;
 

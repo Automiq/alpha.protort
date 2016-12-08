@@ -95,7 +95,6 @@ private:
     QPushButton *m_setupConfig;
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
-    TreeModel *m_model;
 
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
@@ -120,7 +119,6 @@ private:
     void save_session();
     void load_session();
     void load_file(const QString& fileName);
-    void setConfigModel();
     void fillModel();
 
     Document* document(int index);

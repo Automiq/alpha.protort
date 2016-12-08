@@ -38,7 +38,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
     load_session();
 
-    setConfigModel();
+    //    QStringList headers;
+    //    headers << tr("Узел") << tr("Связь") << tr("Скорость")
+    //            << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
+    //            << tr("Время работы");
+
+        TreeModel *model = new TreeModel(remoteNodes_);
+
+        ui->treeStatus->setModel(model);
 }
 
 MainWindow::~MainWindow()
@@ -79,31 +86,15 @@ void MainWindow::save_session()
     session.endArray();
 }
 
-void MainWindow::setConfigModel()
-{
-    QStringList headers;
-    headers << tr("Узел") << tr("Связь") << tr("Скорость")
-            << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
-            << tr("Время работы");
-
-    QList<RemoteNode> scheme;// = m_deploySchema;
-
-    m_model = new TreeModel(scheme);
-
-    ui->treeStatus->setModel(m_model);
-}
-
 void MainWindow::fillModel()
 {
-    delete m_model;
-    setConfigModel();
 
-//    m_model->setComponents(deploy_config_.map_node_with_components);
-//    alpha::protort::parser::configuration conf;
-//    conf.parse_app(m_app->filePath().toStdString());
-//    conf.parse_deploy(m_deploySchema->filePath().toStdString());
-//    m_model->setNodes(conf.nodes);
-//    m_model->setComponents(conf.mappings);
+    //    model->setComponents(deploy_config_.map_node_with_components);
+    //    alpha::protort::parser::configuration conf;
+    //    conf.parse_app(m_app->filePath().toStdString());
+    //    conf.parse_deploy(m_deploySchema->filePath().toStdString());
+    //    model->setNodes(conf.nodes);
+    //    model->setComponents(conf.mappings);
 }
 
 void MainWindow::load_session()
@@ -381,6 +372,10 @@ void MainWindow::deploy()
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_deploy(deploy_config_);
+
+    TreeModel *model = new TreeModel(remoteNodes_);
+    model->setupModelData(remoteNodes_);
+
     ui->treeStatus->show();
 }
 
@@ -478,9 +473,9 @@ void MainWindow::createRemoteNodes()
         remoteNode->init(service_);
     }
 
-//    int size = remoteNodes_.size();
-//    for (int i = 0; i < size; ++i)
-//        remoteNodes_[i].
+    //    int size = remoteNodes_.size();
+    //    for (int i = 0; i < size; ++i)
+    //        remoteNodes_[i].
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -628,7 +623,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-//    ui->statusLog->append(message);
+    //    ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)

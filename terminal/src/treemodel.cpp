@@ -3,10 +3,9 @@
 #include "treemodel.h"
 #include <QList>
 
-TreeModel::TreeModel(const QList<RemoteNode> &data, QObject *parent)
+TreeModel::TreeModel(const QList<RemoteNodePtr> &data, QObject *parent)
     : QAbstractItemModel(parent)
 {
-
     setupModelData(data);
 }
 
@@ -30,11 +29,11 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
         switch(index.column())
         {
         case Name:
-            return m_nodes[index.parent().row()].components()[index.row()].name();
+            return m_nodes[index.parent().row()].get()->components()[index.row()].name();
         case Input:
-            return m_nodes[index.parent().row()].components()[index.row()].input();
+            return m_nodes[index.parent().row()].get()->components()[index.row()].input();
         case Output:
-            return m_nodes[index.parent().row()].components()[index.row()].output();
+            return m_nodes[index.parent().row()].get()->components()[index.row()].output();
         default:
             return 0;
         }
@@ -43,17 +42,17 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     switch(index.column())
     {
     case Name:
-        return m_nodes[index.row()].name();
+        return m_nodes[index.row()].get()->name();
     case Connect:
-        return m_nodes[index.row()].isConnect();
+        return m_nodes[index.row()].get()->isConnect();
     case Speed:
-        return QString::number(m_nodes[index.row()].speed());
+        return QString::number(m_nodes[index.row()].get()->speed());
     case Uptime:
-        return m_nodes[index.row()].uptime();
+        return m_nodes[index.row()].get()->uptime();
     case Input:
-        return m_nodes[index.row()].input().getPackets();
+        return m_nodes[index.row()].get()->input().getPackets();
     case Output:
-        return m_nodes[index.row()].output().getPackets();
+        return m_nodes[index.row()].get()->output().getPackets();
     }
 }
 
@@ -110,23 +109,25 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     if(!parent.isValid())
         return m_nodes.size();
 
-    return m_nodes[parent.row()].components().size();
+    return m_nodes[parent.row()].get()->components().size();
 }
 
-void TreeModel::setupModelData(const QList<RemoteNode> nodes)
+void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
 {
+    beginResetModel();
     m_nodes = nodes;
+    endResetModel();
 }
 
 int TreeModel::findParent(int index) const
 {
     int i = 0;
-    int sum = m_nodes[i].components().size();
+    int sum = m_nodes[i].get()->components().size();
 
     while (sum < index)
     {
         ++i;
-        sum += m_nodes[i].components().size() + 1;
+        sum += m_nodes[i].get()->components().size() + 1;
     }
 
     if (i == 0)
@@ -134,7 +135,7 @@ int TreeModel::findParent(int index) const
 
     else
     {
-        sum -= m_nodes[i].components().size() + 1;
+        sum -= m_nodes[i].get()->components().size() + 1;
         --i;
         if (!i)
             return 0;
