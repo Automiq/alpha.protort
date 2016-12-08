@@ -99,6 +99,12 @@ signals:
     void connected();
     void connectionFailed(const boost::system::error_code&);
 
+    void componentsChanged();
+    void statusChanged();
+
+private slots:
+    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet&);
+
 private:
 
     friend class alpha::protort::protolink::client<RemoteNode>;

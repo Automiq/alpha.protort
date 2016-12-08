@@ -205,6 +205,13 @@ uint32_t RemoteNode::speed() const { return speed_; }
 RemoteNode::Packet RemoteNode::output() const { return in_; }
 RemoteNode::Packet RemoteNode::input() const { return out_; }
 
+void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &)
+{
+
+
+    emit statusChanged();
+}
+
 RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b)
 { return RemoteNode::Packet(p, b); }
 

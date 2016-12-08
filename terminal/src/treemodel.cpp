@@ -170,5 +170,19 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
 {
     beginResetModel();
     m_nodes = nodes;
+    for (auto &node : m_nodes)
+    {
+        connect(node, &RemoteNode::statusChanged, this, dsds)
+    }
+
     endResetModel();
+}
+
+void sdsds()
+{
+    auto node = qobject_cast<RemoteNode*>(sender());
+
+    QModelIndex
+
+    emit dataChanged(topLeft, bottomRight)
 }

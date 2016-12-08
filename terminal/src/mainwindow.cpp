@@ -406,9 +406,6 @@ void MainWindow::on_status_triggered()
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_status(status);
-
-    fillModel();
-    ui->treeStatus->show();
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const

@@ -99,8 +99,6 @@
    <addaction name="save_file"/>
    <addaction name="save_all"/>
    <addaction name="separator"/>
-   <addaction name="config"/>
-   <addaction name="separator"/>
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
@@ -241,12 +239,18 @@
    </property>
   </action>
   <action name="config">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/configure.ico</normaloff>:/images/configure.ico</iconset>
    </property>
    <property name="text">
     <string>&amp;Конфигурация...</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="start">
