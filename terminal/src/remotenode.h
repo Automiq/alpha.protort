@@ -16,6 +16,7 @@
 
 
 Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
+Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::Packet);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
 Q_DECLARE_METATYPE(boost::system::error_code);
 

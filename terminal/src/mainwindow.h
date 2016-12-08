@@ -74,7 +74,7 @@ private slots:
 
     void close_tab(int index);
 
-    void on_status_request_triggered();
+    void on_status_triggered();
 
 public slots:
     void showLog() const;
@@ -99,16 +99,17 @@ private:
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
     void activateDeploy() const;
+    void activateStatus() const;
     void addDocument(Document *doc);
     void addWidgetOnBar(QWidget* newWidget) const;
     void setIcon(Document *doc);
     void createConfigurationToolBar();
     void addConfig(Document *doc);
     void delConfig(Document *doc);
-    void deleteConfig(QComboBox *ptr, const QString &name);
+    void setComboBoxToolTip(QComboBox *combobox, Document* doc);
+    void delDocFromComboBox(QComboBox* combobox, Document* doc);
     void updateConfig(Document *doc);
     void setActiveConfig();
-    void setupActiveIcon(const int &index);
     void setupConfigMembers();
     void setTabIco(Document *doc, const QString &srcPath) const;
     void resetDeployActions() const;

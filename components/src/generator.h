@@ -3,11 +3,12 @@
 
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <random>
 
 #include "component.h"
 #include "router.h"
+#include "data.h"
+
 
 namespace alpha {
 namespace protort {
@@ -19,10 +20,8 @@ namespace components {
 class generator : public component
 {
 public:
-    generator(node::router<node::node>& router):
+    generator(router_ptr router):
         component(router),
-        generate_interval_(3000),
-        generate_timer_(router.get_service()),
         gen_(rd_()),
         dis_(0,100)
     {
@@ -43,11 +42,32 @@ public:
 
         data d;
         d.val = dis_(gen_);
+        time_mutex_.lock();
         d.time = std::time(NULL);
-        router_.do_route(comp_inst_,{ {d.pack() , {0 , 1}} });
+        time_mutex_.unlock();
+        d.address = reinterpret_cast<uint64_t>(this);
 
-        generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
-        generate_timer_.async_wait(boost::bind(&generator::generate, std::static_pointer_cast<generator>(shared_from_this())));
+        output_list data{ {d.pack() , {0 , 1}} };
+
+        router_ptr router = router_.lock();
+        if (router)
+            router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                router,
+                                                comp_inst_,
+                                                data));
+        generate_next();
+    }
+
+    /*!
+     * \brief Метод для организации перехода к следующей итерации генератора
+     * Переопределяется в классе генератора с таймером
+     */
+    virtual void generate_next()
+    {
+        router_ptr router = router_.lock();
+        if (router)
+            router->get_service().post(boost::bind(&generator::generate,
+                                               boost::static_pointer_cast<generator>(this->shared_from_this())));
     }
 
     void start() final override
@@ -56,18 +76,19 @@ public:
         generate();
     }
 
-    void stop() final override
+    void stop()
     {
         started_ = false;
-        generate_timer_.cancel();
     }
+
+protected:
+    boost::atomic_bool started_{false};
+
 private:
     std::random_device rd_;
     std::mt19937 gen_;
     std::uniform_real_distribution<> dis_;
-    boost::asio::deadline_timer generate_timer_;
-    int generate_interval_;
-    bool started_;
+    boost::mutex time_mutex_;
 };
 
 } // namespace components

@@ -6,6 +6,9 @@
 #include <memory>
 #include <ctime>
 #include <sstream>
+#include <boost/shared_ptr.hpp>
+#include <boost/atomic.hpp>
+#include <boost/thread.hpp>
 
 // node, router forward declaration
 namespace alpha {
@@ -24,40 +27,24 @@ namespace components {
 using port_id = uint32_t;
 using port_list = std::vector<port_id>;
 
+class component;
+
+using component_ptr = boost::shared_ptr<component>;
+using router_ptr = boost::shared_ptr<node::router<node::node>>;
+using router_weak_ptr = boost::weak_ptr<node::router<node::node>>;
+
 struct output
 {
     std::string payload;
     port_list ports;
 };
 
-/*!
- * \brief data - структура для передачи сообщений
- */
-struct data
-{
-    float val; //значение, которое генерирует генератор
-    std::time_t time; //метка времени
-
-    //!\brief распаковывает строку и инициализирует this
-    void unpack(std::string const & str){
-        const data *d = reinterpret_cast<const data*> (str.data());
-        val = d->val;
-        time = d->time;
-    }
-
-    //!\brief запаковывает данные в строку
-    std::string pack(){
-        std::string s(reinterpret_cast<char*>(this),sizeof(data));
-        return s;
-    }
-};
-
 using output_list = std::vector<output>;
 
-class component : public std::enable_shared_from_this<component>
+class component : public boost::enable_shared_from_this<component>
 {
 public:
-    component(node::router<node::node>& router):
+    component(router_ptr router):
         router_(router)
     {
 
@@ -65,8 +52,8 @@ public:
     virtual void process(port_id input_port, std::string const& payload) = 0;
     virtual port_id in_port_count() const = 0;
     virtual port_id out_port_count() const = 0;
-    virtual void start() { };
-    virtual void stop() { };
+    virtual void start() { }
+    virtual void stop() { }
 
     void do_process(port_id input_port, std::string const& payload)
     {
@@ -84,8 +71,8 @@ public:
     }
 
 protected:
-    uint32_t in_packet_count_ = 0;
-    node::router<node::node>& router_;
+    boost::atomic_uint32_t in_packet_count_{0};
+    router_weak_ptr router_;
     void *comp_inst_ = nullptr;
 
 };

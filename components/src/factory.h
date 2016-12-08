@@ -33,10 +33,11 @@ class factory
 public:
     factory() = delete;
 
-    static std::shared_ptr<components::component> create(protocol::ComponentKind kind,
-                                                         node::router<node::node>& router)
+    static component_ptr create(
+            protocol::ComponentKind kind,
+            router_ptr router)
     {
-        std::shared_ptr<components::component> ptr;
+        component_ptr ptr;
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
@@ -54,6 +55,9 @@ public:
         case protocol::ComponentKind::History:
             ptr.reset(new components::history(router));
             break;
+        case protocol::ComponentKind::TimedGenerator:
+            ptr.reset(new components::timed_generator(router));
+            break;
         default:
             assert(false);
             break;
@@ -62,8 +66,9 @@ public:
         return ptr;
     }
 
-    static std::shared_ptr<components::component> create(const std::string& kind,
-                                                         node::router<node::node>& router)
+    static component_ptr create(
+            const std::string& kind,
+            router_ptr router)
     {
         return create(get_component_kind(kind), router);
     }

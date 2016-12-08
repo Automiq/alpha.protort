@@ -9,6 +9,7 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
+#include <boost/thread.hpp>
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
@@ -54,22 +55,6 @@ public:
           callback_(callback),
           reconnect_timer_(service)
     {
-    }
-
-    /*!
-     * \brief client Конструктор класса, в котором происходит инициализация сокета и колбека,
-     * а также вызывается метод для асинхронного подключения
-     * \param callback Ссылка на объект, реализующий концепцию Callback
-     * \param service Ссылка на объект, реализующий концепцию Callback
-     * \param ep Объект класса endpoint
-     */
-    client(callback_ptr const& callback, boost::asio::io_service& service, boost::asio::ip::tcp::endpoint ep)
-        : socket_(service),
-          buffer_(new char[header_size + max_packet_size]),
-          callback_(callback),
-          reconnect_timer_(service)
-    {
-        async_connect(ep);
     }
 
     /*!
@@ -174,6 +159,7 @@ private:
      */
     void do_send_packet(const std::string& packet, int kind_)
     {
+        boost::mutex::scoped_lock lock(write_buffer_mutex_);
         // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(buffer_.get());
         header->packet_size = packet.size();
@@ -324,7 +310,7 @@ private:
     std::unique_ptr<char> buffer_;
 
     //! Ссылка на объект, предоставляющий callback-функции
-    boost::shared_ptr<Callback> callback_;
+    callback_ptr callback_;
 
     //! Эндпоинт, используется при повторном подключении
     boost::asio::ip::tcp::endpoint ep_;
@@ -343,6 +329,10 @@ private:
 
     //! Флаг завершения работы клиента
     bool shutdown_ = false;
+
+    boost::mutex write_buffer_mutex_;
+
+
 };
 
 } // namespace protolink

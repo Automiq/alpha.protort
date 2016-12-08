@@ -10,4 +10,6 @@ HEADERS += \
            $$PWD/src/reduce.h \
            $$PWD/src/calc.h \
            $$PWD/src/history.h \
-           $$PWD/src/convert.h
+           $$PWD/src/convert.h \
+           $$PWD/src/data.h \
+           $$PWD/src/timed_generator.h

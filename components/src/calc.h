@@ -1,7 +1,6 @@
 #ifndef CALC_H
 #define CALC_H
 
-#include "component.h"
 #include <boost/thread.hpp>
 #include <boost/asio.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -9,6 +8,8 @@
 #include <sstream>
 
 #include "router.h"
+#include "component.h"
+#include "data.h"
 
 namespace alpha {
 namespace protort {
@@ -21,7 +22,7 @@ namespace components {
 class calc: public component
 {
 public:
-    calc(node::router<node::node>& router): component(router)
+    calc(router_ptr router): component(router)
     {
 
     }
@@ -35,8 +36,12 @@ public:
         out[0].payload = d.pack();
         out[0].ports.push_back(0);
 
-        if (comp_inst_ != nullptr)
-            router_.do_route(comp_inst_, out);
+        router_ptr router = router_.lock();
+        if (router)
+            router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+                                                    router,
+                                                    comp_inst_,
+                                                    out));
     }
     port_id in_port_count() const final override { return 2; }
     port_id out_port_count() const final override { return 2; }

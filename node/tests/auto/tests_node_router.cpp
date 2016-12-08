@@ -28,7 +28,7 @@ void test_node_router()
 
     // Создаем node_router
     boost::asio::io_service service;
-    router<node> router_(service);
+    auto router_ = boost::make_shared<router<node>>(service);
 
     // Создаем компоненты
     components::generator generator1_(router_);
@@ -53,7 +53,7 @@ void test_node_router()
     for(int i = 0;i < 7;i++)
     {
         router<node>::component_instance component_instance;
-        component_instance.component_ = std::shared_ptr<components::component>(components[i]);
+        component_instance.component_ = components::component_ptr(components[i]);
 
         if(typeid(*components[i]) == typeid(components::generator))
             component_instance.name = "g1";
@@ -62,26 +62,26 @@ void test_node_router()
         if(typeid(*components[i]) == typeid(components::retranslator))
             component_instance.name = "r" + std::to_string(++retranslator_count);
 
-        router_.components_.insert(std::make_pair(component_instance.name,component_instance));
-        components[i]->set_comp_inst(&router_.components_[component_instance.name]);
+        router_->components_.insert(std::make_pair(component_instance.name,component_instance));
+        components[i]->set_comp_inst(&router_->components_[component_instance.name]);
     }
 
     // Определяем для каждого компонента выходные порты и соединения для них
 
     // g1
-    router_.components_["g1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[0]));
-    router_.components_["g1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[1]));
+    router_->components_["g1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[0]));
+    router_->components_["g1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[1]));
 
     // r1
-    router_.components_["r1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[2]));
-    router_.components_["r1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[3]));
+    router_->components_["r1"].port_to_routes.insert(std::make_pair(0,mas_output_ports[2]));
+    router_->components_["r1"].port_to_routes.insert(std::make_pair(1,mas_output_ports[3]));
 
     // r2
-    router_.components_["r2"].port_to_routes.insert(std::make_pair(0,mas_output_ports[4]));
+    router_->components_["r2"].port_to_routes.insert(std::make_pair(0,mas_output_ports[4]));
 
     // r3
-    router_.components_["r3"].port_to_routes.insert(std::make_pair(0,mas_output_ports[5]));
-    router_.components_["r3"].port_to_routes.insert(std::make_pair(1,mas_output_ports[6]));
+    router_->components_["r3"].port_to_routes.insert(std::make_pair(0,mas_output_ports[5]));
+    router_->components_["r3"].port_to_routes.insert(std::make_pair(1,mas_output_ports[6]));
 
     // Определяем входные порты для соединений
     for(int i = 0;i < 7;i++)
@@ -91,33 +91,33 @@ void test_node_router()
     // для каждого выходного порта добавляем входные порты других компонентов
 
     // g1 - r1 g1 - r3
-    mas_endpoint[0].component = &router_.components_["r1"];
-    mas_endpoint[1].component = &router_.components_["r3"];
+    mas_endpoint[0].component = &router_->components_["r1"];
+    mas_endpoint[1].component = &router_->components_["r3"];
 
-    router_.components_["g1"].port_to_routes[0].local_routes.push_back(mas_endpoint[0]);
-    router_.components_["g1"].port_to_routes[1].local_routes.push_back(mas_endpoint[1]);
+    router_->components_["g1"].port_to_routes[0].local_routes.push_back(mas_endpoint[0]);
+    router_->components_["g1"].port_to_routes[1].local_routes.push_back(mas_endpoint[1]);
 
     // r1 - r2 r1 - t2
-    mas_endpoint[2].component = &router_.components_["r2"];
-    mas_endpoint[3].component = &router_.components_["t2"];
+    mas_endpoint[2].component = &router_->components_["r2"];
+    mas_endpoint[3].component = &router_->components_["t2"];
 
-    router_.components_["r1"].port_to_routes[0].local_routes.push_back(mas_endpoint[2]);
-    router_.components_["r1"].port_to_routes[1].local_routes.push_back(mas_endpoint[3]);
+    router_->components_["r1"].port_to_routes[0].local_routes.push_back(mas_endpoint[2]);
+    router_->components_["r1"].port_to_routes[1].local_routes.push_back(mas_endpoint[3]);
 
     // r2 - t1
-    mas_endpoint[4].component = &router_.components_["t1"];
+    mas_endpoint[4].component = &router_->components_["t1"];
 
-    router_.components_["r2"].port_to_routes[0].local_routes.push_back(mas_endpoint[4]);
+    router_->components_["r2"].port_to_routes[0].local_routes.push_back(mas_endpoint[4]);
 
     // r3 - t2 r3 - t3
-    mas_endpoint[5].component = &router_.components_["t2"];
-    mas_endpoint[6].component = &router_.components_["t3"];
+    mas_endpoint[5].component = &router_->components_["t2"];
+    mas_endpoint[6].component = &router_->components_["t3"];
 
-    router_.components_["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[5]);
-    router_.components_["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[6]);
+    router_->components_["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[5]);
+    router_->components_["r3"].port_to_routes[0].local_routes.push_back(mas_endpoint[6]);
 
 
-    router_.route("g1",0,"string for generator");
+    router_->route("g1",0,"string for generator");
 }
 
 struct fixture

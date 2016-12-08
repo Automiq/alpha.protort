@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <boost/bind.hpp>
+#include <boost/atomic.hpp>
 
 #include "packet.pb.h"
 #include "client.h"
@@ -25,14 +26,14 @@ namespace alpha {
 namespace protort {
 namespace node {
 
-using component_shared_ptr = std::shared_ptr<alpha::protort::components::component>;
+using component_shared_ptr = boost::shared_ptr<alpha::protort::components::component>;
 using port_id = alpha::protort::components::port_id;
 
 /*!
  * \brief Роутер пакетов
  */
 template<class app>
-class router
+class router : public boost::enable_shared_from_this<router<app>>
 {
     friend class node;
     friend class alpha::protort::components::component;
@@ -68,7 +69,7 @@ private:
         std::string name;
 
         //! Указатель на клиентское подключение
-        std::shared_ptr<protolink::client<app>> client;
+        boost::shared_ptr<protolink::client<app>> client;
     };
 
     /*!
@@ -109,6 +110,13 @@ public:
 
     }
 
+    ~router()
+    {
+#ifdef _DEBUG
+        std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;
+#endif
+    }
+
     //! Запускает каждый компонент
     void start()
     {
@@ -142,9 +150,12 @@ public:
      */
     void route(const std::string& component_name, port_id in_port, const std::string& payload)
     {
+        in_packets_++;
+
         if (!started_)
         {
 #ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
             std::cout << "route packet at stopped router" << std::endl;
 #endif
             return;
@@ -153,11 +164,14 @@ public:
         auto it = components_.find(component_name);
         if (it != components_.end())
         {
+#ifdef _DEBUG
+            boost::mutex::scoped_lock lock(cout_mutex);
+            std::cout << "route::post(do_process payload)" << std::endl;
+#endif
             service_.post(boost::bind(&protort::components::component::do_process,
                                      it->second.component_,
                                      in_port,
                                      payload));
-            in_packets_++;
         }
     }
 
@@ -174,7 +188,8 @@ public:
         if (!started_)
         {
 #ifdef _DEBUG
-            std::cout << "route packet at stopped router" << std::endl;
+            boost::mutex::scoped_lock lock(cout_mutex);
+            std::cout << "do_route at stopped router" << std::endl;
 #endif
             return;
         }
@@ -191,6 +206,7 @@ public:
                 for (auto &local_route : port_routes.local_routes)
                 {
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "using do_route: \nfrom comp " << this_component->name
                               << " out port " << out_port << std::endl;
                     std::cout << "to comp " << local_route.component->name
@@ -223,6 +239,7 @@ public:
                     out_bytes_ += sizeof(payload);
                     out_packets_++;
 #ifdef _DEBUG
+                    boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
 #endif
                 }
@@ -241,25 +258,29 @@ private:
     std::map<std::string, component_instance> components_;
 
     //! Таблица удаленных получателей пакетов
-    std::map<std::string, std::shared_ptr<protolink::client<app>>> clients_;
+    std::map<std::string, boost::shared_ptr<protolink::client<app>>> clients_;
 
     //! I/O сервис
     boost::asio::io_service& service_;
 
     //! Статус роутера
-    bool started_ = false;
+    boost::atomic_bool started_{false};
 
     //! Статистика по принятым байтам
-    uint32_t in_bytes_ = 0;
+    boost::atomic_uint32_t in_bytes_{0};
 
     //! Статистика по отправленным байтам
-    uint32_t out_bytes_ = 0;
+    boost::atomic_uint32_t out_bytes_{0};
 
     //! Статистика по принятым пакетам
-    uint32_t in_packets_ = 0;
+    boost::atomic_uint32_t in_packets_{0};
 
     //! Статистика по отправленным пакетам
-    uint32_t out_packets_ = 0;
+    boost::atomic_uint32_t out_packets_{0};
+
+#ifdef _DEBUG
+    boost::mutex cout_mutex;
+#endif
 };
 
 } // namespae node
