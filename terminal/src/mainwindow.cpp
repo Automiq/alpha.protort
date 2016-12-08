@@ -366,7 +366,7 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
-    ui->status_request->setEnabled(true);
+    ui->status->setEnabled(true);
     ui->deploy->setDisabled(true);
 
     for (auto &remoteNode: remoteNodes_)
