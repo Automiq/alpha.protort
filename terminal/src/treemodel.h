@@ -31,9 +31,9 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-    void setNodes(std::vector<alpha::protort::parser::node> n);
-    void setComponents(const std::vector<alpha::protort::parser::mapping> &m);
-    void findNAdd(QString comp_name, QString node_name);
+//    void setNodes(const std::unordered_map<std::__cxx11::string, alpha::protort::parser::node> &n);
+//    void setComponents(const std::vector<alpha::protort::parser::mapping> &m);
+//    void findNAdd(QString comp_name, QString node_name);
 
 private:
     void setupModelData(const QList<RemoteNode> nodes);

@@ -120,8 +120,8 @@ private:
     void save_session();
     void load_session();
     void load_file(const QString& fileName);
-    void createTable();
-    void fillModel(Document *doc);
+    void setConfigModel();
+    void fillModel();
 
     Document* document(int index);
 

@@ -38,7 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     load_session();
 
-    createTable();
+    setConfigModel();
 }
 
 MainWindow::~MainWindow()
@@ -79,31 +79,31 @@ void MainWindow::save_session()
     session.endArray();
 }
 
-void MainWindow::createTable()
+void MainWindow::setConfigModel()
 {
     QStringList headers;
     headers << tr("Узел") << tr("Связь") << tr("Скорость")
             << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
             << tr("Время работы");
 
-
     QList<RemoteNode> scheme;// = m_deploySchema;
 
     m_model = new TreeModel(scheme);
 
     ui->treeStatus->setModel(m_model);
-
-    //for (int column = 0; column < model->columnCount(); ++column)
-    //    ui->treeStatus->resizeColumnToContents(column);
 }
 
-void MainWindow::fillModel(Document *doc)
+void MainWindow::fillModel()
 {
-    alpha::protort::parser::configuration conf;
-//    conf.parse_app(m_app->filePath());
-//    conf.parse_deploy(m_deploySchema->filePath());
-//    m_model.setNodes(conf.nodes);
-    m_model->setComponents(conf.mappings);
+    delete m_model;
+    setConfigModel();
+
+//    m_model->setComponents(deploy_config_.map_node_with_components);
+//    alpha::protort::parser::configuration conf;
+//    conf.parse_app(m_app->filePath().toStdString());
+//    conf.parse_deploy(m_deploySchema->filePath().toStdString());
+//    m_model->setNodes(conf.nodes);
+//    m_model->setComponents(conf.mappings);
 }
 
 void MainWindow::load_session()
@@ -376,13 +376,12 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
-    fillModel(m_deploySchema);
     ui->status_request->setEnabled(true);
     ui->deploy->setDisabled(true);
-//    ui->
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_deploy(deploy_config_);
+    ui->treeStatus->show();
 }
 
 void MainWindow::on_deploy_triggered()
@@ -413,6 +412,9 @@ void MainWindow::on_status_request_triggered()
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_status(status);
+
+    fillModel();
+    ui->treeStatus->show();
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
@@ -475,6 +477,10 @@ void MainWindow::createRemoteNodes()
 
         remoteNode->init(service_);
     }
+
+//    int size = remoteNodes_.size();
+//    for (int i = 0; i < size; ++i)
+//        remoteNodes_[i].
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -570,7 +576,6 @@ void MainWindow::setupConfigMembers()
 {
     m_app = currentDocument(m_apps);
     m_deploySchema = currentDocument(m_deploys);
-    fillModel(m_deploySchema);
 }
 
 void MainWindow::activateDeploy() const
