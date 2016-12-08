@@ -19,6 +19,8 @@ Q_DECLARE_METATYPE(alpha::protort::protocol::Packet_Payload);
 Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::StatusResponse);
 Q_DECLARE_METATYPE(boost::system::error_code);
 
+class RemoteComponent;
+
 class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
     Q_OBJECT
@@ -51,39 +53,10 @@ private:
         Packet operator()(uint32_t p, uint32_t b);
     };
 
-    class Component
-    {
-        uint32_t input_;
-        uint32_t output_;        
-        QString name_;
-
-    public:
-        uint32_t input() const { return input_; }
-        QString name() const { return name_; }
-        uint32_t output() const { return output_; }
-
-        void setInput(uint32_t packets){ input_ = packets; }
-        void setName(QString name){ name_ = name; }
-        void setOutput(uint32_t packets){ output_ = packets; }
-        Component(const Component &c)
-        {
-            input_ = c.input_;
-            output_ = c.output_;
-            name_ = c.name_;
-        }
-
-        Component(QString n){name_ = n; input_ = 0; output_ = 0;}
-
-        Component operator =(const Component &c){ return Component(c); }
-    };
-
-public:
-    QList<Component> components() const;
-    Component operator [](int index) const;
+public:   
+    QList<RemoteComponent*> components() const;
 
     RemoteNode(alpha::protort::parser::node const& node);
-    RemoteNode(const RemoteNode &n);
-    RemoteNode operator =(const RemoteNode &n);
 
     void init(boost::asio::io_service& service);
 
@@ -106,7 +79,7 @@ public:
     void setSpeed(uint32_t speed);
     void setOutput(uint32_t packets, uint32_t bytes);
     void setInput(uint32_t packets, uint32_t bytes);
-    void addComp(QString comp);
+    void addComp(RemoteComponent *comp);
 
     //! Методы получения данных узла
     QString name();
@@ -151,7 +124,6 @@ private:
     bool connection_;
 
     QString name_;
-    QList<Component> components_;
-    QModelIndex index_;
+    QList<RemoteComponent*> components_;
 };
 #endif // TERMINAL_CLIENT_H

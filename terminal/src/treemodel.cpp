@@ -1,7 +1,8 @@
 #include <QtWidgets>
+#include <QList>
 
 #include "treemodel.h"
-#include <QList>
+#include "remotecomponent.h"
 
 TreeModel::TreeModel(const QList<RemoteNodePtr> &data, QObject *parent)
     : QAbstractItemModel(parent)
@@ -11,9 +12,61 @@ TreeModel::TreeModel(const QList<RemoteNodePtr> &data, QObject *parent)
 
 TreeModel::~TreeModel(){}
 
-int TreeModel::columnCount(const QModelIndex & /* parent */) const
+int TreeModel::columnCount(const QModelIndex &) const
 {
     return Column::MaxColumn;
+}
+
+QObject* TreeModel::object(const QModelIndex &index) const
+{
+    return static_cast<QObject *>(index.internalPointer());
+}
+
+RemoteNode *TreeModel::node(const QModelIndex &index) const
+{
+    return qobject_cast<RemoteNode *>(object(index));
+}
+
+RemoteComponent *TreeModel::component(const QModelIndex &index) const
+{
+    return qobject_cast<RemoteComponent *>(object(index));
+}
+
+QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int role) const
+{
+    switch(index.column())
+    {
+    case Name:
+        return node->name();
+    case Connect:
+        return node->isConnect();
+    case Speed:
+        return QString::number(node->speed());
+    case Uptime:
+        return node->uptime();
+    case Input:
+        return node->input().getPackets();
+    case Output:
+        return node->output().getPackets();
+    default:
+        return QVariant();
+    }
+}
+
+QVariant TreeModel::componentData(RemoteComponent *component, const QModelIndex &index, int role) const
+{
+    switch(index.column())
+    {
+    case Name:
+        return component->name();
+    case Input:
+        return component->input();
+    case Output:
+        return component->output();
+    default:
+        return QVariant();
+    }
+
 }
 
 QVariant TreeModel::data(const QModelIndex &index, int role) const
@@ -24,75 +77,60 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (role != Qt::DisplayRole)
         return QVariant();
 
-    //проверка на столбец
-    if(index.parent().isValid())
-        switch(index.column())
-        {
-        case Name:
-            return m_nodes[index.parent().row()].get()->components()[index.row()].name();
-        case Input:
-            return m_nodes[index.parent().row()].get()->components()[index.row()].input();
-        case Output:
-            return m_nodes[index.parent().row()].get()->components()[index.row()].output();
-        default:
-            return 0;
-        }
+    if (auto n = node(index))
+        return nodeData(n, index, role);
 
+    if (auto c = component(index))
+        return componentData(c, index, role);
 
-    switch(index.column())
-    {
-    case Name:
-        return m_nodes[index.row()].get()->name();
-    case Connect:
-        return m_nodes[index.row()].get()->isConnect();
-    case Speed:
-        return QString::number(m_nodes[index.row()].get()->speed());
-    case Uptime:
-        return m_nodes[index.row()].get()->uptime();
-    case Input:
-        return m_nodes[index.row()].get()->input().getPackets();
-    case Output:
-        return m_nodes[index.row()].get()->output().getPackets();
-    }
+    return QVariant();
 }
 
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
-    if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
+        return QVariant();
+
+    switch(section)
     {
-        switch(section)
-        {
-        case Name:
-            return tr("Имя узла");
-        case Connect:
-            return tr("Связь");
-        case Uptime:
-            return tr("Время работы");
-        case Input:
-            return tr("Принято (пак./байт)");
-        case Output:
-            return tr("Отправлено (пак./байт)");
-        case Speed:
-            return tr("Скорость");
-
-        }
+    case Name:
+        return tr("Имя узла");
+    case Connect:
+        return tr("Связь");
+    case Uptime:
+        return tr("Время работы");
+    case Input:
+        return tr("Принято (пак./байт)");
+    case Output:
+        return tr("Отправлено (пак./байт)");
+    case Speed:
+        return tr("Скорость");
+    default:
+        return QVariant();
     }
-
-    return QVariant();
 }
 
 QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) const
 {
-    if (parent.isValid() && parent.column() > Column::MaxColumn)
+    if (parent.isValid() && parent.column() != 0)
         return QModelIndex();
 
-//    void *internal = nullptr;
+    if (!parent.isValid())
+        return createIndex(row, 0, m_nodes[row].get());
 
-    if (parent.isValid())
-//        internal = findParent(1);
+    auto n = node(parent);
+    Q_ASSERT(n);
 
-    return createIndex(row, column);
+    return createIndex(row, 0, n->components()[row]);
+
+//    if (auto n = node(parent))
+//        return createIndex(row, column, n)
+
+//    Component* internal = &m_nodes[parent.row()].get()->components()[row];
+//    if (parent.isValid())
+//        return createIndex(row, column, internal);
+//    return createIndex(row, column, m_nodes[row].get());
 }
 
 QModelIndex TreeModel::parent(const QModelIndex &index) const
@@ -100,8 +138,22 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (!index.isValid())
         return QModelIndex();
 
-    int parentRow = findParent(index.row());
-        return createIndex(parentRow, 0);
+    if (auto n = node(index))
+        return QModelIndex();
+
+    if (auto comp = component(index))
+    {
+        auto node = comp->parent();
+
+        int size = m_nodes.size();
+        for (int i = 0; i < size; ++i)
+        {
+            if (m_nodes[i].get() == node)
+                return createIndex(i, 0, node);
+        }
+    }
+
+    return QModelIndex();
 }
 
 int TreeModel::rowCount(const QModelIndex &parent) const
@@ -109,7 +161,9 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     if(!parent.isValid())
         return m_nodes.size();
 
-    return m_nodes[parent.row()].get()->components().size();
+    return node(parent)->components().size();
+
+//    return m_nodes[parent.row()].get()->components().size();
 }
 
 void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
@@ -118,51 +172,3 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
     m_nodes = nodes;
     endResetModel();
 }
-
-int TreeModel::findParent(int index) const
-{
-    int i = 0;
-    int sum = m_nodes[i].get()->components().size();
-
-    while (sum < index)
-    {
-        ++i;
-        sum += m_nodes[i].get()->components().size() + 1;
-    }
-
-    if (i == 0)
-        return 0;
-
-    else
-    {
-        sum -= m_nodes[i].get()->components().size() + 1;
-        --i;
-        if (!i)
-            return 0;
-
-        return sum + 1;
-    }
-}
-
-//void TreeModel::setNodes(const std::unordered_map<std::string, alpha::protort::parser::node> &n)
-//{
-
-//}
-
-//void TreeModel::setComponents(const std::vector<alpha::protort::parser::mapping> &m)
-//{
-//    int size = m.size();
-//    for (int i = 0; i < size; ++i)
-//        findNAdd(QString::fromStdString(m[i].comp_name), QString::fromStdString(m[i].node_name));
-//}
-
-//void TreeModel::findNAdd(QString comp_name, QString node_name)
-//{
-//    int size = m_nodes.size();
-//    for (int i = 0; i < size; ++i)
-//        if (m_nodes[i].name() == node_name)
-//        {
-//            m_nodes[i].addComp(comp_name);
-//            return;
-//        }
-//}

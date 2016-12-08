@@ -10,6 +10,7 @@
 #include "remotenode.h"
 
 using RemoteNodePtr = boost::shared_ptr<RemoteNode>;
+class RemoteComponent;
 
 class TreeModel : public QAbstractItemModel
 {
@@ -33,14 +34,16 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
-//    void setNodes(const std::unordered_map<std::__cxx11::string, alpha::protort::parser::node> &n);
-//    void setComponents(const std::vector<alpha::protort::parser::mapping> &m);
-//    void findNAdd(QString comp_name, QString node_name);
-
-private:
+private:    
     QList<RemoteNodePtr> m_nodes;
 
     int findParent(int index) const;
+    QObject *object(const QModelIndex &index) const;
+    RemoteNode *node(const QModelIndex &index) const;
+    RemoteComponent *component(const QModelIndex &index) const;
+
+    QVariant nodeData(RemoteNode* node, const QModelIndex &index, int role) const;
+    QVariant componentData(RemoteComponent* component, const QModelIndex &index, int role) const;
 
     enum Column
     {

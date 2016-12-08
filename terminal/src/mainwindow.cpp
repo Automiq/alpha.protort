@@ -38,14 +38,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     load_session();
 
-    //    QStringList headers;
-    //    headers << tr("Узел") << tr("Связь") << tr("Скорость")
-    //            << tr("Принято (пак./байт)") << tr("Отправлено (пак./байт)")
-    //            << tr("Время работы");
-
-        TreeModel *model = new TreeModel(remoteNodes_);
-
-        ui->treeStatus->setModel(model);
+    TreeModel *model = new TreeModel(remoteNodes_);
+    ui->treeStatus->setModel(model);
+    //static_cast<TreeModel*>(ui->treeStatus->model());
 }
 
 MainWindow::~MainWindow()
@@ -88,7 +83,6 @@ void MainWindow::save_session()
 
 void MainWindow::fillModel()
 {
-
     //    model->setComponents(deploy_config_.map_node_with_components);
     //    alpha::protort::parser::configuration conf;
     //    conf.parse_app(m_app->filePath().toStdString());
@@ -456,7 +450,6 @@ void MainWindow::createRemoteNodes()
         config_.parse_deploy(m_deploySchema->filePath().toStdString());
 
         deploy_config_.parse_deploy(config_);
-        //скопировать список в модель
     }
 
     for (auto &remoteNode : remoteNodes_)
@@ -473,9 +466,7 @@ void MainWindow::createRemoteNodes()
         remoteNode->init(service_);
     }
 
-    //    int size = remoteNodes_.size();
-    //    for (int i = 0; i < size; ++i)
-    //        remoteNodes_[i].
+    static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
