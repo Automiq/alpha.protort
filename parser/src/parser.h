@@ -32,9 +32,9 @@ struct component
  */
 struct connection
 {
-    std::string source;
+    uint32_t source;
     port_id source_out;
-    std::string dest;
+    uint32_t dest;
     port_id dest_in;
 };
 
@@ -45,7 +45,7 @@ struct connection
  */
 struct node
 {
-    std::string name;
+    uint32_t id;
     std::string address;
     port_id port;
     port_id config_port;

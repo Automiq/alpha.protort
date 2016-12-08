@@ -131,45 +131,60 @@ public:
     {
         struct node_info
         {
-            std::string name;
+            uint32_t id;
             std::string address;
             uint32_t port;
         };
 
         // Создаем отображение имени компонента на информацию о узле
-        std::map<std::string, node_info> comp_to_node;
+        std::map<uint32_t, node_info> comp_to_node;
 
+        uint32_t max_comp_id;
+        uint32_t max_node_id;
         {
-            std::map<std::string, node_info> nodes;
+            std::map<uint32_t, node_info> nodes;
 
-            for (const auto& node : conf.nodes)
-                nodes.emplace(node.name, node_info{node.name, node.address, node.port});
+            for (const auto& node : conf.nodes) {
+                nodes.emplace(node.id, node_info{node.id, node.address, node.port});
+                max_node_id = std::max(max_node_id, node.id);
+            }
 
-            for (const auto& mapp : conf.mappings)
-                comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
+            for (const auto& mapp : conf.mappings) {
+                comp_to_node.emplace(mapp.comp_id, nodes[mapp.node_id]);
+                max_comp_id = std::max(max_comp_id, node.id);
+            }
         }
+        router_->components_ = std::vector<router<node>::component_instance>(max_comp_id);
+        router_->clients_ = std::vector<boost::shared_ptr<protolink::client<node>>>(max_node_id);
+
+        // Определяем максимальное значение порта в маршрутах
+        port_id max_port_id = 0;
+        for (const auto& conn : conf.connections)
+            max_port_id = std::max(max_port_id, conn.source_out);
 
         // Создаем экземпляры локальных компонентов
         for (const auto& comp : conf.components) {
-            if (comp_to_node[comp.name].name == node_name_) {
+            if (comp_to_node[comp.id].id == node_id_) {
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
                 component_shared_ptr new_comp = alpha::protort::components::factory::create(comp.kind, router_);
-                router_->components_[comp.name] = {new_comp, comp.name, {}};
-                new_comp->set_comp_inst(&router_->components_[comp.name]);
+                router_->components_[comp.id] = {new_comp,
+                                                 comp.id,
+                                                 std::vector<router<node>::routes>(port_max_value)};
+                new_comp->set_comp_inst(&router_->components_[comp.id]);
             }
         }
 
         // Для каждого локального компонента
         for (const auto& conn : conf.connections) {
-            auto name_to_comp_inst = router_->components_.find(conn.source);
-            if (name_to_comp_inst != router_->components_.end()) {
+            auto id_to_comp_inst = router_->components_.find(conn.source);
+            if (auto comp != router_->components_[conn.source]) {
                 auto& comp_inst = name_to_comp_inst->second;
                 const auto& dest_node_name = comp_to_node[conn.dest].name;
 
                 // Копируем локальный маршрут
-                if (dest_node_name == node_name_) {
+                if (dest_node_name == node_id_) {
                     router<node>::component_instance* dest_ptr = &(router_->components_[conn.dest]);
-                    comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
+                    comp_inst.routes_[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
                 // Копируем удаленный маршрут
                 else {
@@ -181,13 +196,13 @@ public:
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
                         auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_);
                         client_ptr->async_connect(ep);
-                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
+                        comp_inst.routes_[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
                                     );
                         router_->clients_[dest_node_name] = client_ptr;
                     }
                     else {
-                        comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
+                        comp_inst.routes_[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client->second}
                                     );
                     }
@@ -254,7 +269,7 @@ private:
         protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
         response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
 
-        response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
+        response_packet->mutable_response()->mutable_status()->set_node_name(node_id_);
 
         boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;
         uint32_t uptime = uptime_period.count();
@@ -287,7 +302,7 @@ private:
      */
     void deploy_from_packet(const protocol::deploy::Config& config)
     {
-        node_name_ = config.this_node_info().name();
+        node_id_ = config.this_node_info().name();
         port_ = config.this_node_info().port();
 
         parser::configuration pconf;
@@ -324,7 +339,7 @@ private:
     boost::asio::signal_set signals_;
 
     //! Имя узла
-    std::string node_name_;
+    uint32_t node_id_;
 
     //! Порт, прослушиваемый сервером узла
     port_id port_;

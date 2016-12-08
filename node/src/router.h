@@ -100,7 +100,8 @@ private:
         std::string name;
 
         //! Таблица маршрутов
-        std::map<port_id, routes> port_to_routes;
+        //std::map<port_id, routes> routes_; // TODO
+        std::vector<routes> routes_;
     };
 
 public:
@@ -187,7 +188,7 @@ public:
         {
             for (auto const &out_port : output.ports)
             {
-                routes& port_routes = this_component->port_to_routes[out_port];
+                routes& port_routes = this_component->routes_[out_port];
 
                 // Рассылаем пакеты по локальным маршрутам
                 for (auto &local_route : port_routes.local_routes)
@@ -240,10 +241,10 @@ public:
 
 private:
     //! Таблица компонентов
-    std::map<std::string, component_instance> components_;
+    std::vector<component_instance> components_;
 
     //! Таблица удаленных получателей пакетов
-    std::map<std::string, boost::shared_ptr<protolink::client<app>>> clients_;
+    std::vector<boost::shared_ptr<protolink::client<app>>> clients_;
 
     //! I/O сервис
     boost::asio::io_service& service_;
