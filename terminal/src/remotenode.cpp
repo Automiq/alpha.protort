@@ -222,27 +222,29 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto status = packet.response().status();
 
-    setName(QString::fromStdString(status.node_name()));
+    auto cSize = p.components().size()
+    if (cSize > 0 && components_.size() == 0)
+    {
+        for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+        {
+            components_.push_back(new RemoteComponent);
+        }
+        emit componentsChanged();
+    }
+
+    for(auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    {
+        components_.setName(QString::fromStdString(component.name()));
+        components_.setInput(component.in_packet_count());
+        components_->setOutput(status.component_statuses(i).out_packet_count());
+    }
+
     setUptime(status.uptime());
     setInput(status.in_packets_count(), status.in_bytes_count());
     setOutput(status.out_packets_count(), status.out_bytes_count());
-    setConnect(1); //?????
+    isConnect(); //?????
 
-    RemoteComponent *comp;
-
-    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
-    {
-        auto component = status.component_statuses(i);
-
-        comp = new RemoteComponent;
-
-        comp->setName(QString::fromStdString(component.name()));
-        comp->setInput(component.in_packet_count());
-        comp->setOutput(status.component_statuses(i).out_packet_count());
-        components_.push_back(comp);
-        emit componentsChanged();
-    }
- emit statusChanged();
+    emit statusChanged();
 //    auto cSize = p.components().size()
 //    if (cSize > 0 && components_.size() == 0)
 //    {
