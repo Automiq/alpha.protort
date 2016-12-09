@@ -18,6 +18,7 @@
 #include <QSettings>
 #include <QXmlStreamReader>
 #include <QWidget>
+#include <QTimer>
 
 #include <QToolTip>
 #include <boost/make_shared.hpp>
@@ -25,6 +26,7 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_statusTimer(new QTimer(this)),
     service_(),
     work_(new boost::asio::io_service::work(service_)),
     serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
@@ -39,6 +41,8 @@ MainWindow::MainWindow(QWidget *parent) :
     createConfigurationToolBar();
 
     load_session();
+
+    connect(m_statusTimer, &QTimer::timeout, this, &MainWindow::on_status_triggered);
 
     TreeModel *model = new TreeModel(remoteNodes_);
     ui->treeStatus->setModel(model);
@@ -474,6 +478,8 @@ void MainWindow::createRemoteNodes()
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
+
+    m_statusTimer->start(500);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)

@@ -42,22 +42,42 @@ int TreeModel::indexOfNode(RemoteNode* node) const
     return -1;
 }
 
+RemoteNode *TreeModel::nodeAt(int index) const
+{
+    return m_nodes[index].get();
+}
+
 QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int role) const
 {
+    if (role == Qt::DecorationRole && index.column() == Column::Connection)
+        return QIcon(node->isConnected() ? ":/images/connected.png" : ":/images/notconnected.ico");
+
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
+    switch (index.column())
+    {
+    case Column::Name:
+        return node->name();
+    case Column::Address:
+        return node->address();
+    }
+
+    if (!node->isConnected())
+        return QVariant();
+
     switch(index.column())
     {
-    case Name:
-        return node->name();
-    case Connect:
-        return node->isConnect();
-    case Speed:
-        return QString::number(node->speed());
-    case Uptime:
+    case Column::Uptime:
         return node->uptime();
-    case Input:
-        return node->input().getPackets();
-    case Output:
-        return node->output().getPackets();
+    case Column::PacketsReceived:
+        return node->packetsReceived();
+    case Column::BytesReceived:
+        return node->bytesReceived();
+    case Column::PacketsSent:
+        return node->packetsSent();
+    case Column::BytesSent:
+        return node->bytesSent();
     default:
         return QVariant();
     }
@@ -65,18 +85,20 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
 
 QVariant TreeModel::componentData(RemoteComponent *component, const QModelIndex &index, int role) const
 {
+    if (role != Qt::DisplayRole)
+        return QVariant();
+
     switch(index.column())
     {
-    case Name:
+    case Column::Name:
         return component->name();
-    case Input:
-        return component->input();
-    case Output:
-        return component->output();
+    case Column::PacketsReceived:
+        return component->packetsReceived();
+    case Column::PacketsSent:
+        return component->packetsSent();
     default:
         return QVariant();
     }
-
 }
 
 QVariant TreeModel::data(const QModelIndex &index, int role) const
@@ -84,7 +106,7 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     if (!index.isValid())
         return QVariant();
 
-    if (role != Qt::DisplayRole)
+    if (role != Qt::DisplayRole && role != Qt::DecorationRole)
         return QVariant();
 
     if (auto n = node(index))
@@ -104,18 +126,22 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
 
     switch(section)
     {
-    case Name:
+    case Column::Name:
         return tr("Имя узла");
-    case Connect:
+    case Column::Address:
+        return tr("Адрес");
+    case Column::Connection:
         return tr("Связь");
-    case Uptime:
+    case Column::Uptime:
         return tr("Время работы");
-    case Input:
-        return tr("Принято (пак./байт)");
-    case Output:
-        return tr("Отправлено (пак./байт)");
-    case Speed:
-        return tr("Скорость");
+    case Column::PacketsReceived:
+        return tr("Принято пакетов");
+    case Column::BytesReceived:
+        return tr("Принято байт");
+    case Column::PacketsSent:
+        return tr("Отправлено пакетов");
+    case Column::BytesSent:
+        return tr("Отправлено байт");
     default:
         return QVariant();
     }
@@ -127,20 +153,12 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) con
         return QModelIndex();
 
     if (!parent.isValid())
-        return createIndex(row, 0, m_nodes[row].get());
+        return createIndex(row, column, nodeAt(row));
 
     auto n = node(parent);
     Q_ASSERT(n);
 
-    return createIndex(row, 0, n->components()[row]);
-
-//    if (auto n = node(parent))
-//        return createIndex(row, column, n)
-
-//    Component* internal = &m_nodes[parent.row()].get()->components()[row];
-//    if (parent.isValid())
-//        return createIndex(row, column, internal);
-//    return createIndex(row, column, m_nodes[row].get());
+    return createIndex(row, column, n->componentAt(row));
 }
 
 QModelIndex TreeModel::parent(const QModelIndex &index) const
@@ -154,10 +172,8 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     if (auto comp = component(index))
     {
         auto node = comp->parent();
-
-        int size = m_nodes.size();
         int idx = indexOfNode(node);
-        if (idx != -1)
+        if (node && idx != -1)
             return createIndex(idx, 0, node);
     }
 
@@ -169,9 +185,10 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     if(!parent.isValid())
         return m_nodes.size();
 
-    return node(parent)->components().size();
+    if (auto n = node(parent))
+        return n->components().size();
 
-//    return m_nodes[parent.row()].get()->components().size();
+    return 0;
 }
 
 void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
@@ -201,10 +218,18 @@ void TreeModel::onStatusChanged()
 {
     auto node = qobject_cast<RemoteNode*>(sender());
 
-    auto parent = index(indexOfNode(node), 0);
+    auto idx = indexOfNode(node);
 
-    auto topLeft = index(0, 0, parent);
-    auto bottomRight = index(node->components().size() - 1, Column::LastColumn, parent);
+    auto parentLeft = index(idx, 0);
+    auto parentRight = index(idx, Column::LastColumn);
+
+    emit dataChanged(parentLeft, parentRight);
+
+    if (!node->components().size())
+        return;
+
+    auto topLeft = index(0, 0, parentLeft);
+    auto bottomRight = index(node->components().size() - 1, Column::LastColumn, parentLeft);
 
     emit dataChanged(topLeft, bottomRight);
 }

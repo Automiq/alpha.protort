@@ -9,22 +9,22 @@ class RemoteComponent : public QObject
 {
     Q_OBJECT
 
-    uint32_t input_;
-    uint32_t output_;
+    uint32_t packetsReceived_;
+    uint32_t packetsSent_;
     QString name_;
     RemoteNode *parent_;
 
 public:
     RemoteComponent(QObject *parent = Q_NULLPTR);
 
-    uint32_t input() const { return input_; }
     QString name() const { return name_; }
-    uint32_t output() const { return output_; }
+    uint32_t packetsReceived() const { return packetsReceived_; }
+    uint32_t packetsSent() const { return packetsSent_; }
     RemoteNode* parent(){ return parent_; }
 
-    void setInput(uint32_t packets){ input_ = packets; }
     void setName(QString name){ name_ = name; }
-    void setOutput(uint32_t packets){ output_ = packets; }
+    void setPacketsReceived(uint32_t value) { packetsReceived_ = value; }
+    void setPacketsSent(uint32_t value) { packetsSent_ = value; }
     void setParent(RemoteNode* prnt){ parent_ = prnt; }
 };
 

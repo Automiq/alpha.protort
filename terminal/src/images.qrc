@@ -20,5 +20,7 @@
         <file>images/radCog.png</file>
         <file>images/configure.ico</file>
         <file>images/file.png</file>
+        <file>images/connected.png</file>
+        <file>images/notconnected.ico</file>
     </qresource>
 </RCC>

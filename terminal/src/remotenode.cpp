@@ -5,12 +5,20 @@
 #include "deploy.pb.h"
 
 RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
-    : node_information_(node_information)
+    : node_information_(node_information),
+      uptime_(0),
+      packetsReceived_(0),
+      bytesReceived_(0),
+      packetsSent_(0),
+      bytesSent_(0),
+      isConnected_(false)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
 
+    connect(this, &RemoteNode::connected, this, &RemoteNode::onConnected);
+    connect(this, &RemoteNode::connectionFailed, this, &RemoteNode::onConnectionFailed);
     connect(this, &RemoteNode::statusRequestFinished, this, &RemoteNode::onStatusRequestFinished);
 
     name_ = QString::fromStdString(node_information_.name);
@@ -197,26 +205,75 @@ void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 
 }
 
+void RemoteNode::appendComponent(RemoteComponent *component)
+{
+    components_.push_back(component);
+    component->setParent(this);
+}
+
 QList<RemoteComponent *> RemoteNode::components() const
 {
     return components_;
 }
 
 //! Методы изменения данных узла
-void RemoteNode::setName(QString name){ name_ = name; }
-void RemoteNode::setConnect(uint32_t con){ connection_ = con; }
 void RemoteNode::setUptime(uint32_t time){ uptime_  = time; }
-void RemoteNode::setSpeed(uint32_t speed){ speed_ = speed; }
-void RemoteNode::setOutput(uint32_t packets, uint32_t bytes){ in_(packets, bytes); }
-void RemoteNode::setInput(uint32_t packets, uint32_t bytes){ out_(packets, bytes); }
+
+void RemoteNode::setPacketsReceived(uint32_t value)
+{
+    packetsReceived_ = value;
+}
+
+void RemoteNode::setBytesReceived(uint32_t value)
+{
+    bytesReceived_ = value;
+}
+
+void RemoteNode::setPacketsSent(uint32_t value)
+{
+    packetsSent_ = value;
+}
+
+void RemoteNode::setBytesSent(uint32_t value)
+{
+    bytesSent_ = value;
+}
+
+void RemoteNode::setConnected(bool value)
+{
+    isConnected_ = value;
+
+    emit statusChanged();
+}
 
 //! Методы получения данных узла
-QString RemoteNode::name() { return name_; }
-bool RemoteNode::isConnect() const { return connection_; }
+bool RemoteNode::isConnected() const { return isConnected_; }
 uint32_t RemoteNode::uptime() const { return uptime_; }
-uint32_t RemoteNode::speed() const { return speed_; }
-RemoteNode::Packet RemoteNode::output() const { return in_; }
-RemoteNode::Packet RemoteNode::input() const { return out_; }
+
+uint32_t RemoteNode::packetsReceived() const
+{
+    return packetsReceived_;
+}
+
+uint32_t RemoteNode::packetsSent() const
+{
+    return packetsSent_;
+}
+
+uint32_t RemoteNode::bytesReceived() const
+{
+    return bytesReceived_;
+}
+
+uint32_t RemoteNode::bytesSent() const
+{
+    return bytesSent_;
+}
+
+RemoteComponent *RemoteNode::componentAt(int index) const
+{
+    return components_[index];
+}
 
 void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &packet)
 {
@@ -227,34 +284,35 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     if (cSize > 0 && components_.size() == 0)
     {
         for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
-        {
-            components_.push_back(new RemoteComponent);
-        }
+            appendComponent(new RemoteComponent);
         emit componentsChanged();
     }
 
     for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
     {
-        auto component = status.component_statuses(i);
+        auto cs = status.component_statuses(i);
 
-        components_[i]->setName(QString::fromStdString(component.name()));
-        components_[i]->setInput(component.in_packet_count());
-        components_[i]->setOutput(status.component_statuses(i).out_packet_count());
+        auto c = components_[i];
+        c->setName(QString::fromStdString(cs.name()));
+        c->setPacketsReceived(cs.in_packet_count());
+        c->setPacketsSent(cs.out_packet_count());
     }
 
     setUptime(status.uptime());
-    setInput(status.in_packets_count(), status.in_bytes_count());
-    setOutput(status.out_packets_count(), status.out_bytes_count());
+    setPacketsReceived(status.in_packets_count());
+    setPacketsSent(status.out_packets_count());
+    setBytesReceived(status.in_bytes_count());
+    setBytesSent(status.out_bytes_count());
 
     emit statusChanged();
 }
 
-RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b)
-{ return RemoteNode::Packet(p, b); }
-
-void RemoteNode::Packet::clear(){packets_ = 0; bytes_ = 0;}
-
-void RemoteNode::addComp(RemoteComponent *comp)
+void RemoteNode::onConnected()
 {
-    components_.push_back(comp);
+    setConnected(true);
+}
+
+void RemoteNode::onConnectionFailed(const boost::system::error_code &)
+{
+    setConnected(false);
 }

@@ -47,19 +47,23 @@ private:
 
     int indexOfNode(RemoteNode* node) const;
 
+    RemoteNode *nodeAt(int index) const;
+
     QVariant nodeData(RemoteNode* node, const QModelIndex &index, int role) const;
     QVariant componentData(RemoteComponent* component, const QModelIndex &index, int role) const;
 
     enum Column
     {
         Name,
-        Connect,
-        Speed,
+        Address,
+        Connection,
         Uptime,
-        Input,
-        Output,
-        LastColumn = Output,
-        ColumnCount = Output + 1,
+        PacketsReceived,
+        BytesReceived,
+        PacketsSent,
+        BytesSent,
+        LastColumn = BytesSent,
+        ColumnCount = LastColumn + 1,
     };
 };
 

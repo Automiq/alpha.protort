@@ -29,31 +29,6 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
     using client_t = alpha::protort::protolink::client<RemoteNode>;
     using client_ptr = boost::shared_ptr<client_t>;
 
-private:
-    /*!
-     * \brief Информация о компоненте
-     * \param name - название компоненты
-     * \param info - список состояний компонента
-     * \param node - указатель на узел, на котором размещена данная компонента
-     */
-    class Packet
-    {
-        uint32_t bytes_;
-        uint32_t packets_;
-
-    public:
-        Packet(){ packets_ = 0; bytes_ = 0; }
-        Packet(const Packet &pac){ packets_ = pac.packets_, bytes_ = pac.bytes_; }
-        Packet operator =(const Packet &pac){ return Packet(pac.packets_, pac.bytes_); }
-        Packet(uint32_t p, uint32_t b){ packets_ = p; bytes_ = b; }
-        void setBytes(uint32_t b){ bytes_ = b; }
-        void setPackets(uint32_t p){ packets_ = p; }
-        uint32_t getBytes(){ return bytes_; }
-        uint32_t getPackets(){ return packets_; }
-        void clear();
-        Packet operator()(uint32_t p, uint32_t b);
-    };
-
 public:   
     QList<RemoteComponent*> components() const;
 
@@ -73,22 +48,16 @@ public:
     void async_status(alpha::protort::protocol::Packet_Payload& status);
 
 
-    //! Методы изменения данных узла
-    void setName(QString name);
-    void setConnect(uint32_t con);
-    void setUptime(uint32_t time);
-    void setSpeed(uint32_t speed);
-    void setOutput(uint32_t packets, uint32_t bytes);
-    void setInput(uint32_t packets, uint32_t bytes);
-    void addComp(RemoteComponent *comp);
 
     //! Методы получения данных узла
-    QString name();
-    bool isConnect() const;
-    uint32_t uptime() const ;
-    uint32_t speed() const;
-    Packet output() const ;
-    Packet input() const ;
+    bool isConnected() const;
+    uint32_t uptime() const;
+    uint32_t packetsReceived() const;
+    uint32_t packetsSent() const;
+    uint32_t bytesReceived() const;
+    uint32_t bytesSent() const;
+
+    RemoteComponent *componentAt(int index) const;
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -103,6 +72,8 @@ signals:
 
 private slots:
     void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet&packet);
+    void onConnected();
+    void onConnectionFailed(const boost::system::error_code&);
 
 private:
 
@@ -115,6 +86,17 @@ private:
     void on_new_packet(alpha::protort::protocol::Packet_Payload packet);
     //@}
 
+    void appendComponent(RemoteComponent *component);
+
+    //! Методы изменения данных узла
+    void setName(const QString &name);
+    void setUptime(uint32_t time);
+    void setPacketsReceived(uint32_t value);
+    void setPacketsSent(uint32_t value);
+    void setBytesReceived(uint32_t value);
+    void setBytesSent(uint32_t value);
+    void setConnected(bool value);
+
     //! Информация об узле, с которым коннектится клиент
     alpha::protort::parser::node node_information_;
 
@@ -122,12 +104,14 @@ private:
     client_ptr client_;
 
     uint32_t uptime_;
-    uint32_t speed_;
 
-    Packet in_;
-    Packet out_;
+    uint32_t packetsReceived_;
+    uint32_t bytesReceived_;
 
-    bool connection_;
+    uint32_t packetsSent_;
+    uint32_t bytesSent_;
+
+    bool isConnected_;
 
     QString name_;
     QList<RemoteComponent*> components_;

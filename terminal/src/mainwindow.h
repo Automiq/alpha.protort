@@ -93,6 +93,7 @@ private:
     QComboBox *m_apps;
     QComboBox *m_deploys;
     QPushButton *m_setupConfig;
+    QTimer *m_statusTimer;
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
 
