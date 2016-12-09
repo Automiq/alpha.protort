@@ -222,7 +222,8 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto status = packet.response().status();
 
-    auto cSize = p.components().size()
+    auto cSize = status.component_statuses_size();
+
     if (cSize > 0 && components_.size() == 0)
     {
         for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
@@ -232,33 +233,20 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         emit componentsChanged();
     }
 
-    for(auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
     {
-        components_.setName(QString::fromStdString(component.name()));
-        components_.setInput(component.in_packet_count());
-        components_->setOutput(status.component_statuses(i).out_packet_count());
+        auto component = status.component_statuses(i);
+
+        components_[i]->setName(QString::fromStdString(component.name()));
+        components_[i]->setInput(component.in_packet_count());
+        components_[i]->setOutput(status.component_statuses(i).out_packet_count());
     }
 
     setUptime(status.uptime());
     setInput(status.in_packets_count(), status.in_bytes_count());
     setOutput(status.out_packets_count(), status.out_bytes_count());
-    isConnect(); //?????
 
     emit statusChanged();
-//    auto cSize = p.components().size()
-//    if (cSize > 0 && components_.size() == 0)
-//    {
-//            //p.name_;
-//            //p.name(); - имя пакета
-//        //auto comps = components();
-//        // TODO: сконструировать компоненты
-
-//        emit componentsChanged();
-//    }
-
-    // TODO: заполнить данные по узлу и его компонентам
-
-
 }
 
 RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b)
