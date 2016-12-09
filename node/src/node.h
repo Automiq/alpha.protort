@@ -114,7 +114,7 @@ public:
 #ifdef _DEBUG
         std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
 #endif
-        router_->in_bytes_ += sizeof(payload);
+        router_->in_bytes_ += payload.ByteSize();
         router_->route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
                       payload.communication_packet().payload());

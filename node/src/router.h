@@ -221,7 +221,7 @@ public:
                 // Формируем и рассылаем пакеты по удаленным маршрутам
                 for (auto &remote_route : port_routes.remote_routes)
                 {
-                    alpha::protort::protocol::Packet_Payload payload;
+                    alpha::protort::protocol::Packet::Payload payload;
                     auto packet = payload.mutable_communication_packet();
 
                     // out endpoint
@@ -236,7 +236,7 @@ public:
                     packet->set_payload(output.payload);
 
                     remote_route.client->async_send_message(payload);
-                    out_bytes_ += sizeof(payload);
+                    out_bytes_ += payload.ByteSize();
                     out_packets_++;
 #ifdef _DEBUG
                     boost::mutex::scoped_lock lock(cout_mutex);
