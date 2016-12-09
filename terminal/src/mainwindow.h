@@ -5,7 +5,7 @@
 #include <QList>
 #include <QMainWindow>
 #include <QMessageBox>
-#include <QPushButton>
+#include <QToolButton>
 #include <QSyntaxHighlighter>
 
 #include <QMessageBox>
@@ -14,6 +14,7 @@
 #include <boost/thread.hpp>
 #include <QThread>
 #include <boost/asio.hpp>
+#include <QModelIndex>
 
 #include "document.h"
 #include "deploy.pb.h"
@@ -21,6 +22,7 @@
 #include "configdialog.h"
 #include "remotenode.h"
 #include "deployconfiguration.h"
+#include "treemodel.h"
 
 class QTextEdit;
 
@@ -90,7 +92,8 @@ private:
     ConfigDialog *dlg;
     QComboBox *m_apps;
     QComboBox *m_deploys;
-    QPushButton *m_setupConfig;
+    QToolButton *m_setupConfig;
+    QTimer *m_statusTimer;
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
 

@@ -30,7 +30,7 @@ using alpha::protort::link::max_packet_size;
  * Временной интервал, через который будет выполнена повторная попытка подключения
  * если предыдущая попытка не увенчалась успехом.
  */
-static const int reconnect_interval = 5000;
+static const int reconnect_interval = 1000;
 
 /*!
  * Шаблонный класс клиента

@@ -2,6 +2,7 @@
  <instance name="ge" kind="generator" />
  <instance name="re" kind="retranslator" />
  <instance name="te" kind="terminator" />
+ <instance name="te2" kind="terminator" />
  <connection source="ge" source_out="1" dest="re" dest_in="1" />
  <connection source="re" source_out="1" dest="te" dest_in="1" />
 </app>

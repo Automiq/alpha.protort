@@ -14,15 +14,19 @@
 #include <QTextStream>
 #include <QToolBar>
 #include <QObject>
-#include <QPushButton>
-#include <QWidget>
 #include <QSettings>
+#include <QXmlStreamReader>
+#include <QWidget>
+#include <QTimer>
+#include <QHBoxLayout>
+
 #include <QToolTip>
 #include <boost/make_shared.hpp>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
+    m_statusTimer(new QTimer(this)),
     service_(),
     work_(new boost::asio::io_service::work(service_)),
     serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
@@ -37,6 +41,11 @@ MainWindow::MainWindow(QWidget *parent) :
     createConfigurationToolBar();
 
     load_session();
+
+    connect(m_statusTimer, &QTimer::timeout, this, &MainWindow::on_status_triggered);
+
+    TreeModel *model = new TreeModel(remoteNodes_);
+    ui->treeStatus->setModel(model);
 }
 
 MainWindow::~MainWindow()
@@ -67,11 +76,13 @@ void MainWindow::save_session()
 {
     QSettings session("terminal.conf", QSettings::IniFormat);
     session.beginWriteArray("files");
+
     for (int i = 0; i < ui->tabWidget->count(); ++i)
     {
         session.setArrayIndex(i);
         session.setValue("filePath", document(i)->filePath());
     }
+
     session.endArray();
 }
 
@@ -348,10 +359,16 @@ void MainWindow::showMessage()
 void MainWindow::deploy()
 {
     resetDeployActions();
+    ui->status->setEnabled(true);
     ui->deploy->setDisabled(true);
 
     for (auto &remoteNode: remoteNodes_)
         remoteNode->async_deploy(deploy_config_);
+
+    TreeModel *model = new TreeModel(remoteNodes_);
+    model->setupModelData(remoteNodes_);
+
+    ui->treeStatus->show();
 }
 
 void MainWindow::on_deploy_triggered()
@@ -448,6 +465,10 @@ void MainWindow::createRemoteNodes()
 
         remoteNode->init(service_);
     }
+
+    static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
+
+    m_statusTimer->start(500);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -522,20 +543,28 @@ void MainWindow::addWidgetOnBar(QWidget* newWidget) const
 
 void MainWindow::createConfigurationToolBar()
 {
-    m_deploys = new QComboBox();
-    m_apps = new QComboBox();
-
     QLabel *app = new QLabel(tr("Описание: "));
-    addWidgetOnBar(app);
-    addWidgetOnBar(m_apps);
-
     QLabel *schema = new QLabel(tr("Схема: "));
-    addWidgetOnBar(schema);
-    addWidgetOnBar(m_deploys);
 
-    m_setupConfig = new QPushButton();
-    m_setupConfig->setText(tr("Установить"));
-    addWidgetOnBar(m_setupConfig);
+    m_apps = new QComboBox;
+    m_deploys = new QComboBox;
+
+    m_setupConfig = new QToolButton;
+    m_setupConfig->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_setupConfig->setText(tr("Загрузить"));
+    m_setupConfig->setIcon(QIcon(":/images/configure.ico"));
+
+    QWidget *w = new QWidget;
+    QHBoxLayout *l = new QHBoxLayout;
+    l->addWidget(app);
+    l->addWidget(m_apps);
+    l->addWidget(schema);
+    l->addWidget(m_deploys);
+    l->addWidget(m_setupConfig);
+    l->setContentsMargins(0, 0, 0, 0);
+    w->setLayout(l);
+
+    addWidgetOnBar(w);
 
     connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
 }
@@ -585,7 +614,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    ui->statusLog->append(message);
+    //    ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)

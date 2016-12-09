@@ -99,8 +99,6 @@
    <addaction name="save_file"/>
    <addaction name="save_all"/>
    <addaction name="separator"/>
-   <addaction name="config"/>
-   <addaction name="separator"/>
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
@@ -112,7 +110,7 @@
     <string>Журнал развёртывания</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>8</number>
+    <number>2</number>
    </attribute>
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QHBoxLayout" name="horizontalLayout">
@@ -132,7 +130,7 @@
    <widget class="QWidget" name="dockWidgetContents_2">
     <layout class="QHBoxLayout" name="horizontalLayout_2">
      <item>
-      <widget class="QTextBrowser" name="statusLog"/>
+      <widget class="QTreeView" name="treeStatus"/>
      </item>
     </layout>
    </widget>
@@ -184,7 +182,7 @@
     <string>Остановить</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+F</string>
+    <string>Shift+F5</string>
    </property>
   </action>
   <action name="stop_usel">
@@ -241,12 +239,18 @@
    </property>
   </action>
   <action name="config">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="icon">
     <iconset resource="images.qrc">
      <normaloff>:/images/configure.ico</normaloff>:/images/configure.ico</iconset>
    </property>
    <property name="text">
     <string>&amp;Конфигурация...</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
   </action>
   <action name="start">
