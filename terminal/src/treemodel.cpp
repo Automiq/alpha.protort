@@ -14,7 +14,7 @@ TreeModel::~TreeModel(){}
 
 int TreeModel::columnCount(const QModelIndex &) const
 {
-    return Column::MaxColumn;
+    return Column::ColumnCount;
 }
 
 QObject* TreeModel::object(const QModelIndex &index) const
@@ -30,6 +30,16 @@ RemoteNode *TreeModel::node(const QModelIndex &index) const
 RemoteComponent *TreeModel::component(const QModelIndex &index) const
 {
     return qobject_cast<RemoteComponent *>(object(index));
+}
+
+int TreeModel::indexOfNode(RemoteNode* node) const
+{
+    for (int i = 0, size = m_nodes.size(); i < size; ++i)
+    {
+        if (m_nodes[i].get() == node)
+            return i;
+    }
+    return -1;
 }
 
 QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int role) const
@@ -146,11 +156,9 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
         auto node = comp->parent();
 
         int size = m_nodes.size();
-        for (int i = 0; i < size; ++i)
-        {
-            if (m_nodes[i].get() == node)
-                return createIndex(i, 0, node);
-        }
+        int idx = indexOfNode(node);
+        if (idx != -1)
+            return createIndex(idx, 0, node);
     }
 
     return QModelIndex();
@@ -172,17 +180,31 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
     m_nodes = nodes;
     for (auto &node : m_nodes)
     {
-        connect(node, &RemoteNode::statusChanged, this, dsds)
+        auto *n = node.get();
+        connect(n, &RemoteNode::componentsChanged, this, &TreeModel::onComponentsChanged);
+        connect(n, &RemoteNode::statusChanged, this, &TreeModel::onStatusChanged);
     }
 
     endResetModel();
 }
 
-void sdsds()
+void TreeModel::onComponentsChanged()
 {
     auto node = qobject_cast<RemoteNode*>(sender());
 
-    QModelIndex
+    auto parent = index(indexOfNode(node), 0);
 
-    emit dataChanged(topLeft, bottomRight)
+    emit dataChanged(parent, parent);
+}
+
+void TreeModel::onStatusChanged()
+{
+    auto node = qobject_cast<RemoteNode*>(sender());
+
+    auto parent = index(indexOfNode(node), 0);
+
+    auto topLeft = index(0, 0, parent);
+    auto bottomRight = index(node->components().size() - 1, Column::LastColumn, parent);
+
+    emit dataChanged(topLeft, bottomRight);
 }

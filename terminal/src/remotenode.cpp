@@ -1,5 +1,8 @@
 #include "remotenode.h"
 #include "convert.h"
+#include "remotecomponent.h"
+
+#include "deploy.pb.h"
 
 RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
     : node_information_(node_information)
@@ -7,7 +10,17 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
+
+    connect(this, &RemoteNode::statusRequestFinished, this, &RemoteNode::onStatusRequestFinished);
+
     name_ = QString::fromStdString(node_information_.name);
+}
+
+RemoteNode::~RemoteNode()
+{
+    int size = components_.size();
+    for(int i = 0; i < size; ++i)
+        delete components_[i];
 }
 
 void RemoteNode::init(boost::asio::io_service &service)
@@ -205,11 +218,45 @@ uint32_t RemoteNode::speed() const { return speed_; }
 RemoteNode::Packet RemoteNode::output() const { return in_; }
 RemoteNode::Packet RemoteNode::input() const { return out_; }
 
-void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &)
+void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &packet)
 {
+    auto status = packet.response().status();
+
+    setName(QString::fromStdString(status.node_name()));
+    setUptime(status.uptime());
+    setInput(status.in_packets_count(), status.in_bytes_count());
+    setOutput(status.out_packets_count(), status.out_bytes_count());
+    setConnect(1); //?????
+
+    RemoteComponent *comp;
+
+    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    {
+        auto component = status.component_statuses(i);
+
+        comp = new RemoteComponent;
+
+        comp->setName(QString::fromStdString(component.name()));
+        comp->setInput(component.in_packet_count());
+        comp->setOutput(status.component_statuses(i).out_packet_count());
+        components_.push_back(comp);
+        emit componentsChanged();
+    }
+ emit statusChanged();
+//    auto cSize = p.components().size()
+//    if (cSize > 0 && components_.size() == 0)
+//    {
+//            //p.name_;
+//            //p.name(); - имя пакета
+//        //auto comps = components();
+//        // TODO: сконструировать компоненты
+
+//        emit componentsChanged();
+//    }
+
+    // TODO: заполнить данные по узлу и его компонентам
 
 
-    emit statusChanged();
 }
 
 RemoteNode::Packet RemoteNode::Packet::operator()(uint32_t p, uint32_t b)

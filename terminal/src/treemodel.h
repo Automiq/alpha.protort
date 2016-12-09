@@ -34,13 +34,18 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
+private slots:
+    void onComponentsChanged();
+    void onStatusChanged();
+
 private:    
     QList<RemoteNodePtr> m_nodes;
 
-    int findParent(int index) const;
     QObject *object(const QModelIndex &index) const;
     RemoteNode *node(const QModelIndex &index) const;
     RemoteComponent *component(const QModelIndex &index) const;
+
+    int indexOfNode(RemoteNode* node) const;
 
     QVariant nodeData(RemoteNode* node, const QModelIndex &index, int role) const;
     QVariant componentData(RemoteComponent* component, const QModelIndex &index, int role) const;
@@ -53,9 +58,8 @@ private:
         Uptime,
         Input,
         Output,
-
-
-        MaxColumn = Output + 1,
+        LastColumn = Output,
+        ColumnCount = Output + 1,
     };
 };
 

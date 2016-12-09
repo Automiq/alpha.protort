@@ -13,6 +13,8 @@ CONFIG += c++11
 TARGET = src
 TEMPLATE = app
 
+DEFINES += WIN32_LEAN_AND_MEAN
+
 LIBS += \
     # Путь в рамках shadow build
     -L$$OUT_PWD/../../protocol/lib

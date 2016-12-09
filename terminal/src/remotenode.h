@@ -58,7 +58,7 @@ public:
     QList<RemoteComponent*> components() const;
 
     RemoteNode(alpha::protort::parser::node const& node);
-
+    ~RemoteNode();
     void init(boost::asio::io_service& service);
 
     void shutdown();
@@ -89,7 +89,6 @@ public:
     uint32_t speed() const;
     Packet output() const ;
     Packet input() const ;
-    QModelIndex index() const;
 
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
@@ -103,7 +102,7 @@ signals:
     void statusChanged();
 
 private slots:
-    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet&);
+    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet&packet);
 
 private:
 
