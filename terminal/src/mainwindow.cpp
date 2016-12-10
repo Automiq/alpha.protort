@@ -394,6 +394,7 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_triggered()
 {
+    ui->treeStatus->expandAll();
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 

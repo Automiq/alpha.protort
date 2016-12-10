@@ -20,7 +20,7 @@ class timed_generator : public generator
 public:
     timed_generator(router_ptr& router):
         generator(router),
-        generate_interval_(3000),
+        generate_interval_(100),
         generate_timer_(router->get_service())
     {
 
