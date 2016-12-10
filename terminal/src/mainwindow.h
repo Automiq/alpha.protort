@@ -97,6 +97,8 @@ private:
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
 
+    bool deploying = false;
+
     QString fixedWindowTitle(const Document *doc) const;
     void saveDocument(int index);
     void activateDeploy() const;

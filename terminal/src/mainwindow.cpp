@@ -233,6 +233,7 @@ void MainWindow::showLog() const
 
 void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
+    deploying = false;
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(
                 packet.has_error() ?
@@ -358,6 +359,7 @@ void MainWindow::showMessage()
 
 void MainWindow::deploy()
 {
+
     resetDeployActions();
     ui->status->setEnabled(true);
     ui->deploy->setDisabled(true);
@@ -394,6 +396,9 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_triggered()
 {
+    if (deploying)
+        return;
+
     ui->treeStatus->expandAll();
     alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
@@ -455,6 +460,8 @@ void MainWindow::createRemoteNodes()
 
     for (auto &remoteNode : remoteNodes_)
         remoteNode->shutdown();
+
+    deploying = true;
     remoteNodes_.clear();
 
     for (auto node : deploy_config_.map_node)
