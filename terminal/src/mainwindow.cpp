@@ -48,8 +48,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->treeStatus->setModel(model);
 }
 
+//Деструктор главного окна.
 MainWindow::~MainWindow()
 {
+	//Цикл проверяет открытые файлы (вкладки) и в случае если они не сохранены предлагает пользователю сохранить их.
     for (int i = 0; i < ui->tabWidget->count(); ++i)
         if (!QFile(document(i)->filePath()).exists())
         {
@@ -64,6 +66,7 @@ MainWindow::~MainWindow()
                 saveDocument(i);
             }
         }
+    //После цикла идет сохранение сессии, отсановка потока service (основной поток ожидает его завершения методом join)
     save_session();
     work_.reset();
     service_.stop();
@@ -72,6 +75,8 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+//Сохранение настроек сессии. (Сериализация открытых файлов)
+//Создается экземпляр QTшного QSettings (файл настроек), в которые записываются пути открытых на данный момент в терминале файлов.
 void MainWindow::save_session()
 {
     QSettings session("terminal.conf", QSettings::IniFormat);
@@ -86,6 +91,8 @@ void MainWindow::save_session()
     session.endArray();
 }
 
+//Загрузка сессии, процесс обратнтый процессу сохранения (MainWindow::save_session())
+//Читаем пути файлов из файла настроек и открываем их в терминале.
 void MainWindow::load_session()
 {
     QSettings session("terminal.conf", QSettings::IniFormat);
@@ -99,23 +106,32 @@ void MainWindow::load_session()
     session.endArray();
 }
 
+
+//Обработка кнопки сохранения (голубая дискета Ctrl+S).
+//Сохраняет текущий (видимую вкладку) открытый файл.
 void MainWindow::on_save_file_triggered()
 {
     saveDocument(ui->tabWidget->currentIndex());
 }
 
+//Обработка кнопки сохранения файлов (две черные дискеты Ctrl+Shift+S)
+//Сохряняет все открытые в терминале файлы.
 void MainWindow::on_save_all_triggered()
 {
     for (int i = 0; i < ui->tabWidget->count(); ++i)
         saveDocument(i);
 }
 
+//Обработка кнопки "выход" Ctrl+Q
 void MainWindow::on_exit_triggered()
 {
     ui->stop->triggered(true);
     close();
 }
 
+//Открытие файла. Обязательный параметр - путь к файлу.
+//Внутри метода выполняются проверки на пустоту, существование файла.
+//В случае прохода всех проверок, на основе файла создается экземпляр Document
 void MainWindow::load_file(const QString& fileName)
 {
     if (fileName.isEmpty())
@@ -142,6 +158,9 @@ void MainWindow::load_file(const QString& fileName)
 
 }
 
+//Обработка кнопки "Открыть"" Ctrl+O.
+//По нажатию открывается диалоговое окно выбора файла с нужных форматов.
+//После выбора файла и нажатия ОК диалоговое окно закрывается и файл открывается.
 void MainWindow::on_load_file_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this,
@@ -150,34 +169,41 @@ void MainWindow::on_load_file_triggered()
     load_file(fileName);
 }
 
+//Удаление документа из комбобокса (например "Описание" - m_apps или "Cхема" - m_deploys)
+//Первый параметр - из какого комбобока удалить, второй параметр - какой док удалить из комбобокса.
 void MainWindow::delDocFromComboBox(QComboBox* combobox, Document* doc)
 {
     combobox->removeItem(combobox->findData(QVariant::fromValue(doc)));
 }
 
+//Удаление конфига из обоих комбобоксов. Параметр - какой док удаляем.
 void MainWindow::delConfig(Document *doc)
 {
     delDocFromComboBox(m_apps, doc);
     delDocFromComboBox(m_deploys, doc);
 }
 
+//Удаление дока и добавления его заного. См описания delConfig и addConfig.
 void MainWindow::updateConfig(Document *doc)
 {
     delConfig(doc);
     addConfig(doc);
 }
 
+//Обработка кнопки создания нового файла (Ctrl+N)
 void MainWindow::on_create_file_triggered()
 {
     Document *tmp = new Document();
     addDocument(tmp);
 }
 
+//Обработка закртия вкладки (файла).
 void MainWindow::on_tabWidget_tabCloseRequested(int index)
 {
     close_tab(index);
 }
 
+//Добавить конфиг. Внутри проверяется нет ли уже такого конфига (файл развертки и описания, отсюда два if`а).
 void MainWindow::addConfig(Document *doc)
 {
     if(doc->isApp() && (m_apps->findData(QVariant::fromValue(doc)) == -1)){
@@ -191,6 +217,7 @@ void MainWindow::addConfig(Document *doc)
     }
 }
 
+//установка активного документа в комбобоксе. Параметр 1 - какой комбобокс, параметр 2 - какой документ.
 void MainWindow::setComboBoxToolTip(QComboBox *combobox, Document *doc)
 {
      combobox->setItemData(combobox->findData(QVariant::fromValue(doc)), doc->filePath(), Qt::ToolTipRole);
