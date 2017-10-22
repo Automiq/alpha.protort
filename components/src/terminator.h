@@ -7,6 +7,10 @@ namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ * \brief Компонент terminator - терминал
+ */
+
 class terminator : public component
 {
 public:

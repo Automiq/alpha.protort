@@ -10,8 +10,7 @@ namespace protort {
 namespace components {
 
 /*!
- *\brief Шаблонный клас reduce
- * Принимает сообшения со всех портов
+ *\brief Компонент reduce - принимает сообшения со всех портов
  */
 template <data (*T)(std::vector<data>&)>
 class reduce : public component
@@ -22,26 +21,27 @@ public:
 
     void process(port_id input_port, std::string const & payload) final override
     {
-        output_list res;
+        output_list res;// Результат, который мы отправим
         output out;
         data d;
 
-        values_[input_port] = d.unpack(payload);
-        is_relevant_[input_port] = true;
+        values_[input_port] = d.unpack(payload);// Запись данных,пришедших из порта в вектор
+        is_relevant_[input_port] = true;// Пометка о том, что мы прошли этот порт
 
-        if(is_all_relevant())
+        if(is_all_relevant())// Если все порты помечены(пройдены)
         {
-            make_all_unrelevant();
-            out.payload = T(values_).pack();
+            make_all_unrelevant();// Снимаем метки(устанавливаем в ячейки false)
+            out.payload = T(values_).pack();// Пакуем все пришедшие данные в строку
             out.ports.push_back(0);
-            res.push_back(out);
+            res.push_back(out);//Сохраняем наши собрынне out-данные в результате
+
 
             router_ptr router = router_.lock();
             if (router)
                 router->get_service().post(boost::bind(&node::router<node::node>::do_route,
                                                     router,
                                                     comp_inst_,
-                                                    res));
+                                                    res));// Отправка результата
         }
     }
 
@@ -50,6 +50,11 @@ public:
 
 protected:
 
+    /*!
+     * \brief Проверяет состояние каждого элемента вектора
+     * \return Если все ячейки true, то return true
+     *         Иначе return false
+     */
     bool is_all_relevant()
     {
         return std::all_of(is_relevant_.begin(),is_relevant_.end(),
@@ -57,14 +62,17 @@ protected:
                            { return p;});
     }
 
+    /*!
+     * \brief Задает каждому элементу вектора значение false
+     */
     void make_all_unrelevant()
     {
         std::fill(is_relevant_.begin(),is_relevant_.end(),false);
     }
 
     port_id max_in_port_ = 3;
-    std::vector<bool> is_relevant_;
-    std::vector<data> values_;
+    std::vector<bool> is_relevant_;// Вектор состояния портов. true - посещен, false - не посещен
+    std::vector<data> values_;// Массив пришедших данных
 
 };
 
