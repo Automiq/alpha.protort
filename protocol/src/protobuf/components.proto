@@ -1,7 +1,9 @@
+﻿// Версия синтаксиса
 syntax = 'proto3';
 
 package alpha.protort.protocol;
 
+// Преопределение возможных типов компонентов
 enum ComponentKind
 {
     Generator = 0;

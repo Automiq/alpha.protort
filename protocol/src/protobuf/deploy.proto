@@ -1,13 +1,19 @@
+﻿// Версия синтаксиса
 syntax = 'proto3';
 
+// Импорт определений
 import "components.proto";
 
 package alpha.protort.protocol.deploy;
 
+// Информация о ноде
 message NodeInfo
 {
+    // Имя ноды
     string name = 1;
+    // Адрес
     string address = 2;
+    // Порт
     uint32 port = 3;
 }
 
@@ -18,7 +24,9 @@ message NodeInfoList
 
 message Instance
 {
+    // Имя комонента
     string name = 1;
+    // Тип компонента
     ComponentKind kind = 2;
 }
 
@@ -29,6 +37,7 @@ message InstanceList
 
 message Map
 {
+    // Имя ноды
     string node_name = 1;
     string instance_name = 2;
 }
@@ -76,7 +85,6 @@ message Config
 }
 
 // Деплой конфигурации узла
-
 message DeployConfigRequest
 {
     Config config = 1;
@@ -88,7 +96,6 @@ message DeployConfigResponse
 }
 
 // Запрос конфигурации узла
-
 message GetConfigRequest
 {
 }
@@ -99,7 +106,6 @@ message GetConfigResponse
 }
 
 // Запуск узла
-
 message StartRequest
 {
     // TODO
@@ -111,7 +117,6 @@ message StartResponse
 }
 
 // Останов узла
-
 message StopRequest
 {
     // TODO
@@ -123,7 +128,6 @@ message StopResponse
 }
 
 // Запрос статуса узла
-
 message StatusRequest
 {
     // TODO
