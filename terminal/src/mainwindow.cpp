@@ -217,12 +217,15 @@ void MainWindow::addConfig(Document *doc)
     }
 }
 
-//установка активного документа в комбобоксе. Параметр 1 - какой комбобокс, параметр 2 - какой документ.
+//Установка активного документа в комбобоксе. Параметр 1 - какой комбобокс, параметр 2 - какой документ.
 void MainWindow::setComboBoxToolTip(QComboBox *combobox, Document *doc)
 {
      combobox->setItemData(combobox->findData(QVariant::fromValue(doc)), doc->filePath(), Qt::ToolTipRole);
 }
 
+//Вызывает диалоговое окно предлогающее выбрать deploy и app схемы из ОТКРЫТЫХ файлов.
+//Выбранные устанавливает как активные (и делает их иконки зелеными)
+//Пошарившись в терминале я не смог найти как вызвать этот диалог.
 void MainWindow::on_config_triggered()
 {
     ConfigDialog dlg(this);
@@ -247,6 +250,7 @@ void MainWindow::on_config_triggered()
         setActiveConfig();
     }
 }
+
 
 void MainWindow::resetDeployActions() const
 {
@@ -326,6 +330,7 @@ void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::P
                     );
 }
 
+//Лог при успешном подключении к ноде.
 void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -371,6 +376,8 @@ void MainWindow::on_stop_triggered()
         remoteNode->async_stop(payload);
 }
 
+//Вызов меседжбокса с вопросом о загрузке новой конфигруации при запущенной старой.
+// По ответу да - деплой().
 void MainWindow::showMessage()
 {
     QMessageBox::StandardButton reply;
@@ -434,6 +441,7 @@ void MainWindow::on_status_triggered()
         remoteNode->async_status(status);
 }
 
+//Установка названия вкладки файла. Параметр - файл.
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
     QString result = doc->fileName();
@@ -555,6 +563,7 @@ void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
     ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(srcPath));
 }
 
+//Устанавливает документу иконку, в зависимости от его типа.
 void MainWindow::setIcon(Document *doc)
 {
     switch(doc->kind())
@@ -576,6 +585,7 @@ void MainWindow::addWidgetOnBar(QWidget* newWidget) const
     ui->mainToolBar->addWidget(newWidget);
 }
 
+//создание на главной форме тулбара конфигурации (два комбобокса для app и deploy + кнопака загрузить)
 void MainWindow::createConfigurationToolBar()
 {
     QLabel *app = new QLabel(tr("Описание: "));
@@ -620,6 +630,7 @@ void MainWindow::activateStatus() const
         ui->status->setEnabled(true);
 }
 
+
 void MainWindow::button_clickedSetup()
 {
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
@@ -629,6 +640,8 @@ void MainWindow::button_clickedSetup()
     }
 }
 
+//подвечивает иконки файлов заленым (активным).
+//Например при нажаитии на кнопку "загрузить"
 void MainWindow::setActiveConfig()
 {
     for (int i = 0; i != ui->tabWidget->count(); ++i)
@@ -637,11 +650,13 @@ void MainWindow::setActiveConfig()
     setTabIco(m_deploySchema,":/images/greenCog.png");
 }
 
+//Возвращает указатель обьекта документ по индексу открытой вкладки
 Document* MainWindow::document(int index)
 {
     return dynamic_cast<Document*> (ui->tabWidget->widget(index));
 }
 
+//Запись соотбщения в деплойлог. Параметр - сообщение
 void MainWindow::writeLog(const QString &message)
 {
     ui->deployLog->append(message);
@@ -652,10 +667,13 @@ void MainWindow::writeStatusLog(const QString &message)
     //    ui->statusLog->append(message);
 }
 
+//Возвращает текущий документ (текущий в комбобоксе). Параметр - комбобокс
 Document *MainWindow::currentDocument(QComboBox *combobox)
 {
     return qobject_cast<Document *>(qvariant_cast<QTextEdit *>(combobox->currentData()));
 }
+
+
 
 void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
 {
