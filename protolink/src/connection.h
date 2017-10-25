@@ -79,9 +79,13 @@ public:
         stop();
     }
 
+	/*!
+	 * Отправка ответа
+	 */
     void send_response(protocol_payload& payload, int id)
     {
         protocol::Packet packet;
+		//Добавление kind в пакет
         packet.set_kind(protocol::Packet::Kind::Packet_Kind_Response);
         packet.mutable_transaction()->set_id(id);
         packet.mutable_payload()->CopyFrom(payload);
@@ -181,6 +185,9 @@ private:
         do_read_header();
     }
 
+	/*!
+	 * Создание нового пакета и его отправка ответа
+	 */
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
@@ -189,25 +196,28 @@ private:
         switch (packet.kind()) {
 
         case protocol::Packet::Kind::Packet_Kind_Response:
-            assert(false);
+            assert(false); //прерывание
             break;
 
         case protocol::Packet::Kind::Packet_Kind_Request:            
         {
             protocol_payload response_payload = callback_.on_new_request(packet.payload());
 #ifdef _DEBUG
-            std::cout << "response packet id " << packet.transaction().id() << std::endl;
+            std::cout << "response packet id " << packet.transaction().id() << std::endl; //вывод на экран id
 #endif
-            send_response(response_payload, packet.transaction().id());
+            send_response(response_payload, packet.transaction().id()); //отправка ответа
             break;
         }
 
-        case protocol::Packet::Kind::Packet_Kind_Message:
+        case protocol::Packet::Kind::Packet_Kind_Message: 
             callback_.on_new_message(packet.payload());
             break;
         }
     }
 
+	/*!
+	* Асинхронная отправка пакета
+	*/
     void async_send(const std::string& packet)
     {
         // Формируем заголовок
@@ -226,6 +236,10 @@ private:
                                 boost::asio::placeholders::bytes_transferred));
     }
 
+	/*!
+	* Отправление пакета
+	* Если есть ошибка EOF или перезагрузка соединения, то отпрака останавливается
+	*/
     void on_packet_sent(const error_code& err, size_t bytes)
     {
         if (boost::asio::error::eof == err || boost::asio::error::connection_reset == err)

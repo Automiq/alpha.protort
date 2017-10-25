@@ -111,6 +111,9 @@ public:
         do_send_packet(packet.SerializeAsString(), packet.kind());
     }
 
+	/*!
+	* \brief Подготовка к выключению
+	*/
     void prepare_shutdown()
     {
         shutdown_ = true;
@@ -220,6 +223,9 @@ private:
                                 boost::asio::placeholders::bytes_transferred));
     }
 
+	/*!
+     * \brief Метод запуска асинхронного чтения пакетов, если соединение при размере пакета не превышат максимум
+     */
     void on_header_read(const error_code& err, size_t bytes)
     {
         if (err)
@@ -277,6 +283,9 @@ private:
         on_new_packet(buffer_.get(), bytes);
     }
 
+	/*!
+	 * Создание пакета 
+	 */
     void on_new_packet(char const *buffer, size_t nbytes)
     {
         protocol::Packet packet;
@@ -285,20 +294,20 @@ private:
         switch(packet.kind())
         {
         case protocol::Packet::Kind::Packet_Kind_Message:
-            assert(false);
+            assert(false); //прерывание
             break;
         case protocol::Packet::Kind::Packet_Kind_Request:
-            assert(false);
+            assert(false); //прерывание
             break;
         case protocol::Packet::Kind::Packet_Kind_Response:
-            auto iter = transactions_.find(packet.transaction().id());
-            if(iter == transactions_.end())
+            auto iter = transactions_.find(packet.transaction().id()); //поиск id транзакции
+            if(iter == transactions_.end //если id в конце
             {
-                std::cout << "Wrong id" << "\n";
+                std::cout << "Wrong id" << "\n"; //вывод ошибки
                 return;
             }
             iter->second->on_finished(packet.payload());
-            transactions_.erase(iter);
+            transactions_.erase(iter); //очистка
             break;
         }
     }
