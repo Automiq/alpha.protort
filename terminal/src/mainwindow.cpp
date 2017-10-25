@@ -106,7 +106,6 @@ void MainWindow::load_session()
     session.endArray();
 }
 
-
 //Обработка кнопки сохранения (голубая дискета Ctrl+S).
 //Сохраняет текущий (видимую вкладку) открытый файл.
 void MainWindow::on_save_file_triggered()
@@ -251,7 +250,7 @@ void MainWindow::on_config_triggered()
     }
 }
 
-
+//Делаем кнопку start доступной для нажатия
 void MainWindow::resetDeployActions() const
 {
     if (!ui->start->isEnabled() && !ui->stop->isEnabled())
@@ -262,6 +261,7 @@ void MainWindow::showLog() const
 {
 }
 
+//Логирование успешности развертки конфигурации на узел
 void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     deploying = false;
@@ -273,6 +273,8 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
                     );
 }
 
+//Обработка респонса о статусе ноды. Запись в нижную таблицу новых данных или запись ошибки в лог ошибки.
+//ATTENTION на данный момент метод writeStatusLog реализации не имеет!
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -310,6 +312,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     writeStatusLog("\r\n");
 }
 
+//Логирование успешности запуска узла
 void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -320,6 +323,7 @@ void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::
                     );
 }
 
+//Логирование успешности остановки узла
 void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -330,7 +334,7 @@ void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::P
                     );
 }
 
-//Лог при успешном подключении к ноде.
+//Лог при успешном подключении к ноде. И активация кнопок (enabled).
 void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -339,6 +343,7 @@ void MainWindow::onConnected()
     activateStatus();
 }
 
+//Лог при не удачном подключении к ноде.
 void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -347,11 +352,14 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
              .arg(QString::fromStdString(err.message())));
 }
 
+//Устанавливает имя вкладки. Параметр1 - индекс вкладки, параметр2 - путь к файлу.
 void MainWindow::setTabName(int index, const QString &name)
 {
     ui->tabWidget->setTabText(index, QString(QFileInfo(name).fileName()));
 }
 
+//При нажатии кнопки запуск делаем её не доступной, а кнопку стоп доступной.
+//Потом всем нодам отправляем Payload пакет с командой старта.
 void MainWindow::on_start_triggered()
 {
     ui->start->setDisabled(true);
@@ -364,6 +372,8 @@ void MainWindow::on_start_triggered()
         remoteNode->async_start(payload);
 }
 
+//При нажатии кнопки стоп делаем её не доступной, а кнопку старт доступной.
+//Потом всем нодам отправляем Payload пакет с командой остановки.
 void MainWindow::on_stop_triggered()
 {
     ui->start->setEnabled(true);
@@ -377,7 +387,7 @@ void MainWindow::on_stop_triggered()
 }
 
 //Вызов меседжбокса с вопросом о загрузке новой конфигруации при запущенной старой.
-// По ответу да - деплой().
+//По ответу да - деплой().
 void MainWindow::showMessage()
 {
     QMessageBox::StandardButton reply;
@@ -391,6 +401,7 @@ void MainWindow::showMessage()
     }
 }
 
+//Развертка. Посылаем нодам конфигурацию развертки (см. parse_deploy)
 void MainWindow::deploy()
 {
 
@@ -407,6 +418,7 @@ void MainWindow::deploy()
     ui->treeStatus->show();
 }
 
+//При попытки развертки в случае когда конфигурация сменилась вспылвает меседжбокс "точно ли мы этого хотим".
 void MainWindow::on_deploy_triggered()
 {
     if(ui->start->isEnabled() || ui->stop->isEnabled())
@@ -415,11 +427,13 @@ void MainWindow::on_deploy_triggered()
         deploy();
 }
 
+//Закрытие текущей вкладки. (При закрытии файла)
 void MainWindow::on_close_file_triggered()
 {
     close_tab(ui->tabWidget->currentIndex());
 }
 
+//Закрытие вкладки по индексу документа и удаление из комбобоксов
 void MainWindow::close_tab(int index)
 {
     auto doc = document(index);
@@ -428,6 +442,8 @@ void MainWindow::close_tab(int index)
     ui->tabWidget->removeTab(index);
 }
 
+//Получения статусов нод. Обработка кнопки Статус.
+//Посылаем на ноды Payload пакет о запросе статуса.
 void MainWindow::on_status_triggered()
 {
     if (deploying)
@@ -441,7 +457,7 @@ void MainWindow::on_status_triggered()
         remoteNode->async_status(status);
 }
 
-//Установка названия вкладки файла. Параметр - файл.
+//Установка названия вкладки файла. Параметр - документ.
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
     QString result = doc->fileName();
@@ -483,6 +499,10 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
     return result;
 }
 
+//Даем команду парсеру парсить (lol) файлы выбранные комбобоксами app и deploy файлы.
+//По итогу парсинга получаем структуру с заполненными данынми.
+//Инициализируем каждую ноду и добавляем её в список remoteNodes_
+//На основе списка создаем дерево (TreeModel)
 void MainWindow::createRemoteNodes()
 {
     {
@@ -514,6 +534,7 @@ void MainWindow::createRemoteNodes()
     m_statusTimer->start(500);
 }
 
+//Связь нодов с GUI методами, в основном для записи лога.
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
 {
     connect(node, &RemoteNode::connected, this, &MainWindow::onConnected);
@@ -524,6 +545,7 @@ void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
     connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
 }
 
+//Сохранение документа
 void MainWindow::saveDocument(int index)
 {
     if(index == -1)
@@ -546,6 +568,7 @@ void MainWindow::saveDocument(int index)
     setIcon(doc);
 }
 
+//Добавление документа (создание вкладки документа)
 void MainWindow::addDocument(Document *doc)
 {
     int index = ui->tabWidget->indexOf(doc);
@@ -558,6 +581,7 @@ void MainWindow::addDocument(Document *doc)
     ui->tabWidget->setTabToolTip(ui->tabWidget->currentIndex(), doc->filePath());
 }
 
+//Установка иконки вкладке. Параметр1 -  какому документу, параметр2 - путь к картинке.
 void MainWindow::setTabIco(Document *doc, const QString &srcPath) const
 {
     ui->tabWidget->setTabIcon(ui->tabWidget->indexOf(doc), QIcon(srcPath));
@@ -580,6 +604,7 @@ void MainWindow::setIcon(Document *doc)
     }
 }
 
+//Добавление элемента на главнную форму
 void MainWindow::addWidgetOnBar(QWidget* newWidget) const
 {
     ui->mainToolBar->addWidget(newWidget);
@@ -614,23 +639,27 @@ void MainWindow::createConfigurationToolBar()
     connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
 }
 
+//Задаем лейблу текущеий документ комбобокса
 void MainWindow::setupConfigMembers()
 {
     m_app = currentDocument(m_apps);
     m_deploySchema = currentDocument(m_deploys);
 }
 
+//Делаем кнопку deploy доступной для нажатия
 void MainWindow::activateDeploy() const
 {
     if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
         ui->deploy->setEnabled(true);
 }
+
+//Делаем кнопку status доступной для нажатия
 void MainWindow::activateStatus() const
 {
         ui->status->setEnabled(true);
 }
 
-
+//Обработка клика кнопки "Загрузить"
 void MainWindow::button_clickedSetup()
 {
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
@@ -640,7 +669,7 @@ void MainWindow::button_clickedSetup()
     }
 }
 
-//подвечивает иконки файлов заленым (активным).
+//Подвечивает иконки файлов заленым (активным).
 //Например при нажаитии на кнопку "загрузить"
 void MainWindow::setActiveConfig()
 {
@@ -673,8 +702,7 @@ Document *MainWindow::currentDocument(QComboBox *combobox)
     return qobject_cast<Document *>(qvariant_cast<QTextEdit *>(combobox->currentData()));
 }
 
-
-
+//Устанавливает документ текущим (параметр2) в комбобоксе (параметр1), 
 void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
 {
     combobox->setCurrentIndex(combobox->findData(QVariant::fromValue(doc)));

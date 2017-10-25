@@ -7,6 +7,7 @@
 
 #include "parser.h"
 
+//Структура содержит в себе несколько(5) map`ов.
 struct deploy_configuration
 {
     std::unordered_map<std::string, alpha::protort::parser::mapping> map_component_node;
@@ -17,6 +18,7 @@ struct deploy_configuration
     std::unordered_map<std::string, alpha::protort::parser::node> map_node;
     std::unordered_map<std::string, std::vector<alpha::protort::parser::mapping>> map_node_with_components;
 
+    //Заполняет map`ы исходя пришедшего config`а
     void parse_deploy(alpha::protort::parser::configuration& config)
     {
         map_component_node.clear();
