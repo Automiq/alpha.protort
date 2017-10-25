@@ -198,7 +198,7 @@ private:
      void parse_node(boost::property_tree::ptree::value_type const &v)
      {
          node noda;
-         noda.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+         noda.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
          noda.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
          noda.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
          noda.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
