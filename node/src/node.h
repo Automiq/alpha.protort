@@ -20,6 +20,7 @@
 #include "factory.h"
 
 namespace alpha {
+
 namespace protort {
 namespace node {
 
@@ -32,19 +33,43 @@ class node : public boost::enable_shared_from_this<node>
 {
 public:
     using protocol_payload = protocol::Packet::Payload;
+/*
+ *  //! I/O сервис
+    boost::asio::io_service service_;
+    //! Сервер
+    protolink::server<node> server_for_conf_;
+    //! Сервер
+    protolink::server<node> server_;
 
+    //! Настройки узла
+    node_settings settings_;
+
+    //! Подписанные сигналы
+    boost::asio::signal_set signals_;
+
+    //! Имя узла
+    std::string node_name_;
+
+    //! Порт, прослушиваемый сервером узла
+    port_id port_;
+
+    //! Время запуска узла
+    boost::chrono::steady_clock::time_point start_time_;
+
+    boost::thread_group workers_;
+ */
     node()
-        : server_(*this, service_),
-          server_for_conf_(*this,service_),
-          signals_(service_, SIGINT, SIGTERM),
-          router_(boost::make_shared<router<node>>(service_))
+        : server_(*this, service_),//создает сервер
+          server_for_conf_(*this,service_),//создает сервер
+          signals_(service_, SIGINT, SIGTERM),// объект для прослушивания сигналов
+          router_(boost::make_shared<router<node>>(service_))//создает роутер пакетов
     {
     }
 
     node(const node_settings &settings)
         : server_(*this, service_),
           server_for_conf_(*this,service_),
-          settings_(settings),
+          settings_(settings),// использует конфигурацию
           signals_(service_, SIGINT, SIGTERM),
           router_(boost::make_shared<router<node>>(service_))
     {
@@ -52,20 +77,21 @@ public:
 
     ~node()
     {
-        stop();
+        stop();//останавливает работу ноды
     }
 
     //! Запускает сетевой узел
     void start()
     {
-        start_time_ = boost::chrono::steady_clock::now();
-        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));
+        start_time_ = boost::chrono::steady_clock::now();// время запуска.
+        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));// разбрать ка кработает bind
+        // запускает асинхронную операцию, ожидание сигналов
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
-                     settings_.configuration_port));
+                     settings_.configuration_port));//слушает новые подключения на данном порту
         for (int i = 0; i != settings_.threads; i++)
-            workers_.create_thread([this](){ service_.run(); });
+            workers_.create_thread([this](){ service_.run(); }); // разобрать !!!!!!
         service_.run();
     }
 
@@ -114,6 +140,7 @@ public:
 #ifdef _DEBUG
         std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
 #endif
+        //смотрит информацию о сообщение.
         router_->in_bytes_ += payload.ByteSize();
         router_->route(payload.communication_packet().destination().name(),
                       payload.communication_packet().destination().port(),
@@ -144,6 +171,7 @@ public:
             uint32_t port;
         };
 
+        // узнать
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
 
@@ -317,10 +345,8 @@ private:
 
     //! I/O сервис
     boost::asio::io_service service_;
-
     //! Сервер
     protolink::server<node> server_for_conf_;
-
     //! Сервер
     protolink::server<node> server_;
 

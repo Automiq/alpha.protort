@@ -57,21 +57,29 @@ struct node_settings
      * \endcode
      */
     bool parse(int argc, const char **argv)
-    {
+    {// парсер аргументов командной строки
         try
         {
             boost::program_options::options_description desc{ "Node Options" };
+            // содаем объек класса options_description. описание опций
+            //параметр командной строки анализируется как пара ключ / значение,
+
             desc.add_options()
                     ("help,h", "Help screen")
+
                     ("config-port,c", boost::program_options::value<uint16_t>(&configuration_port)
                      ->default_value(100), "configuration port")
+                    //конфигурация порта, дефолтное значение 100
                     ("threads,t", boost::program_options::value<uint16_t>(&threads)
                      ->default_value(boost::thread::hardware_concurrency()), "threads");
+                       //информация о потоках. подефолту hardware_concurrency() возвращает
+                      // количествоаппаратных потоков доступных в текущей системе
 
-
-            boost::program_options::variables_map vm;
+            boost::program_options::variables_map vm; //потомок std::map
+            // vm контейнер для значений. храться в виде значение - ключ
             boost::program_options::store(parse_command_line(argc, argv, desc), vm);
-            boost::program_options::notify(vm);
+            //принимает опции парсера и переменную variables_map. сохраняет значения в vm
+            boost::program_options::notify(vm); // Найти!
 
             if (vm.count("help"))
             {
