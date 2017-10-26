@@ -7,6 +7,8 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+/*TO-DO:##include <fstream> */
+#include <fstream>;
 
 namespace alpha {
 namespace protort {
@@ -155,7 +157,7 @@ struct configuration:std::exception
                      }
                      else{
                          if(size == 0)
-                             throw std::exception::exception("Incorrectly entered node!");
+                             throw std::invalid_argument("Incorrectly entered node!");
                          else{
                              node n;
                              parse_node(v, n);
