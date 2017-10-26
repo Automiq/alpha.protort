@@ -301,7 +301,7 @@ private:
             break;
         case protocol::Packet::Kind::Packet_Kind_Response:
             auto iter = transactions_.find(packet.transaction().id()); //поиск id транзакции
-            if(iter == transactions_.end //если id в конце
+            if(iter == transactions_.end()) //если id в конце
             {
                 std::cout << "Wrong id" << "\n"; //вывод ошибки
                 return;
