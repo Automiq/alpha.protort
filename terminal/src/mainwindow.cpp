@@ -502,7 +502,7 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
 //Даем команду парсеру парсить (lol) файлы выбранные комбобоксами app и deploy файлы.
 //По итогу парсинга получаем структуру с заполненными данынми.
 //Инициализируем каждую ноду и добавляем её в список remoteNodes_
-//На основе списка создаем дерево (TreeModel)
+//На основе списка создаем дерево (TreeModel) (Это таблица статистика книзу терминала)
 void MainWindow::createRemoteNodes()
 {
     {
