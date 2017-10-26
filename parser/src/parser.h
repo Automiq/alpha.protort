@@ -197,7 +197,7 @@ private:
 
          if(flag){
             Address tmp;
-            tmp.pairnode.= v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+            tmp.address = v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
             tmp.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
             tmp.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
             n.pairnode = tmp;
