@@ -89,7 +89,7 @@ struct mapping
  * и схемы развертывания.
  */
 
-struct configuration:std::exception
+struct configuration
 {
     // Векторы для хранения соответствующих компонентов после парсинга приложения
     std::vector<component> components;
