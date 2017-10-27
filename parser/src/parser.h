@@ -56,25 +56,18 @@ struct connection
  * Класс хранит имя, адрес, порт узла и конфигурационный порт узла
  */
 
-struct node
+struct Address
 {
-    std::string name;// Имя
     std::string address;// IP-адрес или hostname узла
     port_id port;// Порт
     port_id config_port;// Порт сервера конфигурации (по умолчанию =100)
 };
 
-/*!
- * \brief Класс резервного узла
- *
- * Класс адрес, порт узла и конфигурационный порт узла
- */
-
-struct pairnode
+struct node
 {
-    std::string address;// IP-адрес или hostname узла
-    port_id port;// Порт
-    port_id config_port;// Порт сервера конфигурации (по умолчанию =100)
+    std::string name;// Имя
+    Address address;// Адрес ноды(включает ip адрес, порт и конфигурационный порт)
+    boost::optional<Address> pairnode; // Адрес резервной ноды
 };
 
 /*!
@@ -102,7 +95,6 @@ struct configuration:std::exception
     std::vector<component> components;
     std::vector<connection> connections;
     std::vector<node> nodes;
-    std::vector<pairnode> pairnodes;
     std::vector<mapping> mappings;
 
     /*!
@@ -163,12 +155,13 @@ struct configuration:std::exception
                      }
                      else{
                          if(size == 0)
-                             throw std::exception("Incorrectly entered node!");
+                             throw std::exception::exception("Incorrectly entered node!");
                          else{
-                             parse_node(v);
+                             node n;
+                             parse_node(v, n);
 
                              if(size == 2)
-                                parse_pairnode(v);
+                                parse_node(v, n, true);
                          }
                      }
                  }
@@ -195,29 +188,21 @@ private:
      * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_node(boost::property_tree::ptree::value_type const &v)
+     void parse_node(boost::property_tree::ptree::value_type const &v, node &n, bool flag = false)
      {
-         node noda;
-         noda.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
-         noda.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
-         noda.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
-         noda.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
-         nodes.push_back(noda);// Пушим узел в вектор узлов
-     }
+         n.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
+         n.address.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+         n.address.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
+         n.address.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
 
-     /*!
-      * \brief Парсит pairnode
-      *
-     * Метод парсит connection и сохраняет полученную информацию внутри класса в соответствующих атрибутах
-      */
-
-     void parse_pairnode(boost::property_tree::ptree::value_type const &v)
-     {
-         pairnode pairnoda;
-         pairnoda.address = v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
-         pairnoda.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
-         pairnoda.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
-         pairnodes.push_back(pairnoda);// Пушим узел в вектор узлов
+         if(flag){
+            Address tmp;
+            tmp.pairnode.= v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+            tmp.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
+            tmp.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
+            n.pairnode = tmp;
+         }
+         nodes.push_back(n);// Пушим узел в вектор узлов
      }
 
      /*!
