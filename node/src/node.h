@@ -151,7 +151,7 @@ public:
             std::map<std::string, node_info> nodes;
 
             for (const auto& node : conf.nodes)
-                nodes.emplace(node.name, node_info{node.name, node.address.address, node.address.port});
+                nodes.emplace(node.name, node_info{node.name, node.adds.ip_address, node.adds.port});
 
             for (const auto& mapp : conf.mappings)
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);

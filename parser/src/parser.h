@@ -7,6 +7,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
+#include <boost/format.hpp>
 
 namespace alpha {
 namespace protort {
@@ -14,14 +15,14 @@ namespace parser {
 
 /*!
 * \brief Компонент parser - описывает схему приложения и развертывания,
-* получает и хрании информацию путем парсинга xml файлов схемы приложения
+* получает и хранит информацию путем парсинга xml файлов схемы приложения
 * и схемы развертывания.
 *
 * Стуктуры:
 * Компонента, связь между портами, сетевой узел, резервный узел
 * отображение компонента на сетевой узел, конфигурация.
 */
-
+using boost::property_tree::ptree;
 using port_id = uint32_t;
 
 /*!
@@ -32,8 +33,15 @@ using port_id = uint32_t;
 
 struct component
 {
-    std::string name;// Имя компонента
-    std::string kind;// Тип компонента
+    /*!
+     * \brief Имя компонента
+     */
+    std::string name;
+
+    /*!
+     * \brief Тип компонента
+     */
+    std::string kind;
 };
 
 /*!
@@ -44,10 +52,25 @@ struct component
 
 struct connection
 {
-    std::string source;// Идентификатор компонента, отправляющего сообщение
-    port_id source_out;// Идентификатор выхода у отправляющего компонента
-    std::string dest;// Идентификатор компонента, получающего сообщение
-    port_id dest_in;// Идентификатор входа у получающего компонента
+    /*!
+     * \brief // Идентификатор компонента, отправляющего сообщение
+     */
+    std::string source;
+
+    /*!
+     * \brief Идентификатор выхода у отправляющего компонент
+     */
+    port_id source_out;
+
+    /*!
+     * \brief Идентификатор компонента, получающего сообщение
+     */
+    std::string dest;
+
+    /*!
+     * \brief Идентификатор входа у получающего компонента
+     */
+    port_id dest_in;
 };
 
 /*!
@@ -56,18 +79,40 @@ struct connection
  * Класс хранит имя, адрес, порт узла и конфигурационный порт узла
  */
 
-struct Address
+struct address
 {
-    std::string address;// IP-адрес или hostname узла
-    port_id port;// Порт
-    port_id config_port;// Порт сервера конфигурации (по умолчанию =100)
+    /*!
+     * \brief IP-адрес или hostname узла
+     */
+    std::string ip_address;
+
+    /*!
+     * \brief Порт
+     */
+    port_id port;
+
+    /*!
+     * \brief Порт сервера конфигурации (по умолчанию =100)
+     */
+    port_id config_port;
 };
 
 struct node
 {
-    std::string name;// Имя
-    Address address;// Адрес ноды(включает ip адрес, порт и конфигурационный порт)
-    boost::optional<Address> pairnode;// Адрес резервной ноды
+    /*!
+     * \brief Имя
+     */
+    std::string name;
+
+    /*!
+     * \brief Адрес ноды(включает ip адрес, порт и конфигурационный порт)
+     */
+    address adds;
+
+    /*!
+     * \brief Адрес резервной ноды
+     */
+    boost::optional<address> pairnode;
 };
 
 /*!
@@ -78,8 +123,15 @@ struct node
 
 struct mapping
 {
-    std::string comp_name;// Имя компонента
-    std::string node_name;// Имя узла
+    /*!
+     * \brief Имя компонента
+     */
+    std::string comp_name;
+
+    /*!
+     * \brief Имя узла
+     */
+    std::string node_name;
 };
 
 /*!
@@ -91,7 +143,9 @@ struct mapping
 
 struct configuration
 {
-    // Векторы для хранения соответствующих компонентов после парсинга приложения
+    /*!
+     * \brief Векторы для хранения соответствующих компонентов после парсинга приложения
+     */
     std::vector<component> components;
     std::vector<connection> connections;
     std::vector<node> nodes;
@@ -111,10 +165,10 @@ struct configuration
      {
          try
          {
-            boost::property_tree::ptree pt;// Cоздаем дерево
+            ptree pt;// Cоздаем дерево
             read_xml(filename, pt);// Парсим xml в дерево pt
 
-            BOOST_FOREACH( boost::property_tree::ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
+            BOOST_FOREACH(ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
             if( v.first == "instance" ) {
                 parse_component(v);
             }
@@ -139,32 +193,12 @@ struct configuration
      {
          try
          {
-             boost::property_tree::ptree pt;// Cоздаем дерево
+             ptree pt;// Cоздаем дерево
              read_xml(filename, pt);// Парсим xml в дерево pt
 
-             BOOST_FOREACH( boost::property_tree::ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
-                 if( v.first == "node") {
-
-                     auto col_child = v.second.size();// Количество детей у поддерева node.
-                                                      // Size возвращает количество детей учитывая node (корень поддерева)
-
-                     if(col_child > 2)
-                         throw std::invalid_argument("ERROR in the node name("
-                                                     + v.second.get<std::string>("<xmlattr>.name")
-                                                     + "): Expected no more than one child node: 'pairnode'");
-                     else{
-                         if(col_child == 0)
-                             throw std::invalid_argument("Incorrectly entered node!");
-                         else{
-                             node noda;
-
-                             if(col_child == 1)
-                                 parse_node(v, noda);
-                             else
-                                 parse_node(v, noda, true);
-                         }
-                     }
-                 }
+             BOOST_FOREACH(ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
+                 if( v.first == "node")
+                     parse_node(v);
                  else if( v.first == "map" )
                      parse_map(v);
                  else
@@ -189,36 +223,63 @@ private:
      * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_node(boost::property_tree::ptree::value_type const &v, node &noda, bool flag = false)
+     void parse_node(ptree::value_type const &v)
      {
-         noda.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
-         noda.address.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
-         noda.address.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
-         noda.address.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);// Устанавливаем  конфигурационному порту резервного узла, соответстующий конфигурационный порт из xml кода
+         /*!
+          * \brief Количество детей у поддерева node
+          */
+         auto child_size = v.second.size();
 
-         if(flag){
-             Address tmp;
-             tmp.address = v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс резервного узла, соответстующий иадресу из xml кода
-             tmp.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт резерного узла, соответстующий порту из xml кода
-             tmp.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);// Устанавливаем  конфигурационному порту резервного узла, соответстующий конфигурационный порт из xml кода
-             noda.pairnode = tmp;
+
+         if(child_size > 1)
+             throw std::invalid_argument((boost::format("ERROR in the node name (%0%): Expected no more than one child node: 'pairnode'")
+                                          % v.second.get<std::string>("<xmlattr>.name")).str());
+         else{
+             if(child_size == 0)
+                 throw std::invalid_argument("Incorrectly entered node!");
+             else{
+                 node current_node;
+
+                 /*!
+                  * \brief Инициализируем поля узла, исходя из описания в xml
+                  */
+                 current_node.name = v.second.get<std::string>("<xmlattr>.name");
+                 current_node.adds.ip_address = v.second.get<std::string>("<xmlattr>.address");
+                 current_node.adds.port = v.second.get<port_id>("<xmlattr>.port");
+                 current_node.adds.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
+
+                  if(child_size == 2){
+                      address pair_address;
+
+                      /*!
+                       * \brief Инициализируем поля резервного узла, исходя из описания в xml
+                       */
+                      pair_address.ip_address= v.second.get<std::string>("pairnode.<xmlattr>.address");
+                      pair_address.port = v.second.get<port_id>("pairnode.<xmlattr>.port");
+                      pair_address.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);
+                      current_node.pairnode = pair_address;
+                 }
+             }
          }
-
-         nodes.push_back(noda);// Пушим узел в вектор узлов
      }
+
 
      /*!
       * \brief Парсит component
       *
-     * Метод парсит connection и сохраняет полученную информацию внутри класса в соответствующих атрибутах
+     * Метод парсит component и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_component(boost::property_tree::ptree::value_type const &v)
+     void parse_component(ptree::value_type const &v)
      {
          component comp;
-         comp.name = v.second.get<std::string>("<xmlattr>.name");// Задаем имя компонента, соответстующее имени из xml кода
-         comp.kind = v.second.get<std::string>("<xmlattr>.kind");// Задаем тип компонента, соответстующий типу из xml кода
-         components.push_back(comp);// Пушим компонент в вектор компонентов
+
+         /*!
+          * \brief Инициализируем поля component, исходя из описания в xml
+          */
+         comp.name = v.second.get<std::string>("<xmlattr>.name");
+         comp.kind = v.second.get<std::string>("<xmlattr>.kind");
+         components.push_back(comp);
      }
 
      /*!
@@ -227,14 +288,18 @@ private:
      * Метод парсит connection и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_connection(boost::property_tree::ptree::value_type const &v)
+     void parse_connection(ptree::value_type const &v)
      {
          connection conn;
-         conn.source = v.second.get<std::string>("<xmlattr>.source");// Задаем идентификатор компонента у отправляющего компонента
-         conn.source_out = v.second.get<port_id>("<xmlattr>.source_out");// Задаем идентификатор выхода у отправляющего компонента
-         conn.dest = v.second.get<std::string>("<xmlattr>.dest");// Задаем идентификатор компонента, получающего сообщение
-         conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");// Задаем идентификатор входа у получающего компонента
-         connections.push_back(conn);// Пушим связь в вектор связей
+
+         /*!
+          * \brief Инициализируем поля connection, исходя из описания в xml
+          */
+         conn.source = v.second.get<std::string>("<xmlattr>.source");
+         conn.source_out = v.second.get<port_id>("<xmlattr>.source_out");
+         conn.dest = v.second.get<std::string>("<xmlattr>.dest");
+         conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");
+         connections.push_back(conn);
      }
 
      /*!
@@ -243,12 +308,16 @@ private:
      * Метод парсит map и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_map(boost::property_tree::ptree::value_type const &v)
+     void parse_map(ptree::value_type const &v)
      {
          mapping mapp;
-         mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");// Устанавливаем имя компонента
-         mapp.node_name = v.second.get<std::string>("<xmlattr>.node");// Устанавливаем имя узла
-         mappings.push_back(mapp);// Пушим отображение компонента на сетевой узел в соответствующий вектор
+
+         /*!
+          * \brief Инициализируем поля mapping, исходя из описания в xml
+          */
+         mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");
+         mapp.node_name = v.second.get<std::string>("<xmlattr>.node");
+         mappings.push_back(mapp);
      }
 };
 

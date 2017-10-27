@@ -36,8 +36,8 @@ void RemoteNode::init(boost::asio::io_service &service)
     client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
 
     boost::asio::ip::tcp::endpoint ep(
-                boost::asio::ip::address::from_string(node_information_.address.address),
-                node_information_.address.config_port);
+                boost::asio::ip::address::from_string(node_information_.adds.ip_address),
+                node_information_.adds.config_port);
 
     client_->async_connect(ep);
 }
@@ -55,7 +55,7 @@ QString RemoteNode::name() const
 
 QString RemoteNode::address() const
 {
-    return QString::fromStdString(node_information_.address.address);
+    return QString::fromStdString(node_information_.adds.ip_address);
 }
 
 QString RemoteNode::info() const
@@ -77,12 +77,12 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
         payload.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
 
     configuration->mutable_this_node_info()->set_name(current_node);
-    configuration->mutable_this_node_info()->set_port(deploy_configuration.map_node[current_node].address.port);
+    configuration->mutable_this_node_info()->set_port(deploy_configuration.map_node[current_node].adds.port);
 
     alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration->add_node_infos();
     node_info_->set_name(current_node);
-    node_info_->set_port(deploy_configuration.map_node[current_node].address.port);
-    node_info_->set_address(deploy_configuration.map_node[current_node].address.address);
+    node_info_->set_port(deploy_configuration.map_node[current_node].adds.port);
+    node_info_->set_address(deploy_configuration.map_node[current_node].adds.ip_address);
 
     for (auto &component : deploy_configuration.map_node_with_components[current_node])
     {
@@ -126,8 +126,8 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
                     alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration->add_node_infos();
 
                     remote_node_info_->set_name(node_.name);
-                    remote_node_info_->set_port(node_.address.port);
-                    remote_node_info_->set_address(node_.address.address);
+                    remote_node_info_->set_port(node_.adds.port);
+                    remote_node_info_->set_address(node_.adds.ip_address);
                     added_nodes.insert(node_.name);
                 }
 
