@@ -1,16 +1,14 @@
-// Версия синтаксиса
-syntax = 'proto3';
+syntax = 'proto3';// Р’РµСЂСЃРёСЏ СЃРёРЅС‚Р°РєСЃРёСЃР°
 
+// РРјРїРѕСЂС‚ РѕРїСЂРµРґРµР»РµРЅРёР№
 import "components.proto";
 
 package alpha.protort.protocol.communication;
 
+// РџР°РєРµС‚
 message Packet
 {
-    // Источник
-    ComponentEndpoint source = 1;
-    // Место назначение
-    ComponentEndpoint destination = 2;
-    // Содержимое пакета
-    bytes payload = 3;
+    ComponentEndpoint source = 1;// РСЃС‚РѕС‡РЅРёРє
+    ComponentEndpoint destination = 2;// РџСЂРёРµРјРЅРёРє
+    bytes payload = 3;// РЎРѕРґРµСЂР¶Р°РЅРёРµ РїР°РєРµС‚Р°
 }

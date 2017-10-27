@@ -1,5 +1,4 @@
-﻿// Версия синтаксиса
-syntax = 'proto3';
+﻿syntax = 'proto3';// Версия синтаксиса
 
 // Импорт определений
 import "google/protobuf/any.proto";
@@ -34,23 +33,14 @@ message Packet
     {
         oneof Payload
         {
-            // Пакет протокола коммуникации
-            communication.Packet communication_packet = 1;
-            // Пакет протокола развертывания
-            deploy.Packet deploy_packet = 2;
-            // Произвольное содержимое
-            bytes payload = 3;
-            // Произвольное содержимое в виде protobuf::Any
-            google.protobuf.Any any_payload = 4;
+            communication.Packet communication_packet = 1;// Пакет протокола коммуникации
+            deploy.Packet deploy_packet = 2;// Пакет протокола развертывани
+            bytes payload = 3;// Произвольное содержимое
+            google.protobuf.Any any_payload = 4; // Произвольное содержимое в виде protobuf::Any
         }
     }
 
-    // Тип пакета
-    Kind kind = 1;
-
-    // Транзакция (только для типа пакета запрос/ответ)
-    Transaction transaction = 2;
-
-    // Содержимое пакета
-    Payload payload = 3;
+    Kind kind = 1;// Тип пакета
+    Transaction transaction = 2;// Транзакция (только для типа пакета запрос/ответ)
+    Payload payload = 3;// Содержимое пакета
 }
