@@ -56,6 +56,7 @@ struct node_settings
      *  }
      * \endcode
      */
+    //
     bool parse(int argc, const char **argv)
     {// парсер аргументов командной строки
         try
