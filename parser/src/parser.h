@@ -7,8 +7,6 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/foreach.hpp>
-/*TO-DO:##include <fstream> */
-#include <fstream>;
 
 namespace alpha {
 namespace protort {
@@ -34,8 +32,8 @@ using port_id = uint32_t;
 
 struct component
 {
-    std::string name;
-    std::string kind;
+    std::string name;// Имя компонента
+    std::string kind;// Тип компонента
 };
 
 /*!
@@ -69,7 +67,7 @@ struct node
 {
     std::string name;// Имя
     Address address;// Адрес ноды(включает ip адрес, порт и конфигурационный порт)
-    boost::optional<Address> pairnode; // Адрес резервной ноды
+    boost::optional<Address> pairnode;// Адрес резервной ноды
 };
 
 /*!
@@ -80,8 +78,8 @@ struct node
 
 struct mapping
 {
-    std::string comp_name;
-    std::string node_name;
+    std::string comp_name;// Имя компонента
+    std::string node_name;// Имя узла
 };
 
 /*!
@@ -93,7 +91,7 @@ struct mapping
 
 struct configuration:std::exception
 {
-    //Векторы для хранения соответствующих компонентов после парсинга приложения
+    // Векторы для хранения соответствующих компонентов после парсинга приложения
     std::vector<component> components;
     std::vector<connection> connections;
     std::vector<node> nodes;
@@ -147,23 +145,23 @@ struct configuration:std::exception
              BOOST_FOREACH( boost::property_tree::ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
                  if( v.first == "node") {
 
-                     auto size = v.second.size();
+                     auto col_child = v.second.size();// Количество детей у поддерева node.
+                                                      // Size возвращает количество детей учитывая node (корень поддерева)
 
-                     if(size > 2)
-                     {
-                         throw std::invalid_argument("The node name("
+                     if(col_child > 2)
+                         throw std::invalid_argument("ERROR in the node name("
                                                      + v.second.get<std::string>("<xmlattr>.name")
-                                                     + ") has more than one pairnode");
-                     }
+                                                     + "): Expected no more than one child node: 'pairnode'");
                      else{
-                         if(size == 0)
+                         if(col_child == 0)
                              throw std::invalid_argument("Incorrectly entered node!");
                          else{
-                             node n;
-                             parse_node(v, n);
+                             node noda;
 
-                             if(size == 2)
-                                parse_node(v, n, true);
+                             if(col_child == 1)
+                                 parse_node(v, noda);
+                             else
+                                 parse_node(v, noda, true);
                          }
                      }
                  }
@@ -172,6 +170,7 @@ struct configuration:std::exception
                  else
                      std::cout << "Unknown tag in the file" << std::endl;
              }
+
              return true;
          }
 
@@ -190,21 +189,22 @@ private:
      * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_node(boost::property_tree::ptree::value_type const &v, node &n, bool flag = false)
+     void parse_node(boost::property_tree::ptree::value_type const &v, node &noda, bool flag = false)
      {
-         n.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
-         n.address.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
-         n.address.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
-         n.address.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
+         noda.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем  имя узла, соответстующий иадресу из xml кода
+         noda.address.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+         noda.address.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
+         noda.address.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);// Устанавливаем  конфигурационному порту резервного узла, соответстующий конфигурационный порт из xml кода
 
          if(flag){
-            Address tmp;
-            tmp.address = v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
-            tmp.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
-            tmp.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
-            n.pairnode = tmp;
+             Address tmp;
+             tmp.address = v.second.get<std::string>("pairnode.<xmlattr>.address");// Устанавливаем  адресс резервного узла, соответстующий иадресу из xml кода
+             tmp.port = v.second.get<port_id>("pairnode.<xmlattr>.port");// Устанавливаем  порт резерного узла, соответстующий порту из xml кода
+             tmp.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);// Устанавливаем  конфигурационному порту резервного узла, соответстующий конфигурационный порт из xml кода
+             noda.pairnode = tmp;
          }
-         nodes.push_back(n);// Пушим узел в вектор узлов
+
+         nodes.push_back(noda);// Пушим узел в вектор узлов
      }
 
      /*!
@@ -233,8 +233,8 @@ private:
          conn.source = v.second.get<std::string>("<xmlattr>.source");// Задаем идентификатор компонента у отправляющего компонента
          conn.source_out = v.second.get<port_id>("<xmlattr>.source_out");// Задаем идентификатор выхода у отправляющего компонента
          conn.dest = v.second.get<std::string>("<xmlattr>.dest");// Задаем идентификатор компонента, получающего сообщение
-         conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");//Задаем идентификатор входа у получающего компонента
-         connections.push_back(conn);//Пушим связь в вектор связей
+         conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");// Задаем идентификатор входа у получающего компонента
+         connections.push_back(conn);// Пушим связь в вектор связей
      }
 
      /*!
