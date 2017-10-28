@@ -19,7 +19,7 @@ namespace parser {
 * и схемы развертывания.
 *
 * Стуктуры:
-* Компонента, связь между портами, сетевой узел, резервный узел
+* Компонента, связь между портами, адрес, сетевой узел,
 * отображение компонента на сетевой узел, конфигурация.
 */
 
@@ -164,8 +164,7 @@ struct configuration
      * \return true если успешно, иначе false
      *
      * Метод парсит схему приложения и хранит полученную информацию внутри класса в соответствующих атрибутах
-     * Содержит обработчик ошибок, которые обычно возникают на этапе чтения xml файла, выводит сообщения
-     * об ошибках в стандартный вывод.
+     * Содержит обработчик ошибок, выводит сообщения об ошибках в стандартный поток вывода.
      */
 
      bool parse_app(const std::string &filename)
@@ -176,12 +175,10 @@ struct configuration
             read_xml(filename, pt);// Парсим xml в дерево pt
 
             BOOST_FOREACH(ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
-            if( v.first == "instance" ) {
+            if( v.first == "instance" )
                 parse_component(v);
-            }
-            else if( v.first == "connection" ) {
+            else if( v.first == "connection" )
                 parse_connection(v);
-            }
             else
                 std::cout << "Unknown tag in the file" << std::endl;
             }
@@ -195,6 +192,14 @@ struct configuration
          }
      }
 
+     /*!
+      * \brief Парсит схему конфигураций
+      * \param путь к файлу, в котором находится схема приложения в формате xml
+      * \return true если успешно, иначе false
+      *
+      * Метод парсит схему конфигураций и хранит полученную информацию внутри класса в соответствующих атрибутах
+      * Содержит обработчик ошибок,выводит сообщения об ошибках в стандартный поток вывода.
+      */
 
      bool parse_deploy(const std::string &filename)
      {
@@ -227,7 +232,7 @@ private:
      /*!
       * \brief Парсит node
       *
-     * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
+      * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
      void parse_node(ptree::value_type const &v)
@@ -236,38 +241,36 @@ private:
           * \brief Количество детей у поддерева node
           */
          auto child_size = v.second.size();
-         if(child_size > 0)
-             child_size -= 1;
 
-         if(child_size > 1)
+         if(child_size > 2)
              throw std::invalid_argument((boost::format("ERROR in the node name (%0%): Expected no more than one child node: 'pairnode'")
                                           % v.second.get<std::string>("<xmlattr>.name")).str());
-         else{
-             if(child_size == 0)
+         else if(child_size == 0)
                  throw std::invalid_argument("Incorrectly entered node!");
-             else{
-                 node current_node;
+         else{
+             node current_node;
+
+             /*!
+              * \brief Инициализируем поля узла, исходя из описания в xml
+              */
+             current_node.name = v.second.get<std::string>("<xmlattr>.name");
+             current_node.adds.ip_address = v.second.get<std::string>("<xmlattr>.address");
+             current_node.adds.port = v.second.get<port_id>("<xmlattr>.port");
+             current_node.adds.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
+
+             if(child_size == 2){
+                 address pair_address;
 
                  /*!
-                  * \brief Инициализируем поля узла, исходя из описания в xml
+                  * \brief Инициализируем поля резервного узла, исходя из описания в xml
                   */
-                 current_node.name = v.second.get<std::string>("<xmlattr>.name");
-                 current_node.adds.ip_address = v.second.get<std::string>("<xmlattr>.address");
-                 current_node.adds.port = v.second.get<port_id>("<xmlattr>.port");
-                 current_node.adds.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
-
-                  if(child_size == 1){
-                      address pair_address;
-
-                      /*!
-                       * \brief Инициализируем поля резервного узла, исходя из описания в xml
-                       */
-                      pair_address.ip_address= v.second.get<std::string>("pairnode.<xmlattr>.address");
-                      pair_address.port = v.second.get<port_id>("pairnode.<xmlattr>.port");
-                      pair_address.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);
-                      current_node.pairnode = pair_address;
-                 }
+                 pair_address.ip_address= v.second.get<std::string>("pairnode.<xmlattr>.address");
+                 pair_address.port = v.second.get<port_id>("pairnode.<xmlattr>.port");
+                 pair_address.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);
+                 current_node.pairnode = pair_address;
              }
+
+             nodes.push_back(current_node);
          }
      }
 
