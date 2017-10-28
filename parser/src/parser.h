@@ -22,6 +22,7 @@ namespace parser {
 * Компонента, связь между портами, сетевой узел, резервный узел
 * отображение компонента на сетевой узел, конфигурация.
 */
+
 using boost::property_tree::ptree;
 using port_id = uint32_t;
 
@@ -74,7 +75,7 @@ struct connection
 };
 
 /*!
- * \brief Класс сетевого узла
+ * \brief Класс адрес
  *
  * Класс хранит имя, адрес, порт узла и конфигурационный порт узла
  */
@@ -96,6 +97,12 @@ struct address
      */
     port_id config_port;
 };
+
+/*!
+ * \brief Класс узел
+ *
+ * Класс хранит имя, адрес ноды и адрес резервной ноды
+ */
 
 struct node
 {
@@ -229,7 +236,8 @@ private:
           * \brief Количество детей у поддерева node
           */
          auto child_size = v.second.size();
-
+         if(child_size > 0)
+             child_size -= 1;
 
          if(child_size > 1)
              throw std::invalid_argument((boost::format("ERROR in the node name (%0%): Expected no more than one child node: 'pairnode'")
@@ -248,7 +256,7 @@ private:
                  current_node.adds.port = v.second.get<port_id>("<xmlattr>.port");
                  current_node.adds.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
 
-                  if(child_size == 2){
+                  if(child_size == 1){
                       address pair_address;
 
                       /*!
