@@ -473,10 +473,11 @@ void MainWindow::createRemoteNodes()
 
         remoteNode->init(service_);
 
-        if(node.second.pairnode)
+
+        if(node.second.pairnode.is_initialized())
         {
             alpha::protort::parser::node tmp;
-            tmp.adds = node.second.pairnode.get();
+            tmp.address_ = node.second.pairnode.get();
             remoteNode = boost::make_shared<RemoteNode>(tmp);
             remoteNodes_.append(remoteNode);
 
