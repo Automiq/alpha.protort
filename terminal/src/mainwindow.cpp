@@ -472,6 +472,18 @@ void MainWindow::createRemoteNodes()
         connectRemoteNodeSignals(remoteNode.get());
 
         remoteNode->init(service_);
+
+        if(node.second.pairnode)
+        {
+            alpha::protort::parser::node tmp;
+            tmp.adds = node.second.pairnode.get();
+            remoteNode = boost::make_shared<RemoteNode>(tmp);
+            remoteNodes_.append(remoteNode);
+
+            connectRemoteNodeSignals(remoteNode.get());
+
+            remoteNode->init(service_);
+        }
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
