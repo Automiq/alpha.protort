@@ -114,7 +114,7 @@ struct node
     /*!
      * \brief Адрес ноды(включает ip адрес, порт и конфигурационный порт)
      */
-    address adds;
+    address address_;
 
     /*!
      * \brief Адрес резервной ноды
@@ -254,9 +254,9 @@ private:
               * \brief Инициализируем поля узла, исходя из описания в xml
               */
              current_node.name = v.second.get<std::string>("<xmlattr>.name");
-             current_node.adds.ip_address = v.second.get<std::string>("<xmlattr>.address");
-             current_node.adds.port = v.second.get<port_id>("<xmlattr>.port");
-             current_node.adds.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
+             current_node.address_.ip_address = v.second.get<std::string>("<xmlattr>.address");
+             current_node.address_.port = v.second.get<port_id>("<xmlattr>.port");
+             current_node.address_.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
 
              if(child_size == 2){
                  address pair_address;
