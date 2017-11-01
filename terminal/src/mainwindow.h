@@ -119,6 +119,7 @@ private:
     void showMessage();
     void deploy();
     void createRemoteNodes();
+    void nodeConection(const alpha::protort::parser::node &node);
     void connectRemoteNodeSignals(RemoteNode* node);
     void save_session();
     void load_session();

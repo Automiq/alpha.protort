@@ -466,30 +466,29 @@ void MainWindow::createRemoteNodes()
 
     for (auto node : deploy_config_.map_node)
     {
-        auto remoteNode = boost::make_shared<RemoteNode>(node.second);
-        remoteNodes_.append(remoteNode);
-
-        connectRemoteNodeSignals(remoteNode.get());
-
-        remoteNode->init(service_);
-
+        nodeConection(node.second);
 
         if(node.second.pairnode.is_initialized())
         {
             alpha::protort::parser::node tmp;
             tmp.address_ = node.second.pairnode.get();
-            remoteNode = boost::make_shared<RemoteNode>(tmp);
-            remoteNodes_.append(remoteNode);
-
-            connectRemoteNodeSignals(remoteNode.get());
-
-            remoteNode->init(service_);
+            nodeConection(tmp);
         }
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
 
     m_statusTimer->start(500);
+}
+
+void MainWindow::nodeConection(const alpha::protort::parser::node &node)
+{
+        auto remoteNode = boost::make_shared<RemoteNode>(node);
+        remoteNodes_.append(remoteNode);
+
+        connectRemoteNodeSignals(remoteNode.get());
+
+        remoteNode->init(service_);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
