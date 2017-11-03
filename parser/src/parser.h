@@ -180,7 +180,7 @@ struct configuration
             else if( v.first == "connection" )
                 parse_connection(v);
             else
-                std::cout << "Unknown tag in the file" << std::endl;
+                throw std::invalid_argument((boost::format("Unknown tag in the file %0%.") % filename ).str());
             }
             return true;
          }
@@ -214,7 +214,7 @@ struct configuration
                  else if( v.first == "map" )
                      parse_map(v);
                  else
-                     std::cout << "Unknown tag in the file" << std::endl;
+                     throw std::invalid_argument((boost::format("Unknown tag in the file %0%.") % filename ).str());
              }
 
              return true;
@@ -246,7 +246,7 @@ private:
              throw std::invalid_argument((boost::format("ERROR in the node name (%0%): Expected no more than one child node: 'pairnode'")
                                           % v.second.get<std::string>("<xmlattr>.name")).str());
          else if(child_size == 0)
-                 throw std::invalid_argument("Incorrectly entered node!");
+                 throw std::invalid_argument("Incorrectly entered node.");
          else{
              node current_node;
 
