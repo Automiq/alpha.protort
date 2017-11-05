@@ -17,3 +17,6 @@ LIBS += \
     -L$$OUT_PWD/../../protocol/lib
 
 include(../node.pri)
+
+HEADERS += \
+    logi.h
