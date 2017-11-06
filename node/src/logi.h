@@ -1,11 +1,12 @@
 #ifndef LOGI_H
 #define LOGI_H
 
-#include <string>
+#include <cstring>
 #include <fstream>
 #include <ctime>
 #include <sstream>
 #include <cstdio>
+#include <string>
 
  /*
   *
@@ -33,14 +34,13 @@ class ProtoRt_logger{
         buf_size=100;
         buf_usesize=0;
     }
-    ProtoRt_logger(string file_name){
-        file_name+=".txt";
+    ProtoRt_logger(char* file_name){
+        strcat(file_name , ".txt");
         stream=freopen( file_name , "w" , stdout );
         buf=new char[101];
         buf[100]='\0';
         buf_size=100;
         buf_usesize=0;
-
     }
     ProtoRt_logger(FILE* file){
         stream=file;
@@ -69,7 +69,7 @@ class ProtoRt_logger{
     }
     //пишет полученное сообщение в буфер если есть в нём есть место , если нет то выводит в поток
     bool write(char* message){
-        int message_size=srtlen(message);
+        int message_size=std::strlen(message);
         if(buf_size){
 
             if(message_size<=buf_size-buf_usesize){
@@ -84,7 +84,7 @@ class ProtoRt_logger{
                 memmove(buf , message , first_part_size);
                 buf_usesize+=first_part_size;
 
-                if(!flush){
+                if(!flush()){
 
                     //error;
                     return false;
@@ -107,14 +107,14 @@ class ProtoRt_logger{
         }
 
         if(buf_usesize>buf_size*0,9){
-            if(!flush){
+            if(!flush()){
                 //error
                 return false;
             }
         }
         return true;
     }
-private:
+protected:
     //выводит буфер в поток и возвращает смогли он это сделать
     bool flush(){
         if(fwrite(buf , sizeof(char) , buf_usesize , stream)!=buf_usesize){
