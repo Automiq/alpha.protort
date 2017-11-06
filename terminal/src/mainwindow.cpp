@@ -312,7 +312,7 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
-             .arg(QString::fromStdString(err.message())));
+             .arg(QString::fromLocal8Bit(err.message().data(), err.message().size())));
 }
 
 void MainWindow::setTabName(int index, const QString &name)
@@ -466,29 +466,17 @@ void MainWindow::createRemoteNodes()
 
     for (auto node : deploy_config_.map_node)
     {
-        nodeConection(node.second);
-
-        if(node.second.pairnode.is_initialized())
-        {
-            alpha::protort::parser::node tmp;
-            tmp.address_ = node.second.pairnode.get();
-            nodeConection(tmp);
-        }
-    }
-
-    static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
-
-    m_statusTimer->start(500);
-}
-
-void MainWindow::nodeConection(const alpha::protort::parser::node &node)
-{
-        auto remoteNode = boost::make_shared<RemoteNode>(node);
+        auto remoteNode = boost::make_shared<RemoteNode>(node.second);
         remoteNodes_.append(remoteNode);
 
         connectRemoteNodeSignals(remoteNode.get());
 
         remoteNode->init(service_);
+    }
+
+    static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
+
+    m_statusTimer->start(500);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -634,7 +622,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    //    ui->statusLog->append(message);
+    //ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)
