@@ -81,18 +81,19 @@ class ProtoRt_logger{
             else{
 
                 int first_part_size=buf_size-buf_usesize;
-                memmove(buf , message , first_part_size);
+                memmove(buf+buf_usesize , message , first_part_size);
                 buf_usesize+=first_part_size;
 
                 if(!flush()){
 
                     //error;
+                    delete[] message;
                     return false;
 
                 }
 
                 int second_part_size=message_size-first_part_size;
-                memmove(buf , message , second_part_size);
+                memmove(buf+buf_usesize , message , second_part_size);
                 buf_usesize+=second_part_size;
             }
 
@@ -101,20 +102,37 @@ class ProtoRt_logger{
             if(fwrite(buf , sizeof(char) , buf_usesize , stream)!=message_size||!flush()){
 
                 //error
+                delete[] message;
                 return false;
             }
+            delete[] message;
             return true;
         }
 
         if(buf_usesize>buf_size*0,9){
             if(!flush()){
                 //error
+                delete[] message;
                 return false;
             }
         }
+        delete[] message;
         return true;
     }
-protected:
+    bool build_message(char* type_message , char* message){
+        time_t ttime=time(NULL);
+        tm* this_time=localtime(&ttime);
+        std::stringstream ss_message;
+        ss_message<<(int)(this_time->tm_mday)<<'/'<<(int)(this_time->tm_mon)<<'/'<<(int)(this_time->tm_year)
+                 <<' '<<(int)(this_time->tm_hour)<<':'
+                 <<(int)(this_time->tm_min)<<':'
+                 <<(int)(this_time->tm_sec)<<' '<<type_message<<'-'<<message<<'\n';
+        char* str=new char[ss_message.str().length()+1];
+        strcpy(str , ss_message.str().c_str());
+        str[ss_message.str().length()]='\0';
+        return write(str);
+    }
+private:
     //выводит буфер в поток и возвращает смогли он это сделать
     bool flush(){
         if(fwrite(buf , sizeof(char) , buf_usesize , stream)!=buf_usesize){
