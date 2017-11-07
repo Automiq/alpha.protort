@@ -3,9 +3,9 @@
 
 #include <cstring>
 #include <fstream>
+#include <iostream>
 #include <ctime>
 #include <sstream>
-#include <cstdio>
 #include <string>
 
  /*
@@ -22,7 +22,7 @@
 
 
 
-
+/*
 
 
 
@@ -150,11 +150,56 @@ private:
 
 
 
+*/
 
 
+class logger{
+public:
+    logger(){}
+    virtual ~logger(){}
+    virtual void logging(std::string){}
+protected:std::string build_message(std::string type_message, std::string message){
+        time_t ttime=time(NULL);
+        tm* this_time=localtime(&ttime);
+        std::stringstream ss_message;
+        ss_message<<(int)(this_time->tm_mday)<<'/'<<(int)(this_time->tm_mon)<<'/'<<1900+(int)(this_time->tm_year)
+                 <<' '<<(int)(this_time->tm_hour)<<':'
+                 <<(int)(this_time->tm_min)<<':'
+                 <<(int)(this_time->tm_sec)<<' '<<type_message<<'-'<<message<<'\n';
+        return  ss_message.str();
+    }
 
+};
 
+class logger_file: public logger{
+public:
+    logger_file(std::string file_name){
+        file_name+=".txt";
+        file.open(file_name);
+    }
 
+    virtual void logging(std::string type , std::string message){
+        message=build_message(type , message);
+        file<<message<<std::endl;
+    }
+
+    virtual ~logger_file(){
+        file.close();
+    }
+
+private:
+    std::ofstream file;
+};
+
+class logger_stdout: public logger{
+public:
+    logger_stdout(){}
+    virtual ~logger_stdout(){}
+    virtual void logging(std::string type , std::string message){
+        message=build_message(type , message);
+        std::cout<<message<<std::endl;
+    }
+};
 
 
 
