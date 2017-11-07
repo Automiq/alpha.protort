@@ -7,6 +7,7 @@
 #include <ctime>
 #include <sstream>
 #include <string>
+#include <boost/shared_ptr.hpp>
 
  /*
   *
@@ -18,10 +19,6 @@
         return ss_logging.str();
     }
 */
-
-
-
-
 /*
 
 
@@ -67,7 +64,7 @@ class ProtoRt_logger{
     FILE* get_stream(){
         return stream;
     }
-    //пишет полученное сообщение в буфер если есть в нём есть место , если нет то выводит в поток
+    //пишет полученное сообщение в буфер если есть в нём есть место , если нет то выводит буфер в поток
     bool write(char* message){
         int message_size=std::strlen(message);
         if(buf_size){
@@ -165,10 +162,12 @@ protected:std::string build_message(std::string type_message, std::string messag
         ss_message<<(int)(this_time->tm_mday)<<'/'<<(int)(this_time->tm_mon)<<'/'<<1900+(int)(this_time->tm_year)
                  <<' '<<(int)(this_time->tm_hour)<<':'
                  <<(int)(this_time->tm_min)<<':'
-                 <<(int)(this_time->tm_sec)<<' '<<type_message<<'-'<<message<<'\n';
+                 <<(int)(this_time->tm_sec)<<'-'<<type_message<<':'<<message<<'\n';
         return  ss_message.str();
     }
-
+private:
+    friend class logger_component;
+    friend class logger_node;
 };
 
 class logger_file: public logger{
@@ -201,9 +200,49 @@ public:
     }
 };
 
+class logger_component{
+public:
+    logger_component(boost::shared_ptr<logger> log , std::string comp_name){
+        templ=comp_name;
+        log_=log;
+    }
+    ~logger_component(){
 
+    }
+    void logging(std::string type , std::string message){
 
+        std::string message_=log_->build_message(type , message);
+        std::stringstream ss_message;
+        ss_message<<templ<<':'<<message_;
+        log_->logging(ss_message.str());
 
+    }
+private:
+    std::string templ;
+    boost::shared_ptr<logger> log_;
+};
+
+class logger_node{
+public:
+    logger_node(boost::shared_ptr<logger> log , std::string node_name){
+        templ=node_name;
+        log_=log;
+    }
+    ~logger_node(){
+
+    }
+    void logging(std::string type , std::string message){
+
+        std::string message_=log_->build_message(type , message);
+        std::stringstream ss_message;
+        ss_message<<templ<<':'<<message_;
+        log_->logging(ss_message.str());
+
+    }
+private:
+    std::string templ;
+    boost::shared_ptr<logger> log_;
+};
 
 
 /*
