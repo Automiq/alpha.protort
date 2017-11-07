@@ -43,11 +43,10 @@ struct deploy_configuration
         }
 
         for (auto &mapping : config.mappings){
-            alpha::protort::parser::node tmp_node= map_node[mapping.node_name];
-            if(tmp_node.pairnode){
+            if(map_node[mapping.node_name].pairnode){
                alpha::protort::parser::mapping tmp_mapping_pairnode;
                tmp_mapping_pairnode.comp_name = mapping.comp_name;
-               tmp_mapping_pairnode.node_name = (boost::format("pairnode.%1%") % tmp_node.name).str();
+               tmp_mapping_pairnode.node_name = (boost::format("pairnode.%1%") % mapping.node_name).str();
                map(tmp_mapping_pairnode);
             }
             map(mapping);
