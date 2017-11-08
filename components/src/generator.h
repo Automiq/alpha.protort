@@ -51,7 +51,7 @@ public:
 
         router_ptr router = router_.lock();
         if (router)
-            router->get_service().post(boost::bind(&node::router<node::node>::do_route,
+            router->getWrapper().post(boost::bind(&node::router<node::node>::do_route,
                                                 router,
                                                 comp_inst_,
                                                 data));
@@ -66,7 +66,7 @@ public:
     {
         router_ptr router = router_.lock();
         if (router)
-            router->get_service().post(boost::bind(&generator::generate,
+            router->getWrapper().post(boost::bind(&generator::generate,
                                                boost::static_pointer_cast<generator>(this->shared_from_this())));
     }
 

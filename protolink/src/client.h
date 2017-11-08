@@ -168,7 +168,7 @@ private:
         copy(packet.begin(), packet.end(), buffer_.get() + header_size);
 
         // Добавляем асинхронный таск на отправку
-        async_write(
+        boost::asio::async_write(
                     socket_,
                     boost::asio::buffer(buffer_.get(), header_size + packet.size()),
                     boost::bind(&client::on_packet_sent,

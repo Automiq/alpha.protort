@@ -10,6 +10,7 @@
 #include "packet.pb.h"
 #include "client.h"
 #include "node.h"
+#include "ioswrapper.h"
 
 // Декларируем функцию, используемую в автотесте
 namespace alpha {
@@ -107,7 +108,7 @@ private:
 public:
     router(boost::asio::io_service& service): service_(service)
     {
-
+        wrp.set_service(service);
     }
 
     ~router()
@@ -115,6 +116,11 @@ public:
 #ifdef _DEBUG
         std::cout << "Router::destoooooooyyyeeeeeeedddddddddddddddddddddddd" << std::endl;
 #endif
+    }
+
+    IOSWrapper &getWrapper()
+    {
+        return wrp;
     }
 
     //! Запускает каждый компонент
@@ -180,6 +186,7 @@ public:
      * \param comp_inst Компонент
      * \param outputs Выходные данные компонента
      */
+
     void do_route(void *comp_inst,
                   const std::vector<alpha::protort::components::output>& outputs)
     {
@@ -281,6 +288,8 @@ private:
 #ifdef _DEBUG
     boost::mutex cout_mutex;
 #endif
+
+    IOSWrapper wrp;
 };
 
 } // namespae node
