@@ -10,6 +10,8 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <boost/atomic.hpp>
+#include <boost/chrono.hpp>
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
@@ -167,6 +169,15 @@ private:
         // Копируем отправляемую строку в буффер
         copy(packet.begin(), packet.end(), buffer_.get() + header_size);
 
+        //Очередь
+        ++queue;
+        if(queue>=5)
+        {
+           boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+        }
+#ifdef _DEBUG
+        std::cout << "queue now is: " << queue << std::endl;
+#endif
         // Добавляем асинхронный таск на отправку
         async_write(
                     socket_,
@@ -186,6 +197,7 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes, int kind_)
     {
+        --queue;
         if (boost::asio::error::eof == err || boost::asio::error::connection_reset == err)
         {
             stop();
@@ -302,6 +314,9 @@ private:
             break;
         }
     }
+
+    //! Переменная очереди отправки пакетов
+    boost::atomic_uint queue {0};
 
     //! Сокет
     boost::asio::ip::tcp::socket socket_;
