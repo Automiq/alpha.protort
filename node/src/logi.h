@@ -154,7 +154,7 @@ class logger{
 public:
     logger(){}
     virtual ~logger(){}
-    virtual void log(const std::string &type , std::string &message){}
+    virtual void log(const std::string &type ,const std::string &message){}
 protected:
         std::string build_message(const std::string &type_message,const std::string &message){
         time_t ttime=time(NULL);
@@ -179,12 +179,12 @@ public:
         file.open(file_name);
     }
 
-    virtual void log(const std::string &type ,std::string &message) override {
-        message=build_message(type , message);
-        file<<message<<std::endl;
+    virtual void log(const std::string  &type,const std::string &message) override {
+        std::string message_=build_message(type , message);
+        file<<message_<<std::endl;
     }
 
-    virtual ~logger_file(){
+    virtual ~logger_file() override{
         file.close();
     }
 
@@ -195,23 +195,23 @@ private:
 class logger_stdout: public logger{
 public:
     logger_stdout(){}
-    virtual ~logger_stdout(){}
-    virtual void log(const std::string &type ,std::string &message) override{
-        message=build_message(type , message);
-        std::cout<<message<<std::endl;
+    virtual ~logger_stdout() override{}
+    virtual void log(const std::string &type ,const std::string &message) override{
+        std::string message_=build_message(type , message);
+        std::cout<<message_<<std::endl;
     }
 };
 
 class logger_component : public logger{
 public:
-    logger_component(boost::shared_ptr<logger> &log,  std::string &comp_name ,  std::string &comp_type){
+    logger_component(const boost::shared_ptr<logger> &log,  std::string &comp_name ,  std::string &comp_type){
         templ=comp_name+':'+comp_type;
         log_=log;
     }
-    ~logger_component(){
+    virtual ~logger_component() override{
 
     }
-    virtual void log(const std::string &type ,  std::string &message) override{
+    virtual void log(const std::string &type ,const  std::string &message) override{
         std::stringstream ss_message;
         ss_message<<templ<<':'<<message;
         log_->log(type, ss_message.str());
@@ -223,14 +223,14 @@ private:
 
 class logger_node : public logger{
 public:
-    logger_node( boost::shared_ptr<logger> &log ,const std::string &node_name){
+    logger_node(const boost::shared_ptr<logger> &log ,const std::string &node_name){
         templ=node_name;
         log_=log;
     }
-    ~logger_node(){
+    virtual ~logger_node() override{
 
     }
-    virtual void log(const std::string &type ,  std::string &message) override{
+    virtual void log(const std::string &type , const std::string &message) override{
 
         std::stringstream ss_message;
         ss_message<<templ<<':'<<message;
