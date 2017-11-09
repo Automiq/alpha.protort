@@ -170,11 +170,11 @@ private:
         copy(packet.begin(), packet.end(), buffer_.get() + header_size);
 
         //Очередь
-        ++queue;
         if(queue>=5)
         {
            boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
         }
+        ++queue;
 #ifdef _DEBUG
         std::cout << "queue now is: " << queue << std::endl;
 #endif
