@@ -204,7 +204,7 @@ public:
 
 class logger_component : public logger{
 public:
-    logger_component(const boost::shared_ptr<logger> &log, const std::string &comp_name , const std::string comp_type){
+    logger_component(boost::shared_ptr<logger> &log,  std::string &comp_name ,  std::string &comp_type){
         templ=comp_name+':'+comp_type;
         log_=log;
     }
@@ -223,7 +223,7 @@ private:
 
 class logger_node : public logger{
 public:
-    logger_node(const boost::shared_ptr<logger> &log ,const std::string &node_name){
+    logger_node( boost::shared_ptr<logger> &log ,const std::string &node_name){
         templ=node_name;
         log_=log;
     }
