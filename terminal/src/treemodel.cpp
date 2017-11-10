@@ -51,6 +51,10 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
 {
     if (role == Qt::DecorationRole && index.column() == Column::Connection)
         return QIcon(node->isConnected() ? ":/images/connected.png" : ":/images/notconnected.ico");
+    //Есть идея сделать клавишу мастера активной и убрать отдельную колонну с pushbutton
+    if (role == Qt::DecorationRole && index.column() == Column::Swap && !node->pairNodeStatus())
+        return QIcon(":/images/slave.png");
+    //Тут может быть ошибка в том, что сюда могут заходить компоненты ноды. Это нужно отловить
 
     if (role != Qt::DisplayRole)
         return QVariant();
@@ -132,6 +136,8 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
     {
     case Column::Name:
         return tr("Имя узла");
+    case Column::Swap:
+        return tr("Состояние");
     case Column::Address:
         return tr("Адрес");
     case Column::Connection:
@@ -212,6 +218,12 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
     for (auto &node : m_nodes)
     {
         auto *n = node.get();
+        /*! Здесь можно проверить состояние ноды
+         * if(node.pairNodeStatus())
+         * {
+         *
+         * }
+         */
         connect(n, &RemoteNode::componentsChanged, this, &TreeModel::onComponentsChanged);
         connect(n, &RemoteNode::statusChanged, this, &TreeModel::onStatusChanged);
     }

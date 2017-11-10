@@ -8,6 +8,7 @@
 
 #include <QComboBox>
 #include <QIcon>
+#include <QPushButton>
 #include <QLabel>
 #include <QFileDialog>
 #include <QTextEdit>
@@ -19,6 +20,7 @@
 #include <QWidget>
 #include <QTimer>
 #include <QHBoxLayout>
+
 
 #include <QToolTip>
 #include <boost/make_shared.hpp>
@@ -46,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     TreeModel *model = new TreeModel(remoteNodes_);
     ui->treeStatus->setModel(model);
+
+    ui->status->setEnabled(true);
 }
 
 MainWindow::~MainWindow()
@@ -371,6 +375,58 @@ void MainWindow::deploy()
     model->setupModelData(remoteNodes_);
 
     ui->treeStatus->show();
+    ///////////////////////////////////////////////////////////////////////////
+
+    for (size_t i(0); i < remoteNodes_.count(); ++i)//Сработает для каждой ноды
+    {
+        QModelIndex currentIndex = ui->treeStatus->model()->index( i, 1 );
+        RemoteNodePtr rnp = currentIndex.row();
+        //if(rnp->pairNodeStatus())
+        //{
+            QPushButton *pairWiget = new QPushButton(QIcon(":/images/master.png"));
+
+            {
+                QMessageBox *mbTest = new QMessageBox;
+                mbTest->setText(QString("Complete!"));
+                mbTest->show();
+            }
+
+            ui->treeStatus->setIndexWidget(currentIndex, pairWiget);
+            connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
+        //}
+    }
+/*Вместо ui->treeStatus->currentIndex() в последующем фрагменте кода нужно поставить индекс нужного столбца*/
+/*    QMessageBox *mbInfoNode = new QMessageBox;
+    mbInfoNode->setText(QString("%1 (%2)").arg(QString::number(ui->treeStatus->currentIndex().row(), 16))
+                                  .arg(QString::number(ui->treeStatus->currentIndex().column(), 16)));
+    mbInfoNode->show();
+
+
+    RemoteNodePtr rnp = remoteNodes_.at(ui->treeStatus->currentIndex().row());
+    if(rnp->pairNodeStatus())
+    {
+        //Вставлять кнопку нужно в колонну swap для master ноды
+        QPushButton *pairWiget = new QPushButton(QIcon(":/images/master.png"));
+        QModelIndex fstElClick = ui->treeStatus->currentIndex(),
+                    testElPosition = ui->treeStatus->model()->index(0,0,ui->treeStatus->rootIndex().child(0,0));
+        if(fstElClick == testElPosition)
+        {
+            QMessageBox *mbTest = new QMessageBox;
+            mbTest->setText(QString("Complete!"));
+            mbTest->show();
+        }
+
+        ui->treeStatus->setIndexWidget(fstElClick, pairWiget);
+        connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
+    }
+    */
+}
+
+void MainWindow::on_backup_transition()
+{
+    //Отсылаем сигнал о резервном переходе remote ноде мастера
+    RemoteNodePtr rnp = remoteNodes_.at(ui->treeStatus->currentIndex().row());
+    rnp->backupTransition();
 }
 
 void MainWindow::on_deploy_triggered()
@@ -396,6 +452,31 @@ void MainWindow::close_tab(int index)
 
 void MainWindow::on_status_triggered()
 {
+    QMessageBox *mbInfoNode = new QMessageBox;
+    mbInfoNode->setText(QString("%1 (%2)").arg(QString::number(ui->treeStatus->currentIndex().row(), 16))
+                                  .arg(QString::number(ui->treeStatus->currentIndex().column(), 16)));
+    mbInfoNode->show();
+
+    RemoteNodePtr rnp = remoteNodes_.at(ui->treeStatus->currentIndex().row());
+    //if(rnp->pairNodeStatus())
+    //{
+        //Вставлять кнопку нужно в колонну swap для master ноды
+        QPushButton *pairWiget = new QPushButton(QIcon(":/images/master.png"));
+        QModelIndex fstElClick = ui->treeStatus->currentIndex(),
+                    testElPosition = ui->treeStatus->model()->index(0,0,ui->treeStatus->rootIndex().child(0,0));
+        if(fstElClick == testElPosition)
+        {
+            QMessageBox *mbTest = new QMessageBox;
+            mbTest->setText(QString("Complete!"));
+            mbTest->show();
+        }
+
+        ui->treeStatus->setIndexWidget(fstElClick, pairWiget);
+        connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
+        pairWiget->mouseGrabber();//Если мышкой наведено на иконку мастера, то изменить е ена резервный переход
+    //}
+
+
     if (deploying)
         return;
 
@@ -404,7 +485,10 @@ void MainWindow::on_status_triggered()
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
     for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_status(status);
+        //Для каждой ремот ноды нужно в колонке статуса создать кнопку
+    }
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
@@ -475,8 +559,9 @@ void MainWindow::createRemoteNodes()
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
-
+    /* Здесь добавить кнопку */
     m_statusTimer->start(500);
+    /* Здесь добавить кнопку */
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)

@@ -58,6 +58,7 @@ private:
     enum Column
     {
         Name,
+        Swap,
         Address,
         Connection,
         Uptime,

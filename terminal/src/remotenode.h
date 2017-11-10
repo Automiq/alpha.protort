@@ -43,7 +43,9 @@ public:
     QString name() const;
     QString address() const;
     QString info() const;
+    bool pairNodeStatus() const;
 
+    void backupTransition();
     void async_deploy(deploy_configuration& deploy_configuration_);
     void async_start(alpha::protort::protocol::Packet_Payload& packet);
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);

@@ -63,6 +63,17 @@ QString RemoteNode::info() const
     return QString("%1 (%2)").arg(name()).arg(address());
 }
 
+bool RemoteNode::pairNodeStatus() const
+{
+    return node_information_.pairnode ? true : false;
+}
+
+//Вызывается из объекта remoteNodePtr мастера
+void RemoteNode::backupTransition()
+{
+
+}
+
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
 {
     std::string current_node = node_information_.name;

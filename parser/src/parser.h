@@ -49,6 +49,7 @@ struct node
     std::string address;
     port_id port;
     port_id config_port;
+    bool pairnode;
 };
 
 /*!

@@ -76,6 +76,8 @@ private slots:
 
     void on_status_triggered();
 
+    void on_backup_transition();
+
 public slots:
     void showLog() const;
 

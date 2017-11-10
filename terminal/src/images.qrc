@@ -22,5 +22,9 @@
         <file>images/file.png</file>
         <file>images/connected.png</file>
         <file>images/notconnected.ico</file>
+        <file>images/backupTransition.png</file>
+        <file>images/backupTransitionICO.png</file>
+        <file>images/master.png</file>
+        <file>images/slave.png</file>
     </qresource>
 </RCC>
