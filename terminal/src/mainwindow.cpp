@@ -393,6 +393,9 @@ void MainWindow::deploy()
 
             ui->treeStatus->setIndexWidget(currentIndex, pairWiget);
             connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
+            pairWiget->installEventFilter(this);
+
+
         //}
     }
 /*Вместо ui->treeStatus->currentIndex() в последующем фрагменте кода нужно поставить индекс нужного столбца*/
@@ -420,6 +423,27 @@ void MainWindow::deploy()
         connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
     }
     */
+}
+
+bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+{
+    if(obj->objectName() == "pairWiget")
+    {
+        QPushButton *pb = dynamic_cast<QPushButton>(obj);
+            if(event->type() == QEvent::Enter)
+            {
+                pb->setIcon(QIcon(":/images/backupTransitionICO.png"));
+                return true;
+            }
+            if(event->type() == QEvent::Leave)
+            {
+                pb->setIcon(QIcon(":/images/master.png"));
+                return true;
+            }
+     }
+
+    return QMainWindow::eventFilter(obj, event);
+
 }
 
 void MainWindow::on_backup_transition()
