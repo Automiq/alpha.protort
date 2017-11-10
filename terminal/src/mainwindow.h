@@ -78,7 +78,7 @@ private slots:
 
     void on_backup_transition();
 
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *object, QEvent *event);
 
 public slots:
     void showLog() const;

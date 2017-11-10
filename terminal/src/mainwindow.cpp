@@ -379,21 +379,21 @@ void MainWindow::deploy()
 
     for (size_t i(0); i < remoteNodes_.count(); ++i)//Сработает для каждой ноды
     {
-        QModelIndex currentIndex = ui->treeStatus->model()->index( i, 1 );
-        RemoteNodePtr rnp = currentIndex.row();
-        //if(rnp->pairNodeStatus())
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 1 );
+        //RemoteNodePtr remNodePtr = currentIndex.row();
+        //if(remNodePtr->pairNodeStatus())
         //{
-            QPushButton *pairWiget = new QPushButton(QIcon(":/images/master.png"));
+            QPushButton *bakupTransitionButton = new QPushButton(QIcon(":/images/master.png"));
 
-            {
-                QMessageBox *mbTest = new QMessageBox;
-                mbTest->setText(QString("Complete!"));
-                mbTest->show();
-            }
 
-            ui->treeStatus->setIndexWidget(currentIndex, pairWiget);
-            connect(pairWiget, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
-            pairWiget->installEventFilter(this);
+                QMessageBox *messageBoxTest = new QMessageBox;
+                messageBoxTest->setText(QString("Complete!"));
+                messageBoxTest->show();
+
+
+            ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);
+            connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition);
+            bakupTransitionButton->installEventFilter(this);
 
 
         //}
@@ -425,24 +425,24 @@ void MainWindow::deploy()
     */
 }
 
-bool MainWindow::eventFilter(QObject *obj, QEvent *event)
+bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    if(obj->objectName() == "pairWiget")
+    if(object->objectName() == "pairWiget")
     {
-        QPushButton *pb = dynamic_cast<QPushButton>(obj);
+        QPushButton *pushButton = dynamic_cast<QPushButton>(object);
             if(event->type() == QEvent::Enter)
             {
-                pb->setIcon(QIcon(":/images/backupTransitionICO.png"));
+                pushButton->setIcon(QIcon(":/images/backupTransitionICO.png"));
                 return true;
             }
             if(event->type() == QEvent::Leave)
             {
-                pb->setIcon(QIcon(":/images/master.png"));
+                pushButton->setIcon(QIcon(":/images/master.png"));
                 return true;
             }
      }
 
-    return QMainWindow::eventFilter(obj, event);
+    return QMainWindow::eventFilter(object, event);
 
 }
 
