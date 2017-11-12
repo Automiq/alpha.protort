@@ -71,7 +71,7 @@ bool RemoteNode::pairNodeStatus() const
 //Вызывается из объекта remoteNodePtr мастера
 void RemoteNode::backupTransition()
 {
-
+    node_information_.address;// отправить на адрес команду о резервном переходе
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)

@@ -58,7 +58,6 @@ private:
     enum Column
     {
         Name,
-        Swap,
         Address,
         Connection,
         Uptime,
@@ -68,7 +67,8 @@ private:
         PacketsSent,
         BytesSent,
         UpSpeed,
-        LastColumn = UpSpeed,
+        Swap,
+        LastColumn = Swap,
         ColumnCount = LastColumn + 1,
     };
 };
