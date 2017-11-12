@@ -383,12 +383,13 @@ void MainWindow::deploy()
         //{
             QPushButton *bakupTransitionButton = new QPushButton;
             bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
-
+            bakupTransitionButton->setFixedSize(20,20);
             //bakupTransitionButton->setText("master");
             //bakupTransitionButton->setAutoFillBackground(true);
 
             ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);
             //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
+
             bakupTransitionButton->installEventFilter(this);
 /////////////////////////////////////////////////////////////////
 
@@ -441,7 +442,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             if(event->type() == QEvent::MouseButtonPress)
             {
                 on_backup_transition();
-                pushButton->
+
                 return true;
             }
      //}
