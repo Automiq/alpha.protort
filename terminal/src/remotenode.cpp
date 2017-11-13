@@ -63,15 +63,29 @@ QString RemoteNode::info() const
     return QString("%1 (%2)").arg(name()).arg(address());
 }
 
+/*!
+ * \brief Возвращает статус ноды.
+ * \return Если нода master - true, если slave - false.
+ */
 bool RemoteNode::pairNodeStatus() const
 {
     return node_information_.pairnode ? true : false;
 }
 
-//Вызывается из объекта remoteNodePtr мастера
-void RemoteNode::backupTransition()
+/*!
+ * \brief Отправляет сигнал о резервном переходе на ноду мастера.
+ *  Вызывается из объекта remoteNodePtr мастера.
+ * \param backup - пакет, сигнализирующий о необходиости перехода.
+ */
+void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payload& backup)
 {
-    node_information_.address;// отправить на адрес команду о резервном переходе
+    auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+    callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+            emit backupTransitionRequestFinished(packet.deploy_packet());
+    });// По окончании соединения вырабатываем сигнал backupTransitionRequestFinished
+
+    client_->async_send_request(backup, callbacks);//На данный момент по нажатии на кнопку вылетает рантайм ошибка
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)

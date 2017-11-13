@@ -54,7 +54,6 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
 
     if (role == Qt::DecorationRole && index.column() == Column::Swap && !node->pairNodeStatus())
         return QIcon(":/images/slave.png");
-    //Тут может быть ошибка в том, что сюда могут заходить компоненты ноды. Это нужно отловить
 
     if (role != Qt::DisplayRole)
         return QVariant();

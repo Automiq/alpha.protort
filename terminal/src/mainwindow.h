@@ -88,6 +88,7 @@ private slots:
     void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& status);
     void onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
     void onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
     void onConnected();
     void onConnectionFailed(const boost::system::error_code&);
 

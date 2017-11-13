@@ -45,7 +45,7 @@ public:
     QString info() const;
     bool pairNodeStatus() const;
 
-    void backupTransition();
+    void async_backup_transition(alpha::protort::protocol::Packet_Payload& backup);
     void async_deploy(deploy_configuration& deploy_configuration_);
     void async_start(alpha::protort::protocol::Packet_Payload& packet);
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);
@@ -72,6 +72,7 @@ signals:
     void statusRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void startRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void stopRequestFinished(const alpha::protort::protocol::deploy::Packet&);
+    void backupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void connected();
     void connectionFailed(const boost::system::error_code&);
 

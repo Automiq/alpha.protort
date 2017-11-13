@@ -7,6 +7,7 @@
 #include "configdialog.h"
 
 #include <QPushButton>
+#include <QAbstractButton>
 #include <QComboBox>
 #include <QIcon>
 #include <QLabel>
@@ -244,6 +245,21 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
                     );
 }
 
+/*!
+ * \brief Вызывется при окончании процесса резервного перехода.
+ * \param packet - пакет со статусом.
+ */
+void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
+    //Тут нужно создать кнопку для ноды мастера, которая раньше была резервом(иконка slave перебросится автоматически).
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+                packet.has_error() ?
+                    tr("Ошибка резервного перехода на узеле %1").arg(node->info()) :
+                    tr("Резервный переход успешно выполнен для узела %1").arg(node->info())
+                    );
+}
+
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
@@ -375,7 +391,7 @@ void MainWindow::deploy()
     ui->treeStatus->show();
     ///////////////////////////////////////////////////////////////////////////
 
-    for (size_t i(0); i < remoteNodes_.count(); ++i)//Сработает для каждой ноды
+    for (size_t i(0); i < remoteNodes_.count(); ++i)// Сработает для каждой ноды
     {
         QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
         //RemoteNodePtr remNodePtr = currentIndex.row();
@@ -383,13 +399,15 @@ void MainWindow::deploy()
         //{
             QPushButton *bakupTransitionButton = new QPushButton;
             bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
-            bakupTransitionButton->setFixedSize(20,20);
+            bakupTransitionButton->setProperty("row", i);
+            bakupTransitionButton->setFixedSize(40,20);
             //bakupTransitionButton->setText("master");
             //bakupTransitionButton->setAutoFillBackground(true);
 
             ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);
             //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
 
+            connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
             bakupTransitionButton->installEventFilter(this);
 /////////////////////////////////////////////////////////////////
 
@@ -424,8 +442,6 @@ void MainWindow::deploy()
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    //if(object->objectName() == "bakupTransitionButton")
-    //{
         QPushButton *pushButton = reinterpret_cast<QPushButton*>(object);
             if(event->type() == QEvent::Enter)
             {
@@ -439,13 +455,12 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 //pushButton->setText("master");
                 return true;
             }
-            if(event->type() == QEvent::MouseButtonPress)
-            {
-                on_backup_transition();
-
-                return true;
-            }
-     //}
+//            if(event->type() == QEvent::MouseButtonPress)
+//            {
+//                int row = sender()->property("row").toInt();
+//                on_backup_transition(row);
+//                return true;
+//            }
 
     return QMainWindow::eventFilter(object, event);
 
@@ -453,17 +468,23 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 void MainWindow::on_backup_transition()
 {
-    //Отсылаем сигнал о резервном переходе remote ноде мастера
-    QMessageBox *mbTest = new QMessageBox;
+    int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
+    RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
 
-    mbTest->setText(QString("%1").arg(QString::number(ui->treeStatus->currentIndex().row(),16)));
-    //remoteNodes_.at(ui->treeStatus->model()->index( i, 10 );
+    QMessageBox *mbTest = new QMessageBox;
+    mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(remoteNode->name()));// Проверка урвня и имени ноды
     mbTest->show();
 
+    alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
+    backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+
+    remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+
+
+    //mbTest->setText(QString("%1").arg(QString::number(ui->treeStatus->currentIndex().row(),16)));
     //QModelIndex currentModelIndex = ui->treeStatus->model()->index( 0, 10 );
 
 //    RemoteNodePtr rnp = remoteNodes_.at(ui->treeStatus->currentIndex().row());
-//    rnp->backupTransition();
 }
 
 void MainWindow::on_deploy_triggered()
@@ -525,7 +546,6 @@ void MainWindow::on_status_triggered()
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_status(status);
-        //Для каждой ремот ноды нужно в колонке статуса создать кнопку
     }
 }
 
@@ -597,9 +617,9 @@ void MainWindow::createRemoteNodes()
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
-    /* Здесь добавить кнопку */
+
     m_statusTimer->start(500);
-    /* Здесь добавить кнопку */
+
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -610,6 +630,7 @@ void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
     connect(node, &RemoteNode::statusRequestFinished, this, &MainWindow::onStatusRequestFinished);
     connect(node, &RemoteNode::startRequestFinished, this, &MainWindow::onStartRequestFinished);
     connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
+    connect(node, &RemoteNode::backupTransitionRequestFinished, this, &MainWindow::onBackupTransitionRequestFinished);
 }
 
 void MainWindow::saveDocument(int index)
