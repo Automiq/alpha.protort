@@ -278,9 +278,37 @@ private:
             return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
+        case protocol::deploy::PacketKind::BackupTransition:
+            return backup_transition();
         default:
             assert(false);
         }
+    }
+
+    protocol_payload backup_transition()
+    {
+        protocol_payload response;
+        protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
+        response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
+
+        response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
+
+        boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;
+        uint32_t uptime = uptime_period.count();
+        response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
+
+        response_packet->mutable_response()->mutable_status()->set_in_bytes_count(0);
+        response_packet->mutable_response()->mutable_status()->set_out_bytes_count(0);
+        response_packet->mutable_response()->mutable_status()->set_in_packets_count(0);
+        response_packet->mutable_response()->mutable_status()->set_out_packets_count(0);
+
+        for (auto & component : router_->components_) {
+            auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
+            comp_status->set_name(component.first);
+        }
+
+        return response;
+
     }
 
     protocol_payload status_response()
