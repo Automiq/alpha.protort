@@ -13,11 +13,12 @@ namespace protort {
 namespace components {
 
 /*!
- * \brief Генератор, генерирует поток случайных чисел
+ * \brief Компонент generator - генерирует поток случайных чисел
  */
 class timed_generator : public generator
 {
 public:
+    //! \brief // Привязываем роутер к компоненту, задаем промежуток времени генерации, инициализируем таймер
     timed_generator(router_ptr& router):
         generator(router),
         generate_interval_(100),
@@ -25,7 +26,9 @@ public:
     {
 
     }
-
+    /*!
+     * \brief Каждый промежуток времени(generate_interval_) генерирует число
+     */
     void generate_next()
     {
         generate_timer_.expires_from_now(boost::posix_time::milliseconds(generate_interval_));
@@ -35,13 +38,13 @@ public:
 
     void stop()
     {
-        started_ = false;
+        started_ = false;// Сигнализируем об окончании генерации
         generate_timer_.cancel();
     }
 
 private:
-    int generate_interval_;
-    boost::asio::deadline_timer generate_timer_;
+    int generate_interval_;// Промежуток времени для генерации
+    boost::asio::deadline_timer generate_timer_;// Таймер
 };
 
 } // namespace components

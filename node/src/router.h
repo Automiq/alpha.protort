@@ -33,7 +33,7 @@ using port_id = alpha::protort::components::port_id;
  * \brief Роутер пакетов
  */
 template<class app>
-class router : public boost::enable_shared_from_this<router<app>>
+class router : public boost::enable_shared_from_this<router<app>> 
 {
     friend class node;
     friend class alpha::protort::components::component;

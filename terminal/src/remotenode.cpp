@@ -26,11 +26,13 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
     name_ = QString::fromStdString(node_information_.name);
 }
 
+//Деструктор освобождающий ресурсы
 RemoteNode::~RemoteNode()
 {
     qDeleteAll(components_);
 }
 
+//Инициализация клиента и подключение его к ноде
 void RemoteNode::init(boost::asio::io_service &service)
 {
     client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
@@ -42,27 +44,32 @@ void RemoteNode::init(boost::asio::io_service &service)
     client_->async_connect(ep);
 }
 
+//Отправка ноде команды подготовки к завершению и сбросу
 void RemoteNode::shutdown()
 {
     client_->prepare_shutdown();
     client_.reset();
 }
 
+//Возвращает имя ноды
 QString RemoteNode::name() const
 {
     return QString::fromStdString(node_information_.name);
 }
 
+//Возвращает адрес ноды
 QString RemoteNode::address() const
 {
     return QString::fromStdString(node_information_.address);
 }
 
+//Возвращает информацию о ноде, в формате "nodename (nodeaddress)"
 QString RemoteNode::info() const
 {
     return QString("%1 (%2)").arg(name()).arg(address());
 }
 
+//Подготовка данных развертки и отправка их на ноду для развертки
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
 {
     std::string current_node = node_information_.name;
@@ -153,6 +160,7 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
     client_->async_send_request(payload, callbacks);
 }
 
+//Отправка нодам команды старт
 void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet)
 {
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
@@ -163,6 +171,7 @@ void RemoteNode::async_start(alpha::protort::protocol::Packet_Payload &packet)
     client_->async_send_request(packet, callbacks);
 }
 
+//Отправка нодам команды стоп
 void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet)
 {
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
@@ -174,6 +183,7 @@ void RemoteNode::async_stop(alpha::protort::protocol::Packet_Payload &packet)
     client_->async_send_request(packet, callbacks);
 }
 
+//Отправка нодам запроса о получении их статуса
 void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
 {
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
@@ -185,6 +195,7 @@ void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
     client_->async_send_request(status, callbacks);
 }
 
+//Обработка события подключения к ноде
 void RemoteNode::on_connected(const boost::system::error_code& err)
 {
     if (!err)
@@ -205,57 +216,73 @@ void RemoteNode::on_new_packet(alpha::protort::protocol::Packet_Payload packet)
 
 }
 
+//Добавление RemoteComponent к RemoteNode
+//Параметр 1 - указатель на компоненту
 void RemoteNode::appendComponent(RemoteComponent *component)
 {
     components_.push_back(component);
     component->setParent(this);
 }
 
+//Возвращает список указателей на компоненты ноды
 QList<RemoteComponent *> RemoteNode::components() const
 {
     return components_;
 }
 
-//! Методы изменения данных узла
+//Методы изменения данных узла{
+//Установка аптайма ноды
 void RemoteNode::setUptime(uint32_t time){ uptime_  = time; }
 
+//Установка количества полученных пакетов ноды
 void RemoteNode::setPacketsReceived(uint32_t value)
 {
     packetsReceived_ = value;
 }
 
+//Установка количества принятых байт ноды
 void RemoteNode::setBytesReceived(uint32_t value)
 {
     bytesReceived_ = value;
 }
 
+//Установка колчиства отправленных пакетов ноды
 void RemoteNode::setPacketsSent(uint32_t value)
 {
     packetsSent_ = value;
 }
 
+//Установка отправленных байт ноды
 void RemoteNode::setBytesSent(uint32_t value)
 {
     bytesSent_ = value;
 }
 
+//Установка флага(bool) подключена ли нода
 void RemoteNode::setConnected(bool value)
 {
     isConnected_ = value;
 
     emit statusChanged();
 }
+//}Методы изменения данных узла
 
+//Считает и возращает  исходящую скорость ноды.
+//Параметры: 1 - время, 2 - сколько байт отправлено
 double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
 {
     return calcSpeed(now, bytesSent_, bytesSent);
 }
 
+//Считает и возращает  входящую скорость ноды.
+//Параметры: 1 - время, 2 - сколько байт отправлено
 double RemoteNode::calcDownSpeed(const QTime &now, uint32_t bytesReceived)
 {
     return calcSpeed(now, bytesReceived_, bytesReceived);
 }
 
+//Расчет текущей скорости на основе параметров
+//Параметры: 1 - Время, 2 - Сколько байт было передано в прошлый раз 3 - сколько сейчас байт передано
 double RemoteNode::calcSpeed(const QTime &now, uint32_t lastBytes, uint32_t nowBytes)
 {
     if (m_lastStatusTime.isNull())
@@ -265,45 +292,58 @@ double RemoteNode::calcSpeed(const QTime &now, uint32_t lastBytes, uint32_t nowB
     return (double(nowBytes - lastBytes) / msecs) * 1000;
 }
 
-//! Методы получения данных узла
+//Методы получения данных узла{
+//Возвращает bool подключена ли нода 
 bool RemoteNode::isConnected() const { return isConnected_; }
+
+//Возвращает аптайм ноды
 uint32_t RemoteNode::uptime() const { return uptime_; }
 
+//Возвращает количество принятых пакетов ноды
 uint32_t RemoteNode::packetsReceived() const
 {
     return packetsReceived_;
 }
 
+//Возвращает колчество отправленных пакетов ноды
 uint32_t RemoteNode::packetsSent() const
 {
     return packetsSent_;
 }
 
+//Возвращает количество принятых байт ноды
 uint32_t RemoteNode::bytesReceived() const
 {
     return bytesReceived_;
 }
 
+//Возвращает количество отправленных байт ноды
 uint32_t RemoteNode::bytesSent() const
 {
     return bytesSent_;
 }
 
+//Возвращает входящую скорость ноды
 uint32_t RemoteNode::downSpeed() const
 {
     return downSpeed_;
 }
 
+//Возвращает исходящую скорость ноды
 uint32_t RemoteNode::upSpeed() const
 {
     return upSpeed_;
 }
 
+//Возвращает RemoteComponent ноды по индексу
 RemoteComponent *RemoteNode::componentAt(int index) const
 {
     return components_[index];
 }
+//}Методы получения данных узла
 
+//Обработка события "завершение запроса о получении статуса"
+//После получения ответа от ноды полученные данные заносятся в RemoteNode и будут отображены в терминале
 void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &packet)
 {
     auto status = packet.response().status();
@@ -343,11 +383,13 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     emit statusChanged();
 }
 
+//Устанавливает флаг соединения с нодой на true
 void RemoteNode::onConnected()
 {
     setConnected(true);
 }
 
+//Устанавливает флаг соединения с нодой на false
 void RemoteNode::onConnectionFailed(const boost::system::error_code &)
 {
     setConnected(false);

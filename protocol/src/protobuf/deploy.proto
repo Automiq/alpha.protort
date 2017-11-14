@@ -1,14 +1,16 @@
-syntax = 'proto3';
+﻿syntax = 'proto3';// Версия синтаксиса
 
-import "components.proto";
+// Импорт определений
+import "components.proto";// Импорт определений
 
 package alpha.protort.protocol.deploy;
 
+// Информация о ноде
 message NodeInfo
 {
-    string name = 1;
-    string address = 2;
-    uint32 port = 3;
+    string name = 1;// Имя ноды
+    string address = 2;// Адрес
+    uint32 port = 3;// Порт
 }
 
 message NodeInfoList
@@ -18,8 +20,8 @@ message NodeInfoList
 
 message Instance
 {
-    string name = 1;
-    ComponentKind kind = 2;
+    string name = 1;// Имя комонента
+    ComponentKind kind = 2;// Тип компонента
 }
 
 message InstanceList
@@ -51,21 +53,17 @@ message ConnectionList
 
 enum PacketKind
 {
-    // Деплой конфигурации узла
-    DeployConfig = 0;
-    // Запрос конфигурации узла
-    GetConfig = 1;
-    // Запуск узла (старт роутера и компонентов)
-    Start = 2;
-    // Останов узла
-    Stop = 3;
-    // Запрос статуса узла
-    GetStatus = 4;
+    DeployConfig = 0;// Деплой конфигурации узла
+    GetConfig = 1;// Запрос конфигурации узла
+    Start = 2;// Запуск узла (старт роутера и компонентов)
+    Stop = 3;// Останов узла
+    GetStatus = 4;// Запрос статуса узла
     // Обновить схему развёрывания на лету
     // TODO
-    Update = 5;   
+    Update = 5; // Обновление
 }
 
+// Конфигурация
 message Config
 {
     NodeInfo this_node_info = 1;
@@ -76,7 +74,6 @@ message Config
 }
 
 // Деплой конфигурации узла
-
 message DeployConfigRequest
 {
     Config config = 1;
@@ -88,7 +85,6 @@ message DeployConfigResponse
 }
 
 // Запрос конфигурации узла
-
 message GetConfigRequest
 {
 }
@@ -99,7 +95,6 @@ message GetConfigResponse
 }
 
 // Запуск узла
-
 message StartRequest
 {
     // TODO
@@ -111,7 +106,6 @@ message StartResponse
 }
 
 // Останов узла
-
 message StopRequest
 {
     // TODO
@@ -123,7 +117,6 @@ message StopResponse
 }
 
 // Запрос статуса узла
-
 message StatusRequest
 {
     // TODO
@@ -132,25 +125,19 @@ message StatusRequest
 // Ответ на запрос статуса сетевого узла
 message StatusResponse
 {
-    // Имя узла, предоставившего свой статус
-    string node_name = 1;
-    // Счётчик входящих/исходящих пакетов узла
-    uint32 in_packets_count = 2;
-    uint32 out_packets_count = 3;
-    // Количество входящих/исходящих байт
-    uint32 in_bytes_count = 4;
-    uint32 out_bytes_count = 5;
-    // Аптайм
-    uint32 uptime = 6;
+    string node_name = 1;// Имя узла, предоставившего свой статус
+    uint32 in_packets_count = 2;// Счётчик входящих пакетов узла
+    uint32 out_packets_count = 3;// Счётчик исходящих пакетов узла
+    uint32 in_bytes_count = 4;// Количество входящих байт
+    uint32 out_bytes_count = 5;// Количество исходящих байт
+    uint32 uptime = 6;// Аптайм
 
     // Соообщение со статусом для компонента
     message ComponentStatus
     {
-        // Имя компонента
-        string name = 1;
-        // Счётчик обработанных пакетов
-        uint32 in_packet_count = 2;
-        uint32 out_packet_count = 3;
+        string name = 1;// Имя компонента
+        uint32 in_packet_count = 2;// Счётчик полученных пакетов
+        uint32 out_packet_count = 3;// Счётчик отправленных пакетов
     }
 
     repeated ComponentStatus component_statuses = 7;
@@ -159,19 +146,17 @@ message StatusResponse
 // Пакет протокола развертывания
 message Packet
 {
-    // Тип пакета
-    PacketKind kind = 1;
+    PacketKind kind = 1;// Тип пакета
     
     // Класс сообщения об ошибке
     message Error
     {
-        // Строковое human-readable представление ошибки
-        string message = 1;
+        string message = 1;// Строковое human-readable представление ошибки
     }
 
-    // Ошибка (если есть)
-    Error error = 2;
+    Error error = 2;// Ошибка (если есть)
 
+    // Запрос
     message Request
     {
         oneof Payload
@@ -184,6 +169,7 @@ message Packet
         }
     }
 
+    // Ответ
     message Response
     {
         oneof Payload

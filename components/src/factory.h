@@ -28,11 +28,20 @@ namespace alpha {
 namespace protort {
 namespace components {
 
+/*!
+ * \brief Компонент factory - в зависимости от типа компонента, создает новый объект этого типа,
+ * инициализируя его router, и возвращает shared_ptr, который владеет этим объектом.
+ */
+
 class factory
 {
 public:
     factory() = delete;
 
+    /*!
+     * \brief Cоздает shared_ptr, в управление которому отдается только что созданный экземпляр компонента
+     * с типом kind, инициализируя его router
+     */
     static component_ptr create(
             protocol::ComponentKind kind,
             router_ptr router)
@@ -41,6 +50,7 @@ public:
 
         switch (kind) {
         case protocol::ComponentKind::Generator:
+            // Отдаем во владение shared_ptr новый экземпляр типа компонента
             ptr.reset(new components::generator(router));
             break;
         case protocol::ComponentKind::Retranslator:
@@ -62,10 +72,16 @@ public:
             assert(false);
             break;
         }
-
+        // Возвращение shared_ptr, владеющего экземпляром с типом компонента
         return ptr;
     }
 
+    /*!
+     * \brief Возвращает вызов create с параметрами:
+     * Функция get_component_kind(kind), которая возвращает тип компомнента,
+     * в зависимости от входной строки, которая описывает тип компонента
+     * router , который реализует отправку, доставку и маршрутизацию данных между логическими портами
+     */
     static component_ptr create(
             const std::string& kind,
             router_ptr router)

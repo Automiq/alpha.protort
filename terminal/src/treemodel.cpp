@@ -12,26 +12,31 @@ TreeModel::TreeModel(const QList<RemoteNodePtr> &data, QObject *parent)
 
 TreeModel::~TreeModel(){}
 
+//Возвращает количество колонок
 int TreeModel::columnCount(const QModelIndex &) const
 {
     return Column::ColumnCount;
 }
 
+//Возвращает объект Qt по индексу
 QObject* TreeModel::object(const QModelIndex &index) const
 {
     return static_cast<QObject *>(index.internalPointer());
 }
 
+//Возвращает RemoteNode по индексу
 RemoteNode *TreeModel::node(const QModelIndex &index) const
 {
     return qobject_cast<RemoteNode *>(object(index));
 }
 
+//Возвращает RemoteComponent по индексу
 RemoteComponent *TreeModel::component(const QModelIndex &index) const
 {
     return qobject_cast<RemoteComponent *>(object(index));
 }
 
+//Возвращает индекс определенной RemoteNode. Параметр - указатель на RemoteNode
 int TreeModel::indexOfNode(RemoteNode* node) const
 {
     for (int i = 0, size = m_nodes.size(); i < size; ++i)
@@ -42,11 +47,14 @@ int TreeModel::indexOfNode(RemoteNode* node) const
     return -1;
 }
 
+//Возвращает RemoteNode по индексу
 RemoteNode *TreeModel::nodeAt(int index) const
 {
     return m_nodes[index].get();
 }
 
+//Возвращает определенную инфу о remotenode. Например её иконку, имя, адрес, аптайм и т.д.
+//Параметры: 1-укзатель на ноду, 2-индекс колонки(по сути-какую инфу хотим), 3-сложнааа..Похоже на.. декоративность элемента???
 QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int role) const
 {
     if (role == Qt::DecorationRole && index.column() == Column::Connection)
@@ -87,6 +95,8 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
     }
 }
 
+//Возвращает определенную инфу о КомпонентеНоды. Например его имя, кол-во отпр и полученных пакетов.
+//Параметры: 1-указатель на компонент, 2-индекс колонки, 3-сложнааа..Похоже на.. декоративность элемента???
 QVariant TreeModel::componentData(RemoteComponent *component, const QModelIndex &index, int role) const
 {
     if (role != Qt::DisplayRole)
@@ -105,6 +115,7 @@ QVariant TreeModel::componentData(RemoteComponent *component, const QModelIndex 
     }
 }
 
+//Возвращает компонент или ноду индексу
 QVariant TreeModel::data(const QModelIndex &index, int role) const
 {
     if (!index.isValid())
@@ -122,6 +133,8 @@ QVariant TreeModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
+//Позвращает имена колонки из заголовочной строки таблицы
+//Основной параметр section - id столбца.
 QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
                                int role) const
 {
@@ -155,6 +168,7 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
     }
 }
 
+//Возвращение индекса RemoteComponent по строке, колонке, индексу родителя (RemoteNode)
 QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) const
 {
     if (parent.isValid() && parent.column() != 0)
@@ -172,6 +186,8 @@ QModelIndex TreeModel::index(int row, int column, const QModelIndex &parent) con
     return createIndex(row, column, n->componentAt(row));
 }
 
+//Возвращает индекс родителя компонента по индексу копмонента. 
+//(Родитель - RemoteNode, компонент - RemoteComponent)
 QModelIndex TreeModel::parent(const QModelIndex &index) const
 {
     if (!index.isValid())
@@ -194,6 +210,7 @@ QModelIndex TreeModel::parent(const QModelIndex &index) const
     return QModelIndex();
 }
 
+//Возвращает количество строк (количество RemoteComponent) у RemoteNode по индексу RemoteNode
 int TreeModel::rowCount(const QModelIndex &parent) const
 {
     if(!parent.isValid())
@@ -205,6 +222,7 @@ int TreeModel::rowCount(const QModelIndex &parent) const
     return 0;
 }
 
+//Привязка событий смены статуса и смены компонентов модели (RemoteNode`ов) к TreeModel
 void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
 {
     beginResetModel();
@@ -219,6 +237,7 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
     endResetModel();
 }
 
+//Обновление компонентов RemoteNode в таблице TreeModel
 void TreeModel::onComponentsChanged()
 {
     auto node = qobject_cast<RemoteNode*>(sender());
@@ -228,6 +247,7 @@ void TreeModel::onComponentsChanged()
     emit dataChanged(parent, parent);
 }
 
+//Обновление статуса RemoteNode в таблице TreeModel
 void TreeModel::onStatusChanged()
 {
     auto node = qobject_cast<RemoteNode*>(sender());
@@ -248,6 +268,8 @@ void TreeModel::onStatusChanged()
     emit dataChanged(topLeft, bottomRight);
 }
 
+//Перевод байт в человекочитаемый размер. Возвращает строку
+//Параметр 1 - количество байт.
 QString TreeModel::humanReadableBytes(double bytes)
 {
     QStringList list;
@@ -264,6 +286,8 @@ QString TreeModel::humanReadableBytes(double bytes)
     return QString().setNum(bytes, 'f', 2) + " " + unit;
 }
 
+//Перевод скорости в человекочитаемую скорость.
+//Параметр 1 - скорость в байт/сек
 QString TreeModel::humanReadableSpeed(double speed)
 {
     return speed ? QString("%1/сек").arg(humanReadableBytes(speed)) : tr("N/A");

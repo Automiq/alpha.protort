@@ -4,7 +4,15 @@
 namespace alpha {
 namespace protort {
 namespace components {
+    /*!
+    * \brief Компонент convert - конвертирует строку
+    * в тип компонента и наоборот.
+    */
 
+    /*!
+     * \brief Возвращает тип компонента, соответствующий описанию kind.
+     * kind - строка, содержимое которой является описанием типа компонента
+     */
     static protocol::ComponentKind get_component_kind(const std::string& kind)
     {
         if (kind == "generator")
@@ -22,7 +30,10 @@ namespace components {
         else
             assert(false);
     }
-
+    /*!
+     * \brief Возвращает строку, соответствующую содержимому kind.
+     * kind - тип компонента
+     */
     static std::string get_component_kind(const protocol::ComponentKind& kind)
     {
         switch (kind) {

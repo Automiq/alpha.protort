@@ -17,6 +17,7 @@ Document::Document(QWidget *parent)
     setFont(f);
 }
 
+//Сохранение документа - запись на диск. m_name - путь к файлу.
 bool Document::save()
 {
     if(m_name.isEmpty())
@@ -36,16 +37,19 @@ bool Document::save()
     return false;
 }
 
+//Геттер пути к файлу документа.
 QString Document::filePath() const
 {
     return m_name;
 }
 
+//Геттер имени файла документа.
 QString Document::fileName() const
 {
     return QFileInfo(m_name).fileName();
 }
 
+//Возвращает тип (kind) документа (app, deploy, Unknown)
 Document::Kind Document::kind() const
 {
     QXmlStreamReader xml(toPlainText());
@@ -60,26 +64,31 @@ Document::Kind Document::kind() const
     return Kind::Unknown;
 }
 
+//Сеттер пути к файлу. Параметр - путь.
 void Document::setFilePath(const QString &fileName)
 {
     m_name = fileName;
 }
 
+//bool проверка. Документ типа app?
 bool Document::isApp() const
 {
     return Kind::App == kind();
 }
 
+//bool проверка. Документ типа deploy?
 bool Document::isDeploy() const
 {
     return Deploy == kind();
 }
 
+//bool проверка. Документ типа unknown?
 bool Document::isUnknown() const
 {
     return Unknown == kind();
 }
 
+//Диалог сохранения документа как файла
 QString Document::getFileNameOFD()
 {
     return QFileDialog::getSaveFileName(this, tr("Сохранить файл как..."),

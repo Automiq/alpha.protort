@@ -12,6 +12,16 @@ namespace alpha {
 namespace protort {
 namespace parser {
 
+/*!
+* \brief Компонент parser - описывает схему приложения и развертывания,
+* получает и хрании информацию путем парсинга xml файлов схемы приложения
+* и схемы развертывания.
+*
+* Стуктуры:
+* Компонента, связь между портами, сетевой узел,
+* отображение компонента на сетевой узел, конфигурация.
+*/
+
 using port_id = uint32_t;
 
 /*!
@@ -32,10 +42,10 @@ struct component
  */
 struct connection
 {
-    std::string source;
-    port_id source_out;
-    std::string dest;
-    port_id dest_in;
+    std::string source;// Идентификатор компонента, отправляющего сообщение
+    port_id source_out;// Идентификатор выхода у отправляющего компонента
+    std::string dest;// Идентификатор компонента, получающего сообщение
+    port_id dest_in;// Идентификатор входа у получающего компонента
 };
 
 /*!
@@ -46,9 +56,9 @@ struct connection
 struct node
 {
     std::string name;
-    std::string address;
+    std::string address;// IP-адрес или hostname узла
     port_id port;
-    port_id config_port;
+    port_id config_port;// Порт сервера конфигурации (по умолчанию =100)
 };
 
 /*!
@@ -70,6 +80,7 @@ struct mapping
  */
 struct configuration
 {
+    //Векторы для хранения соответствующих компонентов после парсинга приложения
     std::vector<component> components;
     std::vector<connection> connections;
     std::vector<node> nodes;
@@ -77,7 +88,7 @@ struct configuration
 
     /*!
      * \brief Парсит схему приложения
-     * \param путь к файлу схемы приложения
+     * \param путь к файлу, в котором находится схема приложения в формате xml
      * \return true если успешно, иначе false
      *
      * Метод парсит схему приложения и хранит полученную информацию внутри класса в соответствующих атрибутах
@@ -90,22 +101,22 @@ struct configuration
         {
             using boost::property_tree::ptree;
             boost::property_tree::ptree pt;
-            read_xml(filename, pt);
+            read_xml(filename, pt);// Парсим xml в дерево pt
 
-            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("app") ) {
+            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
                 if( v.first == "instance" ) {
                     component comp;
-                    comp.name = v.second.get<std::string>("<xmlattr>.name");
-                    comp.kind = v.second.get<std::string>("<xmlattr>.kind");
-                    components.push_back(comp);
+                    comp.name = v.second.get<std::string>("<xmlattr>.name");// Задаем имя компонента, соответстующее имени из xml кода
+                    comp.kind = v.second.get<std::string>("<xmlattr>.kind");// Задаем тип компонента, соответстующий типу из xml кода
+                    components.push_back(comp);// Пушим компонент в вектор компонентов
                 }
                 else if( v.first == "connection" ) {
                     connection conn;
-                    conn.source = v.second.get<std::string>("<xmlattr>.source");
+                    conn.source = v.second.get<std::string>("<xmlattr>.source");// Задаем идентификатор компонента
                     conn.source_out = v.second.get<port_id>("<xmlattr>.source_out");
                     conn.dest = v.second.get<std::string>("<xmlattr>.dest");
                     conn.dest_in = v.second.get<port_id>("<xmlattr>.dest_in");
-                    connections.push_back(conn);
+                    connections.push_back(conn);//Пушим связь в вектор связей
                 }
                 else
                     std::cout << "Unknown tag in the file" << std::endl;
@@ -134,22 +145,22 @@ struct configuration
         {
             using boost::property_tree::ptree;
             boost::property_tree::ptree pt;
-            read_xml(filename, pt);
+            read_xml(filename, pt);// Парсим xml в дерево pt
 
-            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("deploy") ) {
+            BOOST_FOREACH( ptree::value_type const& v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
                 if( v.first == "node" ) {
                     node n;
-                    n.name = v.second.get<std::string>("<xmlattr>.name");
-                    n.address = v.second.get<std::string>("<xmlattr>.address");
-                    n.port = v.second.get<port_id>("<xmlattr>.port");
-                    n.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
-                    nodes.push_back(n);
+                    n.name = v.second.get<std::string>("<xmlattr>.name");// Устанавливаем имя узла, соответстующее имени из xml кода
+                    n.address = v.second.get<std::string>("<xmlattr>.address");// Устанавливаем  адресс узла, соответстующий иадресу из xml кода
+                    n.port = v.second.get<port_id>("<xmlattr>.port");// Устанавливаем  порт узла, соответстующий порту из xml кода
+                    n.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);//Устанавливаем  конфигурацию, соответстующую конфигурации из xml кода
+                    nodes.push_back(n);// Пушим узел в вектор узлов
                 }
                 else if( v.first == "map" ) {
                     mapping mapp;
-                    mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");
-                    mapp.node_name = v.second.get<std::string>("<xmlattr>.node");
-                    mappings.push_back(mapp);
+                    mapp.comp_name = v.second.get<std::string>("<xmlattr>.instance");// Устанавливаем имя компонента
+                    mapp.node_name = v.second.get<std::string>("<xmlattr>.node");// Устанавливаем имя узла
+                    mappings.push_back(mapp);// Пушим отображение компонента на сетевой узел в соответствующий вектор
                 }
                 else
                     std::cout << "Unknown tag in the file" << std::endl;
