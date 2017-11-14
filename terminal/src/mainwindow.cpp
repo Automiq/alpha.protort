@@ -470,10 +470,8 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 void MainWindow::on_backup_transition()
 {
-    // Ищу где удалить кнопку
     int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
     RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
-
     QMessageBox *mbTest = new QMessageBox;
     mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(sender()->objectName()));// Проверка урвня и имени ноды
     mbTest->show();
@@ -481,7 +479,7 @@ void MainWindow::on_backup_transition()
     alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
     backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
 
-    remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+//    remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
 
 
     //mbTest->setText(QString("%1").arg(QString::number(ui->treeStatus->currentIndex().row(),16)));

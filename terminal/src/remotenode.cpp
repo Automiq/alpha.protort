@@ -79,13 +79,13 @@ bool RemoteNode::pairNodeStatus() const
  */
 void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payload& backup)
 {
-    auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+//    auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
 
-    callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
-            emit backupTransitionRequestFinished(packet.deploy_packet());
-    });// По окончании соединения вырабатываем сигнал backupTransitionRequestFinished
+//    callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+//            emit backupTransitionRequestFinished(packet.deploy_packet());
+//    });// По окончании соединения вырабатываем сигнал backupTransitionRequestFinished
 
-    client_->async_send_request(backup, callbacks);
+//    client_->async_send_request(backup, callbacks);
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
