@@ -18,7 +18,7 @@
 #include "protocol.pb.h"
 #include "deploy.pb.h"
 #include "factory.h"
-
+#include "logi.h"
 namespace alpha {
 
 namespace protort {
@@ -84,7 +84,7 @@ public:
     void start()
     {
         start_time_ = boost::chrono::steady_clock::now();// время запуска.
-        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));// разбрать ка кработает bind
+        signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));// разбрать как работает bind
         // запускает асинхронную операцию, ожидание сигналов
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
@@ -170,6 +170,7 @@ public:
             std::string address;
             uint32_t port;
         };
+
 
         // узнать
         // Создаем отображение имени компонента на информацию о узле
