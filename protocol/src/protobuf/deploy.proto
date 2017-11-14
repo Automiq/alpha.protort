@@ -63,7 +63,9 @@ enum PacketKind
     GetStatus = 4;
     // Обновить схему развёрывания на лету
     // TODO
-    Update = 5;   
+    Update = 5;
+    // Сигнал резервного перехода
+    BackupTransition = 6;
 }
 
 message Config
