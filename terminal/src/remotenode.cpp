@@ -85,7 +85,7 @@ void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payloa
             emit backupTransitionRequestFinished(packet.deploy_packet());
     });// По окончании соединения вырабатываем сигнал backupTransitionRequestFinished
 
-    client_->async_send_request(backup, callbacks);//На данный момент по нажатии на кнопку вылетает рантайм ошибка
+    client_->async_send_request(backup, callbacks);
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)

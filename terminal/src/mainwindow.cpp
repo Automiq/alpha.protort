@@ -457,8 +457,10 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
             }
 //            if(event->type() == QEvent::MouseButtonPress)
 //            {
-//                int row = sender()->property("row").toInt();
-//                on_backup_transition(row);
+//                //delete pushButton;
+//                QMessageBox *mbTest = new QMessageBox;
+//               mbTest->setText(QString("1"));// Проверка урвня и имени ноды
+//                mbTest->show();
 //                return true;
 //            }
 
@@ -468,11 +470,12 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 void MainWindow::on_backup_transition()
 {
+    // Ищу где удалить кнопку
     int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
     RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
 
     QMessageBox *mbTest = new QMessageBox;
-    mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(remoteNode->name()));// Проверка урвня и имени ноды
+    mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(sender()->objectName()));// Проверка урвня и имени ноды
     mbTest->show();
 
     alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
