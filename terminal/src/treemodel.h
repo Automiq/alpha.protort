@@ -34,6 +34,8 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
+    int BackupTransitionColumn() const;
+
 private slots:
     void onComponentsChanged();
     void onStatusChanged();
@@ -67,8 +69,8 @@ private:
         PacketsSent,
         BytesSent,
         UpSpeed,
-        Swap,
-        LastColumn = Swap,
+        Backup,
+        LastColumn = Backup,
         ColumnCount = LastColumn + 1,
     };
 };

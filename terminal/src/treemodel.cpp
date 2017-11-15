@@ -17,6 +17,11 @@ int TreeModel::columnCount(const QModelIndex &) const
     return Column::ColumnCount;
 }
 
+int TreeModel::BackupTransitionColumn() const
+{
+    return Column::Backup;
+}
+
 QObject* TreeModel::object(const QModelIndex &index) const
 {
     return static_cast<QObject *>(index.internalPointer());
@@ -52,7 +57,7 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
     if (role == Qt::DecorationRole && index.column() == Column::Connection)
         return QIcon(node->isConnected() ? ":/images/connected.png" : ":/images/notconnected.ico");
 
-    if (role == Qt::DecorationRole && index.column() == Column::Swap && !node->pairNodeStatus())
+    if (role == Qt::DecorationRole && index.column() == Column::Backup && !node->pairNodeStatus())
         return QIcon(":/images/slave.png");
 
     if (role != Qt::DisplayRole)
@@ -135,7 +140,7 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
     {
     case Column::Name:
         return tr("Имя узла");
-    case Column::Swap:
+    case Column::Backup:
         return tr("Состояние");
     case Column::Address:
         return tr("Адрес");

@@ -246,12 +246,12 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
 }
 
 /*!
- * \brief Вызывется при окончании процесса резервного перехода.
+ * \brief Вызывется по окончании процесса резервного перехода.
  * \param packet - пакет со статусом.
  */
 void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    //Тут нужно создать кнопку для ноды мастера, которая раньше была резервом(иконка slave перебросится автоматически).
+    //Тут нужно перепривязать кнопку на компоненту нового мастера
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(
                 packet.has_error() ?
@@ -346,8 +346,18 @@ void MainWindow::on_start_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
 
+    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_start(payload);
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());//Индекс ячейки перехода
+        //if(remNodePtr->pairNodeStatus())
+        //{
+            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
+        //}
+            ++i;
+    }
 }
 
 void MainWindow::on_stop_triggered()
@@ -358,8 +368,18 @@ void MainWindow::on_stop_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
 
+    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_stop(payload);
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());
+        //if(remNodePtr->pairNodeStatus())
+        //{
+            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
+        //}
+        ++i;
+    }
 }
 
 void MainWindow::showMessage()
@@ -391,23 +411,25 @@ void MainWindow::deploy()
     ui->treeStatus->show();
     ///////////////////////////////////////////////////////////////////////////
 
-    for (size_t i(0); i < remoteNodes_.count(); ++i)// Сработает для каждой ноды
+    for (int i(0); i < remoteNodes_.count(); ++i)// Сработает для каждой ноды
     {
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, mod->BackupTransitionColumn());// Индекс ячейки перехода
         //RemoteNodePtr remNodePtr = currentIndex.row();
         //if(remNodePtr->pairNodeStatus())
         //{
             QPushButton *bakupTransitionButton = new QPushButton;
             bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
-            bakupTransitionButton->setProperty("row", i);
+            bakupTransitionButton->setProperty("row", (QVariant)i);
             bakupTransitionButton->setFixedSize(40,20);
+/*6334*/            bakupTransitionButton->setEnabled(true);
             //bakupTransitionButton->setText("master");
             //bakupTransitionButton->setAutoFillBackground(true);
 
-            ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);
+            ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);// Устанавливаем кнопку в соответстующую ячейку
             //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
 
-            connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
+            //connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
             bakupTransitionButton->installEventFilter(this);
 /////////////////////////////////////////////////////////////////
 
@@ -442,45 +464,54 @@ void MainWindow::deploy()
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-        QPushButton *pushButton = reinterpret_cast<QPushButton*>(object);
-            if(event->type() == QEvent::Enter)
+        QPushButton *pushButton = qobject_cast<QPushButton*>(object);
+            if(event->type() == QEvent::Enter && pushButton->isEnabled())
             {
                 pushButton->setIcon(QIcon(":/images/backupTransitionICO.png"));
                 //pushButton->setText("backupTransition");
                 return true;
             }
-            if(event->type() == QEvent::Leave)
+            if(event->type() == QEvent::Leave && pushButton->isEnabled())
             {
                 pushButton->setIcon(QIcon(":/images/master.png"));
                 //pushButton->setText("master");
                 return true;
             }
-//            if(event->type() == QEvent::MouseButtonPress)
-//            {
-//                //delete pushButton;
-//                QMessageBox *mbTest = new QMessageBox;
-//               mbTest->setText(QString("1"));// Проверка урвня и имени ноды
-//                mbTest->show();
-//                return true;
-//            }
+            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())
+            {
+
+                int row = pushButton->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
+                RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
+                QMessageBox *mbTest = new QMessageBox;
+                mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(pushButton->objectName()));// Проверка урвня и имени ноды
+                mbTest->show();
+
+                alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
+                backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+
+                remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+                return true;
+            }
 
     return QMainWindow::eventFilter(object, event);
-
 }
 
 void MainWindow::on_backup_transition()
 {
-    int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
-    RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
-    QMessageBox *mbTest = new QMessageBox;
-    mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(sender()->objectName()));// Проверка урвня и имени ноды
-    mbTest->show();
+    QPushButton *pushButton = qobject_cast<QPushButton*>(sender());
+    if(pushButton->isEnabled())
+    {
+        int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
+        RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
+        QMessageBox *mbTest = new QMessageBox;
+        mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(sender()->objectName()));// Проверка урoвня и имени ноды
+        mbTest->show();
 
-    alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
-    backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+        alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
+        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
 
-//    remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
-
+        remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+    }
 
     //mbTest->setText(QString("%1").arg(QString::number(ui->treeStatus->currentIndex().row(),16)));
     //QModelIndex currentModelIndex = ui->treeStatus->model()->index( 0, 10 );

@@ -5,5 +5,4 @@
  <map instance="ge" node="node1" />
  <map instance="re" node="node2" />
  <map instance="te" node="node3" />
- <map instance="te2" node="node3" />
 </deploy>

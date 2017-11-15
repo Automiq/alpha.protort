@@ -287,10 +287,13 @@ private:
 
     protocol_payload backup_transition()
     {
+ #ifdef _DEBUG
+        std::cout << "connection has been terminated" << "\n";
+ #endif
+        std::cout<<"ARRA!!!"<<std::endl;
         protocol_payload response;
         protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
-        response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
-
+        response_packet->set_kind(protocol::deploy::PacketKind::BackupTransition);
         response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
 
         boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;
@@ -304,6 +307,8 @@ private:
 
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
+            comp_status->set_in_packet_count(component.second.component_->in_packet_count());
+            comp_status->set_out_packet_count(component.second.component_->in_packet_count());
             comp_status->set_name(component.first);
         }
 
