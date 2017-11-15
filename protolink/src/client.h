@@ -10,6 +10,7 @@
 #include <boost/enable_shared_from_this.hpp>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include <boost/chrono.hpp>
 
 #include "packet.pb.h"
 #include "protocol.pb.h"
@@ -160,6 +161,13 @@ private:
     void do_send_packet(const std::string& packet, int kind_)
     {
         boost::mutex::scoped_lock lock(write_buffer_mutex_);
+        //Определяем id треда который не будет ждать notify
+        if(immunnity_thread_isSelected_==false)
+        {
+            immunity_thread_id_=boost::this_thread::get_id();
+            immunnity_thread_isSelected_=true;
+        }
+
         // Формируем заголовок
         auto header = reinterpret_cast<packet_header *>(buffer_.get());
         header->packet_size = packet.size();
@@ -167,6 +175,23 @@ private:
         // Копируем отправляемую строку в буффер
         copy(packet.begin(), packet.end(), buffer_.get() + header_size);
 
+        //Очередь
+        while (queue_>10000)
+        {
+            if(boost::this_thread::get_id()!=immunity_thread_id_)
+            {
+                cond_.wait(lock);
+            }
+            else
+            {
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(50));
+                break;
+            }
+        }
+        ++queue_;
+#ifdef _DEBUG
+        std::cout << "queue now is: " << queue_ << std::endl;
+#endif
         // Добавляем асинхронный таск на отправку
         async_write(
                     socket_,
@@ -186,6 +211,15 @@ private:
      */
     void on_packet_sent(const error_code& err, size_t bytes, int kind_)
     {
+
+        {
+            boost::mutex::scoped_lock lk( write_buffer_mutex_);
+            --queue_;
+        }
+        cond_.notify_one();
+#ifdef _DEBUG
+        std::cout << "queue now is: " << queue_ << std::endl;
+#endif
         if (boost::asio::error::eof == err || boost::asio::error::connection_reset == err)
         {
             stop();
@@ -302,6 +336,11 @@ private:
             break;
         }
     }
+
+    int queue_ {0}; //Переменная очереди отправки пакетов
+    boost::condition_variable cond_;
+    boost::thread::id immunity_thread_id_; //id треда который не будет ждать notify от cond_ (иметь иммунитет)
+    bool immunnity_thread_isSelected_ = false; //флаг, выбран ли тред
 
     //! Сокет
     boost::asio::ip::tcp::socket socket_;
