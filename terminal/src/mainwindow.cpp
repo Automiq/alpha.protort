@@ -251,10 +251,8 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
  */
 void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
-    //Тут нужно перепривязать кнопку на компоненту нового мастера
     auto node = qobject_cast<RemoteNode *>(sender());
-    //remoteNodes_.front()
-    //remoteNodes_. Поиск функции, которая даст мне указатель на слудующую ноду.
+
     writeLog(
                 packet.has_error() ?
                     tr("Ошибка резервного перехода на узеле %1").arg(node->info()) :
@@ -511,9 +509,6 @@ void MainWindow::on_backup_transition()
     {
         int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
         RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
-        QMessageBox *mbTest = new QMessageBox;
-        mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(sender()->objectName()));// Проверка урoвня и имени ноды
-        mbTest->show();
 
         alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
         backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
