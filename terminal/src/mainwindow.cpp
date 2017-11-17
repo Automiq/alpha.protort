@@ -267,7 +267,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    if(node->backupStatus() == 0 && !(node->bakupPushButtonStatus()))
+    if(node->isConnected() && node->backupStatus() == 0 && !(node->bakupPushButtonStatus()))
     {
         //6334
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
@@ -298,6 +298,26 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 
         /////////////////////////////////////////////////////////////////
         remNode->setBackupPushButtonStatus(true);
+    }
+    if(node->isConnected() && node->backupStatus() == 1 && node->bakupPushButtonStatus())
+    {
+        //Реализовать swap в листе
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+        int row = mod->indexOfNode(node);//только если вытащим из private функцию.
+        QMessageBox *mbTest = new QMessageBox;
+        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня ноды
+        mbTest->show();
+        //QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+        RemoteNodePtr masteRemoteNode = remoteNodes_.at(row),
+                      slaveRemoteNode = remoteNodes_.at(row+1),
+                      variable(masteRemoteNode);
+        masteRemoteNode->setBackupPushButtonStatus(false);
+        slaveRemoteNode->setBackupPushButtonStatus(true);
+        masteRemoteNode = slaveRemoteNode;
+        slaveRemoteNode = variable;
+
+
+        on_status_triggered();
     }
 
    // auto node = qobject_cast<RemoteNode *>(sender());
@@ -366,6 +386,25 @@ void MainWindow::onConnected()
 void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
+
+//    if(node->backupStatus() == 0 && node->bakupPushButtonStatus())
+//    {
+//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+//        int row = mod->indexOfNode(node);
+
+//        QMessageBox *mbTest = new QMessageBox;
+//        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
+//        mbTest->show();
+
+//        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+//        RemoteNodePtr remoteNode = remoteNodes_.at(row);
+
+//        QPushButton* pushButton = reinterpret_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+//        delete pushButton;
+
+//        remoteNode->setBackupPushButtonStatus(false);
+//    }
+
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
              .arg(QString::fromStdString(err.message())));
@@ -450,7 +489,7 @@ void MainWindow::deploy()
     ui->treeStatus->show();
     ///////////////////////////////////////////////////////////////////////////
 
-    int i(0);
+//    int i(0);
 //    for(auto node : remoteNodes_)// Сработает для каждой ноды
 //    {
 //        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
@@ -621,7 +660,7 @@ void MainWindow::on_status_triggered()
         return;
 
     ui->treeStatus->expandAll();
-    alpha::protort::protocol::Packet_Payload status;
+    alpha::protort::protocol::Packet_Payload status;// ERRROR!
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
     for (auto &remoteNode: remoteNodes_)
