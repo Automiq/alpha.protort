@@ -63,6 +63,9 @@ public:
           server_for_conf_(*this,service_),//создает сервер
           signals_(service_, SIGINT, SIGTERM),// объект для прослушивания сигналов
           router_(boost::make_shared<router<node>>(service_))//создает роутер пакетов
+#ifdef _DEBUG
+          ,i(0)
+#endif
     {
     }
 
@@ -72,6 +75,9 @@ public:
           settings_(settings),// использует конфигурацию
           signals_(service_, SIGINT, SIGTERM),
           router_(boost::make_shared<router<node>>(service_))
+#ifdef _DEBUG
+        ,i(0)
+#endif
     {
     }
 
@@ -287,10 +293,13 @@ private:
 
     protocol_payload backup_transition()
     {
- #ifdef _DEBUG
-        std::cout << "connection has been terminated" << "\n";
+ #ifdef _DEBUG        
+        if(i == 0 || i == 3) std::cout<<"L'vi lezut na stenu, seer."<<std::endl;
+        else if(i == 1) std::cout<<"Stol'ko l'vov, seer."<<std::endl;
+        else if(i == 2) std::cout<<"Narod volnuetsya"<<std::endl;
+        else i = -1;
+        ++i;
  #endif
-        std::cout<<"ARRA!!!"<<std::endl;
         protocol_payload response;
         protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
         response_packet->set_kind(protocol::deploy::PacketKind::BackupTransition);
@@ -375,6 +384,10 @@ private:
 
         deploy_from_config(pconf);
     }
+
+#ifdef _DEBUG
+    boost::int32_t i;
+#endif
 
     //! I/O сервис
     boost::asio::io_service service_;

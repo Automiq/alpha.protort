@@ -27,6 +27,7 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
+    int indexOfNode(RemoteNode* node) const;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     QModelIndex parent(const QModelIndex &index) const Q_DECL_OVERRIDE;
@@ -46,8 +47,6 @@ private:
     QObject *object(const QModelIndex &index) const;
     RemoteNode *node(const QModelIndex &index) const;
     RemoteComponent *component(const QModelIndex &index) const;
-
-    int indexOfNode(RemoteNode* node) const;
 
     RemoteNode *nodeAt(int index) const;
 

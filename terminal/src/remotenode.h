@@ -32,6 +32,10 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
     using client_ptr = boost::shared_ptr<client_t>;
 
 public:   
+
+     void setBackupStatus(uint32_t value);
+     void setBackupPushButtonStatus(bool status);
+
     QList<RemoteComponent*> components() const;
 
     RemoteNode(alpha::protort::parser::node const& node);
@@ -43,7 +47,6 @@ public:
     QString name() const;
     QString address() const;
     QString info() const;
-    bool pairNodeStatus() const;
 
     void async_backup_transition(alpha::protort::protocol::Packet_Payload& backup);
     void async_deploy(deploy_configuration& deploy_configuration_);
@@ -64,6 +67,9 @@ public:
 
     uint32_t downSpeed() const;
     uint32_t upSpeed() const;
+
+    uint32_t backupStatus() const;
+    bool bakupPushButtonStatus() const;
 
     RemoteComponent *componentAt(int index) const;
 
@@ -105,6 +111,7 @@ private:
     void setBytesReceived(uint32_t value);
     void setBytesSent(uint32_t value);
     void setConnected(bool value);
+//    void setBackupStatus(uint32_t value);
 
     double calcUpSpeed(const QTime &now, uint32_t bytesSent);
     double calcDownSpeed(const QTime &now, uint32_t bytesReceived);
@@ -128,10 +135,22 @@ private:
     double upSpeed_;
 
     bool isConnected_;
+    bool backupButtonIsCreated_;
 
     QString name_;
     QList<RemoteComponent*> components_;
 
     QTime m_lastStatusTime;
+
+//    enum BackupStatus
+//    {
+//        MasterButtonCtreated = 0,
+//        SlaveButtonCtreated = 1,
+//        NoneButtonCtreated = 2,
+//        MasterButtonNone = 3,
+//        SlaveButtonNone = 4,
+//        NoneButtonNode = 5
+//    } backupStatus_;
+    uint32_t backupStatus_;
 };
 #endif // TERMINAL_CLIENT_H

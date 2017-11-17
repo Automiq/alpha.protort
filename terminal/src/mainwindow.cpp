@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_statusTimer, &QTimer::timeout, this, &MainWindow::on_status_triggered);
 
     TreeModel *model = new TreeModel(remoteNodes_);
+    //connect(model, SIGNAL(dataChanged()), this, &MainWindow::);
     ui->treeStatus->setModel(model);
 }
 
@@ -253,6 +254,8 @@ void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protoco
 {
     //Тут нужно перепривязать кнопку на компоненту нового мастера
     auto node = qobject_cast<RemoteNode *>(sender());
+    //remoteNodes_.front()
+    //remoteNodes_. Поиск функции, которая даст мне указатель на слудующую ноду.
     writeLog(
                 packet.has_error() ?
                     tr("Ошибка резервного перехода на узеле %1").arg(node->info()) :
@@ -263,6 +266,41 @@ void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protoco
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
+
+    if(node->backupStatus() == 0 && !(node->bakupPushButtonStatus()))
+    {
+        //6334
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+        int row = mod->indexOfNode(node);//только если вытащим из private функцию.
+        QMessageBox *mbTest = new QMessageBox;
+        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
+        mbTest->show();
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+        RemoteNodePtr remNode = remoteNodes_.at(row);
+
+
+        QPushButton *bakupTransitionButton = new QPushButton;
+        bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
+        bakupTransitionButton->setProperty("row", (QVariant)row);
+        bakupTransitionButton->setFixedSize(40,20);
+/*6334*/   bakupTransitionButton->setEnabled(true);
+        //bakupTransitionButton->setText("master");
+        //bakupTransitionButton->setAutoFillBackground(true);
+
+//!!!!!     ui->treeStatus->indexWidget();
+
+        ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);// Устанавливаем кнопку в соответстующую ячейку
+        //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
+
+        connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
+        //connect(bakupTransitionButton,SIGNAL(onFocus),this,SLOT(on_backup_transition()));
+        bakupTransitionButton->installEventFilter(this);
+
+        /////////////////////////////////////////////////////////////////
+        remNode->setBackupPushButtonStatus(true);
+    }
+
+   // auto node = qobject_cast<RemoteNode *>(sender());
 
     if (packet.has_error())
     {
@@ -352,10 +390,10 @@ void MainWindow::on_start_triggered()
         remoteNode->async_start(payload);
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
         QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());//Индекс ячейки перехода
-        //if(remNodePtr->pairNodeStatus())
-        //{
+        if(remoteNode->backupStatus() == 0)
+        {
             ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
-        //}
+        }
             ++i;
     }
 }
@@ -374,10 +412,10 @@ void MainWindow::on_stop_triggered()
         remoteNode->async_stop(payload);
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
         QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());
-        //if(remNodePtr->pairNodeStatus())
-        //{
+        if(remoteNode->backupStatus() == 0)
+        {
             ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
-        //}
+        }
         ++i;
     }
 }
@@ -403,38 +441,42 @@ void MainWindow::deploy()
     ui->deploy->setDisabled(true);
 
     for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_deploy(deploy_config_);
-
+    }
     TreeModel *model = new TreeModel(remoteNodes_);
     model->setupModelData(remoteNodes_);
 
     ui->treeStatus->show();
     ///////////////////////////////////////////////////////////////////////////
 
-    for (int i(0); i < remoteNodes_.count(); ++i)// Сработает для каждой ноды
-    {
-        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, mod->BackupTransitionColumn());// Индекс ячейки перехода
-        //RemoteNodePtr remNodePtr = currentIndex.row();
-        //if(remNodePtr->pairNodeStatus())
-        //{
-            QPushButton *bakupTransitionButton = new QPushButton;
-            bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
-            bakupTransitionButton->setProperty("row", (QVariant)i);
-            bakupTransitionButton->setFixedSize(40,20);
-/*6334*/            bakupTransitionButton->setEnabled(true);
-            //bakupTransitionButton->setText("master");
-            //bakupTransitionButton->setAutoFillBackground(true);
+    int i(0);
+//    for(auto node : remoteNodes_)// Сработает для каждой ноды
+//    {
+//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
-            ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);// Устанавливаем кнопку в соответстующую ячейку
-            //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
+//        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, mod->BackupTransitionColumn());// Индекс ячейки перехода
+//        if(node->backupStatus() == 0){
+//            QPushButton *bakupTransitionButton = new QPushButton;
+//            bakupTransitionButton->setIcon(QIcon(":/images/master.png"));
+//            bakupTransitionButton->setProperty("row", (QVariant)i);
+//            bakupTransitionButton->setFixedSize(40,20);
+///*6334*/            bakupTransitionButton->setEnabled(true);
+//            //bakupTransitionButton->setText("master");
+//            //bakupTransitionButton->setAutoFillBackground(true);
 
-            //connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
-            bakupTransitionButton->installEventFilter(this);
-/////////////////////////////////////////////////////////////////
+//            ui->treeStatus->setIndexWidget(currentModelIndex, bakupTransitionButton);// Устанавливаем кнопку в соответстующую ячейку
+//            //connect(bakupTransitionButton, &QPushButton::clicked(true), this, &MainWindow::on_backup_transition());
 
-        //}
-    }
+//            connect(bakupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
+//            //connect(bakupTransitionButton,SIGNAL(onFocus),this,SLOT(on_backup_transition()));
+//            bakupTransitionButton->installEventFilter(this);
+///////////////////////////////////////////////////////////////////
+
+//        }
+//        ++i;
+//    }
+
 /*Вместо ui->treeStatus->currentIndex() в последующем фрагменте кода нужно поставить индекс нужного столбца*/
 /*    QMessageBox *mbInfoNode = new QMessageBox;
     mbInfoNode->setText(QString("%1 (%2)").arg(QString::number(ui->treeStatus->currentIndex().row(), 16))
@@ -462,6 +504,13 @@ void MainWindow::deploy()
     */
 }
 
+//void MainWindow::on_check_backup_button()
+//{
+//    QMessageBox *mbTest = new QMessageBox;
+//    mbTest->setText(QString("Check"));//
+//    mbTest->show();
+//}
+
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
         QPushButton *pushButton = qobject_cast<QPushButton*>(object);
@@ -477,21 +526,21 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
                 //pushButton->setText("master");
                 return true;
             }
-            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())
-            {
+//            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())
+//            {
 
-                int row = pushButton->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
-                RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
-                QMessageBox *mbTest = new QMessageBox;
-                mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(pushButton->objectName()));// Проверка урвня и имени ноды
-                mbTest->show();
+//                int row = pushButton->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
+//                RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
+//                QMessageBox *mbTest = new QMessageBox;
+//                mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(pushButton->objectName()));// Проверка урвня и имени ноды
+//                mbTest->show();
 
-                alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
-                backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+//                alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
+//                backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
 
-                remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
-                return true;
-            }
+//                remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+//                return true;
+//            }
 
     return QMainWindow::eventFilter(object, event);
 }
@@ -646,6 +695,8 @@ void MainWindow::createRemoteNodes()
         connectRemoteNodeSignals(remoteNode.get());
 
         remoteNode->init(service_);
+
+/*6334*/
     }
 
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);

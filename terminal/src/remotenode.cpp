@@ -13,7 +13,8 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
       bytesSent_(0),
       downSpeed_(0),
       upSpeed_(0),
-      isConnected_(false)
+      isConnected_(false),
+      backupButtonIsCreated_(false)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
@@ -67,10 +68,6 @@ QString RemoteNode::info() const
  * \brief Возвращает статус ноды.
  * \return Если нода master - true, если slave - false.
  */
-bool RemoteNode::pairNodeStatus() const
-{
-    return node_information_.pairnode ? true : false;
-}
 
 /*!
  * \brief Отправляет сигнал о резервном переходе на ноду мастера.
@@ -270,6 +267,33 @@ void RemoteNode::setConnected(bool value)
     emit statusChanged();
 }
 
+
+void RemoteNode::setBackupStatus(uint32_t value)
+{
+    if(value >= 0 && value <= 5)
+        backupStatus_ = value;
+    else
+        assert(false);
+//    switch(value)
+//    {
+//        case 0:
+//            backupStatus_ = BackupStatus::Master;
+//            break;
+//        case 1:
+//            backupStatus_ = BackupStatus::Slave;
+//            break;
+//        case 2:
+//            backupStatus_ = BackupStatus::None;
+//            break;
+//        default:
+//            assert(false);
+//    }
+}
+void  RemoteNode::setBackupPushButtonStatus(bool status)
+{
+    backupButtonIsCreated_ = status;
+}
+
 double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
 {
     return calcSpeed(now, bytesSent_, bytesSent);
@@ -323,6 +347,25 @@ uint32_t RemoteNode::upSpeed() const
     return upSpeed_;
 }
 
+uint32_t RemoteNode::backupStatus() const
+{
+    return backupStatus_;
+//    switch(backupStatus_)
+//    {
+//    case BackupStatus::Master:
+//        return 0;
+//    case BackupStatus::Slave:
+//        return 1;
+//    case BackupStatus::None:
+//        return 2;
+//    }
+}
+
+bool RemoteNode::bakupPushButtonStatus() const
+{
+    return backupButtonIsCreated_;
+}
+
 RemoteComponent *RemoteNode::componentAt(int index) const
 {
     return components_[index];
@@ -363,6 +406,8 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     setPacketsSent(status.out_packets_count());
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
+    //setBackupStatus(status.backup_status());
+    setBackupStatus(0);
 
     emit statusChanged();
 }

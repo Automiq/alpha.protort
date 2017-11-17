@@ -78,6 +78,10 @@ private slots:
 
     void on_backup_transition();
 
+    //void focusInEvent(QFocusEvent *event);
+
+    //void on_check_backup_button();
+
     bool eventFilter(QObject *object, QEvent *event);
 
 public slots:
