@@ -144,12 +144,9 @@ private:
 
 //    enum BackupStatus
 //    {
-//        MasterButtonCtreated = 0,
-//        SlaveButtonCtreated = 1,
-//        NoneButtonCtreated = 2,
-//        MasterButtonNone = 3,
-//        SlaveButtonNone = 4,
-//        NoneButtonNode = 5
+//        Master= 0,
+//        Slave = 1,
+//        None = 2,
 //    } backupStatus_;
     uint32_t backupStatus_;
 };
