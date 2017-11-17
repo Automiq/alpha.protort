@@ -1,0 +1,96 @@
+// Версия синтаксиса
+syntax = 'proto3';
+
+//import "deploy.proto";
+
+package alpha.protort.protocol.backup;
+
+enum PacketKind
+{
+    Switch = 0;// Деплой конфигурации узла
+    GetStatus = 1;
+    keep_a_live = 2;
+}
+
+enum BackupStatus 
+{
+    None = 0;
+    Master = 1;
+    Slave = 2;
+}
+// добавить запрос о статусе 
+
+message GetStatusRequest
+{
+ 
+}
+
+message GetStatusResponse
+{
+    BackupStatus backupstatus = 1;
+}
+
+//запрос на резервный переход
+message SwitchRequest
+{
+
+}
+
+//ответ на резервный переход
+message SwitchResponse
+{
+    bool flag = 1; // сигнал о переходе.
+}
+
+//запрос к ноде мастера(проверяет жива или нет)
+message KeepLiveRequest
+{
+
+}
+
+//ответ от мастера
+message KeepLiveResponse
+{
+
+}
+
+
+message Packet
+{  //тип пакета
+   PacketKind kind = 1;
+    
+    // Класс сообщения об ошибке
+    message Error
+    {
+        string message = 1;// Строковое human-readable представление ошибки
+    }
+
+    Error error = 2;// Ошибка (если есть)
+	
+    message Request
+    {
+        oneof Payload
+        {
+            GetStatusRequest Status = 1;
+            SwitchRequest Switch = 2;
+            KeepLiveRequest KeepLive = 3;
+        }
+    }
+
+    // Ответ
+    message Response
+    {
+        oneof Payload
+        {
+            GetStatusResponse Status = 1;
+            SwitchResponse Switch = 2;
+            KeepLiveResponse KeepLive = 3;
+        }
+    }
+	
+     oneof Payload
+     {
+       Request request = 3;
+       Response response = 4;
+     }
+}
