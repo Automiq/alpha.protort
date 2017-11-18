@@ -289,7 +289,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     if(node->isConnected() && node->backupStatus() == 1 && node->bakupPushButtonStatus())
     {
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-        int row = mod->indexOfNode(node);//только если вытащим из private функцию.
+        int row = mod->indexOfNode(node);
 
         RemoteNodePtr masteRemoteNode = remoteNodes_.at(row),
                       slaveRemoteNode = remoteNodes_.at(row+1),
