@@ -66,7 +66,6 @@ public:
     uint32_t upSpeed() const;
 
     uint32_t backupStatus() const;
-    bool bakupPushButtonStatus() const;
 
     RemoteComponent *componentAt(int index) const;
 

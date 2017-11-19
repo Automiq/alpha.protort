@@ -277,6 +277,9 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         if (node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
             node->backupStatus() == 2 && !(ui->treeStatus->indexWidget(currentModelIndex)))
         {
+            QMessageBox *mbTest = new QMessageBox;
+            mbTest->setText(QString("0"));// Проверка урвня и имени ноды
+            mbTest->show();
             QPushButton *backupTransitionButton = new QPushButton;
             backupTransitionButton->setProperty("row", (QVariant)row);
             backupTransitionButton->setFixedSize(40,20);
@@ -292,6 +295,9 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
             node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
         {
+            QMessageBox *mbTest = new QMessageBox;
+            mbTest->setText(QString("1"));// Проверка урвня и имени ноды
+            mbTest->show();
             backupTransitionButton->setIcon(QIcon(":/images/master.png"));
             backupTransitionButton->setEnabled(true);
 
@@ -299,6 +305,9 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         else if(node->backupStatus() == 2 && backupTransitionButton->icon().isNull()  ||
                 node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
         {
+            QMessageBox *mbTest = new QMessageBox;
+            mbTest->setText(QString("2"));// Проверка урвня и имени ноды
+            mbTest->show();
             backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
             backupTransitionButton->setEnabled(false);
         }
@@ -360,6 +369,19 @@ void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::P
 void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
+
+    TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+    int row = mod->indexOfNode(node);
+    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+
+    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
+    {
+        QMessageBox *mbTest = new QMessageBox;
+        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
+        mbTest->show();
+        ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
+    }
+
     writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
     activateDeploy();
     activateStatus();
@@ -368,23 +390,18 @@ void MainWindow::onConnected()
 void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
-//    if(node->backupStatus() == 0 && node->bakupPushButtonStatus())
-//    {
-//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-//        int row = mod->indexOfNode(node);
 
-//        QMessageBox *mbTest = new QMessageBox;
-//        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
-//        mbTest->show();
+    TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+    int row = mod->indexOfNode(node);
+    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
-//        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
-//        RemoteNodePtr remoteNode = remoteNodes_.at(row);
-
-//        QPushButton* pushButton = reinterpret_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
-//        delete pushButton;
-
-//        remoteNode->setBackupPushButtonStatus(false);
-//    }
+    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+    {
+        QMessageBox *mbTest = new QMessageBox;
+        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
+        mbTest->show();
+        ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
+    }
 
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
