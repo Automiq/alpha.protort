@@ -13,8 +13,7 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
       bytesSent_(0),
       downSpeed_(0),
       upSpeed_(0),
-      isConnected_(false),
-      backupButtonIsCreated_(false)
+      isConnected_(false)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
@@ -270,28 +269,8 @@ void RemoteNode::setConnected(bool value)
 
 void RemoteNode::setBackupStatus(uint32_t value)
 {
-    if(value >= 0 && value <= 5)
-        backupStatus_ = value;
-    else
-        assert(false);
-//    switch(value)
-//    {
-//        case 0:
-//            backupStatus_ = BackupStatus::Master;
-//            break;
-//        case 1:
-//            backupStatus_ = BackupStatus::Slave;
-//            break;
-//        case 2:
-//            backupStatus_ = BackupStatus::None;
-//            break;
-//        default:
-//            assert(false);
-//    }
-}
-void  RemoteNode::setBackupPushButtonStatus(bool status)
-{
-    backupButtonIsCreated_ = status;
+    if(value >= 0 && value <= 2)
+        backupStatus_ = static_cast<BackupStatus>(value);
 }
 
 double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
@@ -349,21 +328,7 @@ uint32_t RemoteNode::upSpeed() const
 
 uint32_t RemoteNode::backupStatus() const
 {
-    return backupStatus_;
-//    switch(backupStatus_)
-//    {
-//    case BackupStatus::Master:
-//        return 0;
-//    case BackupStatus::Slave:
-//        return 1;
-//    case BackupStatus::None:
-//        return 2;
-//    }
-}
-
-bool RemoteNode::bakupPushButtonStatus() const
-{
-    return backupButtonIsCreated_;
+    return static_cast<uint32_t>(backupStatus_);
 }
 
 RemoteComponent *RemoteNode::componentAt(int index) const
@@ -407,7 +372,7 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
     //setBackupStatus(status.backup_status());
-    setBackupStatus(0);
+    setBackupStatus(1);
 
     emit statusChanged();
 }

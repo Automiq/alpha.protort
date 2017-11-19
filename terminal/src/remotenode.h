@@ -33,9 +33,6 @@ class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteN
 
 public:   
 
-     void setBackupStatus(uint32_t value);
-     void setBackupPushButtonStatus(bool status);
-
     QList<RemoteComponent*> components() const;
 
     RemoteNode(alpha::protort::parser::node const& node);
@@ -111,7 +108,7 @@ private:
     void setBytesReceived(uint32_t value);
     void setBytesSent(uint32_t value);
     void setConnected(bool value);
-//    void setBackupStatus(uint32_t value);
+    void setBackupStatus(uint32_t value);
 
     double calcUpSpeed(const QTime &now, uint32_t bytesSent);
     double calcDownSpeed(const QTime &now, uint32_t bytesReceived);
@@ -135,19 +132,17 @@ private:
     double upSpeed_;
 
     bool isConnected_;
-    bool backupButtonIsCreated_;
 
     QString name_;
     QList<RemoteComponent*> components_;
 
     QTime m_lastStatusTime;
 
-//    enum BackupStatus
-//    {
-//        Master= 0,
-//        Slave = 1,
-//        None = 2,
-//    } backupStatus_;
-    uint32_t backupStatus_;
+    enum class BackupStatus
+    {
+        None = 0,
+        Master= 1,
+        Slave = 2
+    } backupStatus_;
 };
 #endif // TERMINAL_CLIENT_H

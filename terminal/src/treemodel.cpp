@@ -57,12 +57,12 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
     if (role == Qt::DecorationRole && index.column() == Column::Connection)
         return QIcon(node->isConnected() ? ":/images/connected.png" : ":/images/notconnected.ico");
 
-    if (role == Qt::DecorationRole
-                && index.column() == Column::Backup
-                && node->backupStatus() == 1
-                && node->isConnected()
-                && !(node->bakupPushButtonStatus()))
-        return QIcon(":/images/slave.png");
+//    if (role == Qt::DecorationRole
+//                && index.column() == Column::Backup
+//                && node->backupStatus() == 1
+//                && node->isConnected()
+//                && !(node->bakupPushButtonStatus()))
+//        return QIcon(":/images/slave.png");
 
     if (role != Qt::DisplayRole)
         return QVariant();
