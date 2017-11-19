@@ -1,11 +1,9 @@
 // Версия синтаксиса
 syntax = 'proto3';
 
-//import "deploy.proto";
-
 package alpha.protort.protocol.backup;
 
-enum PacketKind
+enum PacketType
 {
     Switch = 0;// Деплой конфигурации узла
     GetStatus = 1;
@@ -57,7 +55,7 @@ message KeepLiveResponse
 
 message Packet
 {  //тип пакета
-   PacketKind kind = 1;
+   PacketType kind = 1;
     
     // Класс сообщения об ошибке
     message Error

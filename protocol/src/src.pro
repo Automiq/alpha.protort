@@ -24,8 +24,8 @@ LIBS += \
 PROTOS += \
     protobuf/components.proto \
     protobuf/packet.proto \
-    protobuf/deploy.proto \
     protobuf/backup.proto \
+    protobuf/deploy.proto \
     protobuf/protocol.proto 
 	
 
