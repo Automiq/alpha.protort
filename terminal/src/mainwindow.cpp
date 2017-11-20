@@ -255,8 +255,8 @@ void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protoco
 
     writeLog(
                 packet.has_error() ?
-                    tr("Ошибка резервного перехода на узеле %1").arg(node->info()) :
-                    tr("Резервный переход успешно выполнен для узела %1").arg(node->info())
+                    tr("Ошибка доставки пакета перехода на узел %1").arg(node->info()) :
+                    tr("Пакет резервного перехода успешно доставлен на узел %1").arg(node->info())
                     );
 }
 
@@ -277,9 +277,6 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         if (node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
             node->backupStatus() == 2 && !(ui->treeStatus->indexWidget(currentModelIndex)))
         {
-            QMessageBox *mbTest = new QMessageBox;
-            mbTest->setText(QString("0"));// Проверка урвня и имени ноды
-            mbTest->show();
             QPushButton *backupTransitionButton = new QPushButton;
             backupTransitionButton->setProperty("row", (QVariant)row);
             backupTransitionButton->setFixedSize(40,20);
@@ -295,19 +292,12 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
             node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
         {
-            QMessageBox *mbTest = new QMessageBox;
-            mbTest->setText(QString("1"));// Проверка урвня и имени ноды
-            mbTest->show();
             backupTransitionButton->setIcon(QIcon(":/images/master.png"));
             backupTransitionButton->setEnabled(true);
-
         }
         else if(node->backupStatus() == 2 && backupTransitionButton->icon().isNull()  ||
                 node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
         {
-            QMessageBox *mbTest = new QMessageBox;
-            mbTest->setText(QString("2"));// Проверка урвня и имени ноды
-            mbTest->show();
             backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
             backupTransitionButton->setEnabled(false);
         }
@@ -376,9 +366,6 @@ void MainWindow::onConnected()
 
     if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
     {
-        QMessageBox *mbTest = new QMessageBox;
-        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
-        mbTest->show();
         ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
     }
 
@@ -397,9 +384,6 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 
     if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
     {
-        QMessageBox *mbTest = new QMessageBox;
-        mbTest->setText(QString("%1").arg(QString::number(row,16)));// Проверка урвня и имени ноды
-        mbTest->show();
         ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
     }
 
@@ -421,17 +405,17 @@ void MainWindow::on_start_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
 
-    size_t i(0);
+//    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_start(payload);
-        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());//Индекс ячейки перехода
-        if(remoteNode->backupStatus() == 0)
-        {
-            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
-        }
-            ++i;
+//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+//        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());//Индекс ячейки перехода
+//        if(remoteNode->backupStatus() == 0 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnebled()))
+//        {
+//            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
+//        }
+//            ++i;
     }
 }
 
@@ -443,17 +427,17 @@ void MainWindow::on_stop_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
 
-    size_t i(0);
+//    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_stop(payload);
-        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());
-        if(remoteNode->backupStatus() == 0)
-        {
-            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
-        }
-        ++i;
+//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+//        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());
+//        if(remoteNode->backupStatus() == 0 && ui->treeStatus->indexWidget(currentModelIndex)->isEnebled())
+//        {
+//            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
+//        }
+//        ++i;
     }
 }
 
@@ -521,8 +505,8 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 void MainWindow::on_backup_transition()
 {
-    QPushButton *backuPushButton = qobject_cast<QPushButton*>(sender());
-    if(backuPushButton->isEnabled())
+    QPushButton *backupPushButton = qobject_cast<QPushButton*>(sender());
+    if(backupPushButton->isEnabled())
     {
         int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
         RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне

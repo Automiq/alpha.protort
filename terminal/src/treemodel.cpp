@@ -57,13 +57,6 @@ QVariant TreeModel::nodeData(RemoteNode *node, const QModelIndex &index, int rol
     if (role == Qt::DecorationRole && index.column() == Column::Connection)
         return QIcon(node->isConnected() ? ":/images/connected.png" : ":/images/notconnected.ico");
 
-//    if (role == Qt::DecorationRole
-//                && index.column() == Column::Backup
-//                && node->backupStatus() == 1
-//                && node->isConnected()
-//                && !(node->bakupPushButtonStatus()))
-//        return QIcon(":/images/slave.png");
-
     if (role != Qt::DisplayRole)
         return QVariant();
 
@@ -226,12 +219,6 @@ void TreeModel::setupModelData(const QList<RemoteNodePtr> &nodes)
     for (auto &node : m_nodes)
     {
         auto *n = node.get();
-        /*! Здесь можно проверить состояние ноды
-         * if(node.pairNodeStatus())
-         * {
-         *
-         * }
-         */
         connect(n, &RemoteNode::componentsChanged, this, &TreeModel::onComponentsChanged);
         connect(n, &RemoteNode::statusChanged, this, &TreeModel::onStatusChanged);
     }

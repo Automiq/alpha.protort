@@ -64,12 +64,7 @@ QString RemoteNode::info() const
 }
 
 /*!
- * \brief Возвращает статус ноды.
- * \return Если нода master - true, если slave - false.
- */
-
-/*!
- * \brief Отправляет сигнал о резервном переходе на ноду мастера.
+ * \brief Отправляет сигнал резервного перехода на ноду мастера.
  *  Вызывается из объекта remoteNodePtr мастера.
  * \param backup - пакет, сигнализирующий о необходиости перехода.
  */
@@ -84,7 +79,7 @@ void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payloa
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
-{//
+{
     std::string current_node = node_information_.name;
 
     std::set<std::string> added_nodes;
