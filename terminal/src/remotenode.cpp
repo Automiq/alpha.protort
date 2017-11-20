@@ -84,7 +84,7 @@ void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payloa
 }
 
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
-{
+{//
     std::string current_node = node_information_.name;
 
     std::set<std::string> added_nodes;
