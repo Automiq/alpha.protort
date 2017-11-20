@@ -114,7 +114,7 @@ struct node
     /*!
      * \brief Адрес ноды(включает ip адрес, порт и конфигурационный порт)
      */
-    address address_;
+    address host;
 
     /*!
      * \brief Адрес резервной ноды
@@ -175,12 +175,15 @@ struct configuration
             read_xml(filename, pt);// Парсим xml в дерево pt
 
             BOOST_FOREACH(ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
-            if( v.first == "instance" )
-                parse_component(v);
-            else if( v.first == "connection" )
-                parse_connection(v);
-            else
-                throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename ).str());
+                if( v.first == "instance" ){
+                    parse_component(v);
+                }
+                else if( v.first == "connection" ){
+                    parse_connection(v);
+                }
+                else {
+                    throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename ).str());
+                }
             }
             return true;
          }
@@ -209,12 +212,15 @@ struct configuration
              read_xml(filename, pt);// Парсим xml в дерево pt
 
              BOOST_FOREACH(ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
-                 if( v.first == "node")
+                 if( v.first == "node"){
                      parse_node(v);
-                 else if( v.first == "map" )
+                 }
+                 else if( v.first == "map" ){
                      parse_map(v);
-                 else
+                 }
+                 else{
                      throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename ).str());
+                 }
              }
 
              return true;
@@ -235,42 +241,58 @@ private:
       * Метод парсит node и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_node(ptree::value_type const &v)
+     void parse_node(const ptree::value_type &v)
      {
          /*!
           * \brief Количество детей у поддерева node
           */
          auto child_size = v.second.size();
 
-         if(child_size > 2)
+         if(child_size > 2){
              throw std::invalid_argument((boost::format("In the node name (%1%): Expected no more than one child node: 'pairnode'")
                                           % v.second.get<std::string>("<xmlattr>.name")).str());
-         else if(child_size == 0)
+         }
+         else if(child_size == 0){
               throw std::invalid_argument("Incorrectly entered node.");
+         }
          else{
              node current_node;
+             address host;
 
              /*!
               * \brief Инициализируем поля узла, исходя из описания в xml
               */
              current_node.name = v.second.get<std::string>("<xmlattr>.name");
-             current_node.address_.ip_address = v.second.get<std::string>("<xmlattr>.address");
-             current_node.address_.port = v.second.get<port_id>("<xmlattr>.port");
-             current_node.address_.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
+             init_address(current_node, host, v, "");
+
 
              if(child_size == 2){
-                 address pair_address;
 
                  /*!
                   * \brief Инициализируем поля резервного узла, исходя из описания в xml
                   */
-                 pair_address.ip_address= v.second.get<std::string>("pairnode.<xmlattr>.address");
-                 pair_address.port = v.second.get<port_id>("pairnode.<xmlattr>.port");
-                 pair_address.config_port = v.second.get<port_id>("pairnode.<xmlattr>.config_port", 100);
-                 current_node.pairnode = pair_address;
+                 init_address(current_node, host, v, "pairnode.");
              }
 
              nodes.push_back(current_node);
+         }
+     }
+
+     /*!
+      * \brief Инициализация address
+      */
+
+     void init_address(node &current_node, address & host, const ptree::value_type &v, const std::string &stroka)
+     {
+         host.ip_address = v.second.get<std::string>((boost::format("%1%<xmlattr>.address") % stroka).str());
+         host.port = v.second.get<port_id>((boost::format("%1%<xmlattr>.port") % stroka).str());
+         host.config_port = v.second.get<port_id>((boost::format("%1%<xmlattr>.config_port") % stroka).str(), 100);
+
+         if(stroka.empty()){
+             current_node.host = host;
+         }
+         else{
+             current_node.pairnode = host;
          }
      }
 
@@ -281,7 +303,7 @@ private:
      * Метод парсит component и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_component(ptree::value_type const &v)
+     void parse_component(const ptree::value_type &v)
      {
          component comp;
 
@@ -299,7 +321,7 @@ private:
      * Метод парсит connection и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_connection(ptree::value_type const &v)
+     void parse_connection(const ptree::value_type &v)
      {
          connection conn;
 
@@ -319,7 +341,7 @@ private:
      * Метод парсит map и сохраняет полученную информацию внутри класса в соответствующих атрибутах
       */
 
-     void parse_map(ptree::value_type const &v)
+     void parse_map(const ptree::value_type &v)
      {
          mapping mapp;
 
