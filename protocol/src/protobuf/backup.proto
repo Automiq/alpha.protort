@@ -4,20 +4,22 @@ syntax = 'proto3';
 package alpha.protort.protocol.backup;
 
 enum PacketType
-{
-    Switch = 0;// Деплой конфигурации узла
+{   // резервный переход
+    Switch = 0;
+    //получение статуса
     GetStatus = 1;
-    keep_a_live = 2;
+    //запрос к ноде мастера
+    KeepAlive  = 2;
 }
 
+//статус ноды
 enum BackupStatus 
 {
     None = 0;
     Master = 1;
     Slave = 2;
 }
-// добавить запрос о статусе 
-
+//запрос о статусе
 message GetStatusRequest
 {
  
@@ -37,21 +39,21 @@ message SwitchRequest
 //ответ на резервный переход
 message SwitchResponse
 {
-    bool flag = 1; // сигнал о переходе.
+    // сигнал о переходе.
+    bool flag = 1;
 }
 
 //запрос к ноде мастера(проверяет жива или нет)
-message KeepLiveRequest
+message KeepAliveRequest
 {
 
 }
 
 //ответ от мастера
-message KeepLiveResponse
+message KeepAliveResponse
 {
 
 }
-
 
 message Packet
 {  //тип пакета
@@ -60,18 +62,19 @@ message Packet
     // Класс сообщения об ошибке
     message Error
     {
-        string message = 1;// Строковое human-readable представление ошибки
+        // Строковое human-readable представление ошибки
+        string message = 1;
     }
-
-    Error error = 2;// Ошибка (если есть)
+    // Ошибка(если есть)
+    Error error = 2;
 	
     message Request
     {
         oneof Payload
         {
-            GetStatusRequest Status = 1;
-            SwitchRequest Switch = 2;
-            KeepLiveRequest KeepLive = 3;
+            GetStatusRequest status = 1;
+            SwitchRequest switch = 2;
+            KeepAliveRequest keep_alive = 3;
         }
     }
 
@@ -80,9 +83,9 @@ message Packet
     {
         oneof Payload
         {
-            GetStatusResponse Status = 1;
-            SwitchResponse Switch = 2;
-            KeepLiveResponse KeepLive = 3;
+            GetStatusResponse status = 1;
+            SwitchResponse switch = 2;
+            KeepAliveResponse keep_alive = 3;
         }
     }
 	
