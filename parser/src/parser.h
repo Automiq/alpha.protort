@@ -174,16 +174,17 @@ struct configuration
             ptree pt;// Cоздаем дерево
             read_xml(filename, pt);// Парсим xml в дерево pt
 
-            BOOST_FOREACH(ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
+            BOOST_FOREACH( ptree::value_type const &v, pt.get_child("app") ) {// Создаем компоненты для тэгов app .
                 if( v.first == "instance" ){
                     parse_component(v);
                 }
                 else if( v.first == "connection" ){
                     parse_connection(v);
                 }
-                else {
-                    throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename ).str());
+                else{
+                    throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename).str());
                 }
+
             }
             return true;
          }
@@ -211,7 +212,7 @@ struct configuration
              ptree pt;// Cоздаем дерево
              read_xml(filename, pt);// Парсим xml в дерево pt
 
-             BOOST_FOREACH(ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
+             BOOST_FOREACH( ptree::value_type const &v, pt.get_child("deploy") ) {// Создаем компоненты для тегов deploy
                  if( v.first == "node"){
                      parse_node(v);
                  }
@@ -219,7 +220,7 @@ struct configuration
                      parse_map(v);
                  }
                  else{
-                     throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename ).str());
+                     throw std::invalid_argument((boost::format("Unknown tag in the file %1%.") % filename).str());
                  }
              }
 
@@ -263,7 +264,7 @@ private:
               * \brief Инициализируем поля узла, исходя из описания в xml
               */
              current_node.name = v.second.get<std::string>("<xmlattr>.name");
-             init_address(current_node, host, v, "");
+             init_address(current_node, host, v);
 
 
              if(child_size == 2){
@@ -282,7 +283,7 @@ private:
       * \brief Инициализация address
       */
 
-     void init_address(node &current_node, address & host, const ptree::value_type &v, const std::string &stroka)
+     void init_address(node &current_node, address & host, const ptree::value_type &v, const std::string &stroka = "")
      {
          host.ip_address = v.second.get<std::string>((boost::format("%1%<xmlattr>.address") % stroka).str());
          host.port = v.second.get<port_id>((boost::format("%1%<xmlattr>.port") % stroka).str());
