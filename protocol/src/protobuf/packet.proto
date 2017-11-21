@@ -7,8 +7,10 @@ package alpha.protort.protocol.communication;
 
 // Пакет
 message Packet
-{
-    ComponentEndpoint source = 1;// Источник
-    ComponentEndpoint destination = 2;// Приемник
-    bytes payload = 3;// Содержание пакета
+{   // Источник
+    ComponentEndpoint source = 1;
+    // Приемник
+    ComponentEndpoint destination = 2;
+    // Содержание пакета
+    bytes payload = 3;
 }

@@ -27,7 +27,7 @@ message GetStatusRequest
 
 message GetStatusResponse
 {
-    BackupStatus backupstatus = 1;
+    BackupStatus backup_status = 1;
 }
 
 //запрос на резервный переход

@@ -1,7 +1,7 @@
 ﻿// Версия синтаксиса
 syntax = 'proto3';
 
-//Импорт определений
+// Импорт определений
 import "components.proto";
 import "backup.proto";
 
@@ -9,10 +9,14 @@ package alpha.protort.protocol.deploy;
 
 message NodeInfo
 {
-    string name = 1;// Имя ноды
-    string address = 2;// Адрес
-    uint32 port = 3;// Порт
-    backup.BackupStatus backupStatus = 4;
+    // Имя ноды
+    string name = 1;
+    //Адрес
+    string address = 2;
+    // Порт
+    uint32 port = 3;
+    // Информация о статусе ноды
+    backup.BackupStatus backup_status = 4;
 }
 
 message NodeInfoList
@@ -22,8 +26,10 @@ message NodeInfoList
 
 message Instance
 {
-    string name = 1;// Имя комонента
-    ComponentKind kind = 2;// Тип компонента
+    // Имя комонента
+    string name = 1;
+    // Тип компонента
+    ComponentKind kind = 2;
 }
 
 message InstanceList
@@ -181,7 +187,8 @@ message SwitchResponse
 // Пакет протокола развертывания
 message Packet
 {
-    PacketKind kind = 1;// Тип пакета
+    // Тип пакета
+    PacketKind kind = 1;
     
     // Класс сообщения об ошибке
     message Error
