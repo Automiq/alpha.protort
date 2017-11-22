@@ -266,13 +266,11 @@ private:
              current_node.name = v.second.get<std::string>("<xmlattr>.name");
              current_node.host = init_address(v);
 
-
+             /*!
+              * \brief Инициализируем поля резервного узла, исходя из описания в xml
+              */
              auto i = v.second.find("pairnode");
              if(i != v.second.not_found()){
-
-                 /*!
-                  * \brief Инициализируем поля резервного узла, исходя из описания в xml
-                  */
                  current_node.pairnode = init_address(*i);;
              }
 
