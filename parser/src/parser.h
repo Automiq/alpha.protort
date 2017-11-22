@@ -258,21 +258,22 @@ private:
          }
          else{
              node current_node;
-             address host;
+            // address host;
 
              /*!
               * \brief Инициализируем поля узла, исходя из описания в xml
               */
              current_node.name = v.second.get<std::string>("<xmlattr>.name");
-             init_address(current_node, host, v);
+             current_node.host = init_address(v);
 
 
-             if(child_size == 2){
+             auto i = v.second.find("pairnode");
+             if(i != v.second.not_found()){
 
                  /*!
                   * \brief Инициализируем поля резервного узла, исходя из описания в xml
                   */
-                 init_address(current_node, host, v, "pairnode.");
+                 current_node.pairnode = init_address(*i);;
              }
 
              nodes.push_back(current_node);
@@ -283,18 +284,15 @@ private:
       * \brief Инициализация address
       */
 
-     void init_address(node &current_node, address & host, const ptree::value_type &v, const std::string &stroka = "")
+     address init_address(const ptree::value_type &v)
      {
-         host.ip_address = v.second.get<std::string>((boost::format("%1%<xmlattr>.address") % stroka).str());
-         host.port = v.second.get<port_id>((boost::format("%1%<xmlattr>.port") % stroka).str());
-         host.config_port = v.second.get<port_id>((boost::format("%1%<xmlattr>.config_port") % stroka).str(), 100);
+         address host;
 
-         if(stroka.empty()){
-             current_node.host = host;
-         }
-         else{
-             current_node.pairnode = host;
-         }
+         host.ip_address = v.second.get<std::string>("<xmlattr>.address");
+         host.port = v.second.get<port_id>("<xmlattr>.port");
+         host.config_port = v.second.get<port_id>("<xmlattr>.config_port", 100);
+
+         return host;
      }
 
 
