@@ -1,12 +1,16 @@
-syntax = 'proto3';
+syntax = 'proto3';// Версия синтаксиса
 
+// Импорт определений
 import "components.proto";
 
 package alpha.protort.protocol.communication;
 
+// Пакет
 message Packet
-{
+{   // Источник
     ComponentEndpoint source = 1;
+    // Приемник
     ComponentEndpoint destination = 2;
+    // Содержание пакета
     bytes payload = 3;
 }
