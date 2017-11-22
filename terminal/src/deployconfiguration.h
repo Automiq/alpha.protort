@@ -36,7 +36,7 @@ struct deploy_configuration
            if(node.pairnode){
                alpha::protort::parser::node tmp_pairnode;
                tmp_pairnode.name = (boost::format("pairnode.%1%") % node.name).str();
-               tmp_pairnode.address_ = node.pairnode.get();
+               tmp_pairnode.host = node.pairnode.get();
                map_node[tmp_pairnode.name] = tmp_pairnode;
            }
            map_node[node.name] = node;
