@@ -21,7 +21,7 @@
 #include "deploy.pb.h"
 #include "factory.h"
 #include "logi.h"
-#include "windows.h"
+
 
 
 namespace alpha {
@@ -241,6 +241,9 @@ public:
         // Начинаем прослушивать порт
         server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
     }
+
+
+
     enum class Node_status {master , slave};
 
     class Backup_manager: public boost::enable_shared_from_this<Backup_manager>
@@ -249,13 +252,12 @@ public:
         Backup_manager(std::string &addres_pair_node ,
                        uint32_t &pair_node_port ,
                        boost::shared_ptr<router<node>> rout_to_backup,
-                       boost::shared_ptr<boost::asio::io_service> service,
+                       boost::asio::io_service &service,
                        Node_status &node_status):
             interval_(100),
             addres_pair_node_(addres_pair_node),
             pair_node_port_(pair_node_port),
-            timer_(*service),
-            service__(service),
+            timer_(service),
             node_status_(node_status),
             rout_to_backup_(rout_to_backup)
         {
@@ -297,7 +299,7 @@ public:
         //переод через который будет производится запрос на мастер со слейва
         uint32_t interval_;
         //io сервис узла
-        boost::shared_ptr<boost::asio::io_service> service__;
+        //boost::asio::io_service service__;
         //бустовский дедлайн таймер
         boost::asio::deadline_timer timer_;
         //статус узла
