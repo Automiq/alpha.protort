@@ -1,7 +1,9 @@
+﻿// Версия синтаксиса
 syntax = 'proto3';
 
 package alpha.protort.protocol;
 
+// Преопределение возможных типов компонентов
 enum ComponentKind
 {
     Generator = 0;
@@ -16,10 +18,8 @@ message ComponentEndpoint
 {
     // Тип компонента
     ComponentKind component_kind = 1;
-    
     // Идентификатор входа или выхода
     uint32 port = 2;
-    
     // Имя компонента
     string name = 3;
 }
