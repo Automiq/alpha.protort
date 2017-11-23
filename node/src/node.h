@@ -231,6 +231,16 @@ public:
             }
         }
 
+
+        //RemotePair test!  Debug! trash!
+        //Если это нода1 (в моей конфигурации пишушая) то мы создаем удаленую пару
+        //работать с ней будем в route::do_route()
+        if(node_name_=="node1")
+        {
+            router_->rp = boost::make_shared<router<node>::remote_pair>("node2", router_->clients_["node2"], "node3", router_->clients_["node3"]);
+        }
+
+
         // Начинаем прослушивать порт
         server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
     }
@@ -299,7 +309,7 @@ private:
         response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
-
+        response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Master);
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
             comp_status->set_in_packet_count(component.second.component_->in_packet_count());

@@ -38,6 +38,106 @@ class router : public boost::enable_shared_from_this<router<app>>
     friend class node;
     friend class alpha::protort::components::component;
     friend void alpha::protort::node::tests::test_node_router();
+
+    class remote_host
+    {
+        friend class remote_pair;
+    public:
+        remote_host(std::string name, boost::shared_ptr<protolink::client<app>> client)
+        {
+            host_name=name;
+            this->client=client;
+        }
+
+        virtual void send_message(alpha::protort::protocol::Packet::Payload const &payload)
+        {
+            client->async_send_message(payload);
+        }
+    private:
+        std::string host_name;
+        boost::shared_ptr<protolink::client<app>> client;
+    };
+
+    class remote_pair: public remote_host
+    {
+    public:
+        remote_pair(std::string name, boost::shared_ptr<protolink::client<app>> client, std::string name2,
+                    boost::shared_ptr<protolink::client<app>> client2): remote_host(name, client)
+        {
+            host2_name=name2;
+            this->client2=client2;
+        }
+
+        //отправляет сообщение мастер ноде
+        void send_message(alpha::protort::protocol::Packet::Payload const &payload)
+        {
+            if(is_master_valid)
+            {
+                std::cout << "Sending to " << host_name << "message" << std::endl;
+                client->async_send_message(payload);
+            }
+            else
+            {
+                std::cout << "Sending to " << host2_name << "message" << std::endl;
+                client2->async_send_message(payload);
+            }
+        }
+
+        //формираует запрос бэкап статуса и отправляет мастер ноде
+        void request_backup_status()
+        {
+            alpha::protort::protocol::Packet_Payload status;
+            status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+            auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+            callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+                on_backup_status_finished(packet.deploy_packet());
+            });
+            /*callbacks->on_timeout.connect([&]() {
+                std::cout << "BACKUP TIMEOUT" << std::endl;
+                switch_nodes();
+            });
+            callbacks->on_abort.connect([&]() {
+                std::cout << "BACKUP ABORT" << std::endl;
+                switch_nodes();
+            });*/
+            if(is_master_valid)
+            {
+                std::cout << "Sending to " << host_name << "Backupstatus request" << std::endl;
+                client->async_send_request(status, callbacks);
+            }
+            else
+            {
+                std::cout << "Sending to " << host2_name << "Backupstatus request" << std::endl;
+                client2->async_send_request(status, callbacks);
+            }
+        }
+
+        //Должел ли он быть public?
+        void switch_nodes()
+        {
+            is_master_valid = !is_master_valid;
+        }
+
+    private:
+        bool is_master_valid;
+        std::string host2_name;
+        boost::shared_ptr<protolink::client<app>> client2;
+
+        //Колбек по завершению запроса статуса
+        void on_backup_status_finished(const alpha::protort::protocol::deploy::Packet& packet)
+        {
+            auto resp = packet.response().status();
+            std::cout << "BackUpStatus: " << resp.node_info().backup_status() << std::endl;
+            if(resp.node_info().backup_status()!=alpha::protort::protocol::backup::BackupStatus::Master)
+            {
+                switch_nodes();
+            }
+        }
+    };
+
+    //RemotePair test
+    boost::shared_ptr<router<node>::remote_pair> rp;
 private:
     class component_instance;
 
@@ -235,7 +335,12 @@ public:
                     // payload
                     packet->set_payload(output.payload);
 
-                    remote_route.client->async_send_message(payload);
+                    //запрос о статусе. Если ответил не мастер то отправка произойдет на другую ноду.
+                    rp->request_backup_status();
+                    rp->send_message(payload);
+                    //remote_route.client->async_send_message(payload); //старый метод
+
+
                     out_bytes_ += payload.ByteSize();
                     out_packets_++;
 #ifdef _DEBUG
