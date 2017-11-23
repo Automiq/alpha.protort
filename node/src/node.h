@@ -344,6 +344,9 @@ private:
             old_router->stop();
             return {};
         }
+        case protocol::deploy::PacketKind::Switch:
+//            backup_manager_.get().backup_transition();
+
         case protocol::deploy::PacketKind::Start:
             router_->start();
             return {};
@@ -399,6 +402,10 @@ private:
         node_name_ = config.this_node_info().name();
         port_ = config.this_node_info().port();
 
+        if(config.this_node_info().backup_status() != protocol::backup::BackupStatus::None){
+           //backup_manager_ = new Backup_manager(service_, config.this_node_info().backup_status());
+        }
+
         parser::configuration pconf;
 
         for (auto & inst : config.instances())
@@ -440,6 +447,7 @@ private:
     boost::chrono::steady_clock::time_point start_time_;
 
     boost::thread_group workers_;
+    boost::optional<Backup_manager> backup_manager_;
 
 public:
     //! Роутер пакетов
