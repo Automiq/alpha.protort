@@ -467,7 +467,6 @@ void MainWindow::showMessage()
 
 void MainWindow::deploy()
 {
-
     resetDeployActions();
     ui->status->setEnabled(true);
     ui->deploy->setDisabled(true);
@@ -747,6 +746,7 @@ void MainWindow::activateDeploy() const
     if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
         ui->deploy->setEnabled(true);
 }
+
 void MainWindow::activateStatus() const
 {
         ui->status->setEnabled(true);
@@ -754,6 +754,14 @@ void MainWindow::activateStatus() const
 
 void MainWindow::button_clickedSetup()
 {
+    for (size_t i(0); i < remoteNodes_.count(); ++i)
+    {
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+        if(backupPushButton)
+            delete backupPushButton;
+    }
+
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();
         setActiveConfig();
