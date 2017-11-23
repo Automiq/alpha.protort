@@ -68,6 +68,7 @@ public:
           server_for_conf_(*this,service_),//создает сервер
           signals_(service_, SIGINT, SIGTERM),// объект для прослушивания сигналов
           router_(boost::make_shared<router<node>>(service_))//создает роутер пакетов
+
     {
     }
 
@@ -175,9 +176,12 @@ public:
             std::string address;
             uint32_t port;
         };
-      //  boost::asio::io_service serv;
-      //  boost::shared_ptr<router<node>> rout(boost::make_shared<router<node>>(serv));
-      //  Backup_manager backup_manager( "100101011" , 1011 , rout , Node_status::slave);
+        std::string str="1010011" , str1="logger";
+        str1=str1+node_name_;
+        uint32_t ppt=101;
+        std::cout<<"deploy_start"<<std::endl;
+        backup_manager=boost::make_shared<Backup_manager>( str, ppt , router_, Node_status::slave);
+        backup_manager->start_keep_alife();
         // узнать
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
@@ -240,11 +244,12 @@ public:
 
         // Начинаем прослушивать порт
         server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
+        std::cout<<"deploy_stop"<<std::endl;
     }
 
 
 
-    enum class Node_status {master , slave};
+    enum class Node_status {master=1 , slave};
 
     class Backup_manager: public boost::enable_shared_from_this<Backup_manager>
     {
@@ -252,46 +257,59 @@ public:
         Backup_manager(std::string &addres_pair_node ,
                        uint32_t &pair_node_port ,
                        boost::shared_ptr<router<node>> rout_to_backup,
-                       boost::asio::io_service &service,
-                       Node_status &node_status):
+                       Node_status node_status
+                     ):
             interval_(100),
             addres_pair_node_(addres_pair_node),
             pair_node_port_(pair_node_port),
-            timer_(service),
+            timer_(rout_to_backup->get_service()),
             node_status_(node_status),
             rout_to_backup_(rout_to_backup)
+          //  lg(new logger_file(name))
         {
             if(node_status_==Node_status::slave){
-               thread_=boost::thread(&Backup_manager::dispatch , this);
-            }
+                std::cout<<"if"<<std::endl;
+               //thread_=boost::thread(boost::bind(&Backup_manager::dispatch , this));
+                //node::workers_.create_thread([this](){ dispatch(); });
+                //this->dispatch();
+               // rout_to_backup_->get_service().post(boost::bind(&logger_file::log , "info" , "build"));
+                std::cout<<"build"<<std::endl;
+           }
+
+        }
+
+        void start_keep_alife(){
+
+            rout_to_backup_->get_service().post(boost::bind(&Backup_manager::dispatch ,
+                                                boost::static_pointer_cast<Backup_manager>(this->shared_from_this())));
 
         }
 
         ~Backup_manager(){
-
             if(node_status_==Node_status::slave){
-                timer_.cancel();
-                thread_.join();
+                //timer_.cancel();
+
             }
         }
 
         bool backup_transition(){}
 
-    private:
-        bool master_check(){
-
+        void master_check(){
+            //std::cout<<"master_check1"<<std::endl;
             timer_.expires_from_now(boost::posix_time::milliseconds(this->interval_));
-            timer_.async_wait(boost::bind(&Backup_manager::dispatch , boost::static_pointer_cast<Backup_manager>(this->shared_from_this())));
-
+            timer_.async_wait(boost::bind(&Backup_manager::dispatch ,
+                              boost::static_pointer_cast<Backup_manager>(this->shared_from_this())));
+            //std::cout<<"master_check"<<std::endl;
         }
 
         void dispatch(){
-            std::string name="logger.t";
-            boost::shared_ptr<logger> lg(new logger_file(name));
-            lg->log("info" , "check");
-            this->master_check();
+           //std::cout<<"dispatch"<<std::endl;
 
+            rout_to_backup_->get_service().post(boost::bind(&Backup_manager::master_check ,
+                                               boost::static_pointer_cast<Backup_manager>(this->shared_from_this())));
         }
+    private:
+
         //адрес парного узла
         std::string addres_pair_node_;
         //порт парного узла
@@ -299,7 +317,7 @@ public:
         //переод через который будет производится запрос на мастер со слейва
         uint32_t interval_;
         //io сервис узла
-        //boost::asio::io_service service__;
+        //boost::asio::io_service& service__;
         //бустовский дедлайн таймер
         boost::asio::deadline_timer timer_;
         //статус узла
@@ -307,7 +325,7 @@ public:
         //роутер до парного узла для общения с ним
         boost::shared_ptr<router<node>> rout_to_backup_;
         //поток в котором выполняется опрос мастера
-        boost::thread thread_;
+       // boost::shared_ptr<logger> lg;
     };
 
 
@@ -441,6 +459,7 @@ private:
 
     boost::thread_group workers_;
 
+    boost::shared_ptr<Backup_manager> backup_manager;
 public:
     //! Роутер пакетов
     //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
