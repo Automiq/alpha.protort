@@ -284,7 +284,7 @@ private:
             return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
-        case protocol::deploy::PacketKind::BackupTransition:
+        case protocol::deploy::PacketKind::Switch:
             return backup_transition();
         default:
             assert(false);
@@ -294,15 +294,14 @@ private:
     protocol_payload backup_transition()
     {
  #ifdef _DEBUG        
-        if(i == 0 || i == 3) std::cout<<"L'vi lezut na stenu, seer."<<std::endl;
+        if(i == 0 || i == 3 && !(i = 0)) std::cout<<"L'vi lezut na stenu, seer."<<std::endl;
         else if(i == 1) std::cout<<"Stol'ko l'vov, seer."<<std::endl;
         else if(i == 2) std::cout<<"Narod volnuetsya"<<std::endl;
-        else i = -1;
         ++i;
  #endif
         protocol_payload response;
         protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
-        response_packet->set_kind(protocol::deploy::PacketKind::BackupTransition);
+        response_packet->set_kind(protocol::deploy::PacketKind::Switch);
         response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
 
         boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;

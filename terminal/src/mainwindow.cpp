@@ -522,7 +522,7 @@ void MainWindow::on_backup_transition()
         RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
 
         alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
-        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);// Устанавливаем тип пакета
 
         remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
     }
