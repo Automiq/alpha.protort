@@ -53,6 +53,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+
+    for (size_t i(0); i < remoteNodes_.count(); ++i)
+    {
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+        if(backupPushButton)
+            delete backupPushButton;
+    }
+
     for (int i = 0; i < ui->tabWidget->count(); ++i)
         if (!QFile(document(i)->filePath()).exists())
         {
@@ -290,13 +299,15 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
-            node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+            node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
+                                      && !(backupTransitionButton->icon().isNull()))
         {
             backupTransitionButton->setIcon(QIcon(":/images/master.png"));
             backupTransitionButton->setEnabled(true);
         }
         else if(node->backupStatus() == 2 && backupTransitionButton->icon().isNull()  ||
-                node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
+                node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+                                          && !(backupTransitionButton->icon().isNull()))
         {
             backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
             backupTransitionButton->setEnabled(false);
