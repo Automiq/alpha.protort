@@ -54,10 +54,10 @@ MainWindow::MainWindow(QWidget *parent) :
 MainWindow::~MainWindow()
 {
 
-    for (size_t i(0); i < remoteNodes_.count(); ++i)
+    for (size_t i(0); i < remoteNodes_.count(); ++i)// Удаление кнопок
     {
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
-        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );// Индекс ноды на уровне i
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);// Кнопка соотвествующая индексу
         if(backupPushButton)
             delete backupPushButton;
     }
@@ -256,7 +256,7 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
 
 /*!
  * \brief Вызывется по окончании процесса резервного перехода.
- * \param packet - пакет со статусом.
+ * \param packet - пакет со статусом перехода.
  */
 void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
@@ -273,31 +273,46 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    if(node->isConnected() && node->backupStatus() != 0)
+    if(node->isConnected() && node->backupStatus() != 0)// Если нода приконнекчена и она не None
     {
+        // Берем указатель на модель
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+        // Через указатель на модель достаем уровень текущей ноды
         int row = mod->indexOfNode(node);
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+
+        // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
+
 //        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 //        int row = mod->indexOfNode(node);//только если вытащим из private функцию.
 //        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
         //RemoteNodePtr remNode = remoteNodes_.at(row);
 
+        // Если нода мастер или слэйв и кнопка не установлена
         if (node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
             node->backupStatus() == 2 && !(ui->treeStatus->indexWidget(currentModelIndex)))
         {
             QPushButton *backupTransitionButton = new QPushButton;
+
+            // Уровнь, на котором находится кнопка
             backupTransitionButton->setProperty("row", (QVariant)row);
             backupTransitionButton->setFixedSize(40,20);
 
-            ui->treeStatus->setIndexWidget(currentModelIndex, backupTransitionButton);// Устанавливаем кнопку в соответстующую ячейку
+            // Устанавливаем кнопку в соответстующий индекс модели
+            ui->treeStatus->setIndexWidget(currentModelIndex, backupTransitionButton);
 
             connect(backupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
+
+            // Устанавливаем фильтр для событий входа и выхода мышью из кнопки
             backupTransitionButton->installEventFilter(this);
         }
 
+        // Указатель на кнопку резервного перехода
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
+        // Если нода мастер и иконка не установлена
+        //
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
             node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
                                       && !(backupTransitionButton->icon().isNull()))
@@ -486,7 +501,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
         QPushButton *pushButton = qobject_cast<QPushButton*>(object);
             if(event->type() == QEvent::Enter && pushButton->isEnabled())
             {
-                pushButton->setIcon(QIcon(":/images/backupTransitionICO.png"));
+                pushButton->setIcon(QIcon(":/images/backupTransition.png"));
                 return true;
             }
             if(event->type() == QEvent::Leave && pushButton->isEnabled())

@@ -341,7 +341,8 @@ private:
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
 
-        // response_packet->mutable_response()->mutable_status()->set_backup_transition_status();
+        response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(::alpha::protort::protocol::backup::BackupStatus::Master);
+
 
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();

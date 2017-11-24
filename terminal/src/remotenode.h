@@ -107,7 +107,7 @@ private:
     void setBytesReceived(uint32_t value);
     void setBytesSent(uint32_t value);
     void setConnected(bool value);
-    void setBackupStatus(uint32_t value);
+    void setBackupStatus(alpha::protort::protocol::backup::BackupStatus value);
 
     double calcUpSpeed(const QTime &now, uint32_t bytesSent);
     double calcDownSpeed(const QTime &now, uint32_t bytesReceived);

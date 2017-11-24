@@ -262,7 +262,7 @@ void RemoteNode::setConnected(bool value)
 }
 
 
-void RemoteNode::setBackupStatus(uint32_t value)
+void RemoteNode::setBackupStatus(alpha::protort::protocol::backup::BackupStatus value)
 {
     if(value >= 0 && value <= 2)
         backupStatus_ = static_cast<BackupStatus>(value);
@@ -367,7 +367,7 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
     //setBackupStatus(status.backup_status());
-    setBackupStatus(1);
+    setBackupStatus(status.node_info().backup_status());
 
     emit statusChanged();
 }
