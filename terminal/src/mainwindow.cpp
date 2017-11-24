@@ -312,7 +312,7 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
-             .arg(QString::fromLocal8Bit(err.message().data(), err.message().size())));
+             .arg(QString::fromStdString(err.message()));
 }
 
 void MainWindow::setTabName(int index, const QString &name)
