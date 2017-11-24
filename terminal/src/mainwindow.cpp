@@ -312,7 +312,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
         // Если нода мастер и иконка не установлена
-        //
+        // Если нода слейв, кнопка активна и иконка установлена(произошел переход)
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
             node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
                                       && !(backupTransitionButton->icon().isNull()))
@@ -320,12 +320,14 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
             backupTransitionButton->setIcon(QIcon(":/images/master.png"));
             backupTransitionButton->setEnabled(true);
         }
+        // Если нода слэйв и иконка не установлена
+        // Если нода мастер, кнопка неактивна и иконка установлена(произошел переход)
         else if(node->backupStatus() == 2 && backupTransitionButton->icon().isNull()  ||
                 node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
                                           && !(backupTransitionButton->icon().isNull()))
         {
             backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
-            backupTransitionButton->setEnabled(false);
+            backupTransitionButton->setDisabled(true);
         }
     }
 
@@ -409,9 +411,7 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
     if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
-    {
-        ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
-    }
+        ui->treeStatus->indexWidget(currentModelIndex)->setDisabled(true);
 
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
