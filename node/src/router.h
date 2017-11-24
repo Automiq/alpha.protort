@@ -137,7 +137,7 @@ class router : public boost::enable_shared_from_this<router<app>>
     };
 
     //RemotePair test
-    boost::shared_ptr<router<node>::remote_pair> rp;
+    boost::shared_ptr<router<node>::remote_pair> sp_rp;
 private:
     class component_instance;
 
@@ -336,8 +336,8 @@ public:
                     packet->set_payload(output.payload);
 
                     //запрос о статусе. Если ответил не мастер то отправка произойдет на другую ноду.
-                    rp->request_backup_status();
-                    rp->send_message(payload);
+                    sp_rp->request_backup_status();
+                    sp_rp->send_message(payload);
                     //remote_route.client->async_send_message(payload); //старый метод
 
 

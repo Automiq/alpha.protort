@@ -237,7 +237,8 @@ public:
         //работать с ней будем в route::do_route()
         if(node_name_=="node1")
         {
-            router_->rp = boost::make_shared<alpha::protort::node::router<alpha::protort::node::node>::remote_pair>("node2", router_->clients_["node2"], "node3", router_->clients_["node3"]);
+            alpha::protort::node::router<alpha::protort::node::node>::remote_pair rp("node2", router_->clients_["node2"], "node3", router_->clients_["node3"]);
+            router_->sp_rp = boost::make_shared<alpha::protort::node::router<alpha::protort::node::node>::remote_pair>(rp);
         }
 
 
