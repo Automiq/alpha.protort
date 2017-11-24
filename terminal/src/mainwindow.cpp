@@ -19,7 +19,6 @@
 #include <QWidget>
 #include <QTimer>
 #include <QHBoxLayout>
-
 #include <QToolTip>
 #include <boost/make_shared.hpp>
 
