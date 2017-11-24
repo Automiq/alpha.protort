@@ -19,4 +19,5 @@ LIBS += \
 include(../node.pri)
 
 HEADERS += \
-    logi.h
+    logi.h \
+    backup_manager.h
