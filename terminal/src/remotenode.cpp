@@ -84,6 +84,16 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
     node_info_->set_port(deploy_configuration.map_node[current_node].host.port);
     node_info_->set_address(deploy_configuration.map_node[current_node].host.ip_address);
 
+    if(deploy_configuration.map_node.find((boost::format("pairnode.%1%") % current_node).str()) != deploy_configuration.map_node.end()){
+        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Master);
+    }
+    else if(current_node.find("pairnode") != -1){
+        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Slave);
+    }
+    else{
+        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::None);
+    }
+
     for (auto &component : deploy_configuration.map_node_with_components[current_node])
     {
         alpha::protort::protocol::ComponentKind kind =
