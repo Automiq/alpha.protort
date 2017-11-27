@@ -622,7 +622,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    //    ui->statusLog->append(message);
+    //ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)
