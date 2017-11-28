@@ -53,11 +53,18 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-
-    for (size_t i(0); i < remoteNodes_.count(); ++i)// Удаление кнопок
+    // Удаление кнопок, если они имеются
+    for (size_t i(0); i < remoteNodes_.count(); ++i)
     {
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );// Индекс ноды на уровне i
-        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);// Кнопка соотвествующая индексу
+        // Указатель на модель
+        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+        //Индекс модели, в которой установлена кнопка
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
+
+        // Указатель на кнопку из текущего индекса
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+
         if(backupPushButton)
             delete backupPushButton;
     }
@@ -273,7 +280,8 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    if(node->isConnected() && node->backupStatus() != 0)// Если нода приконнекчена и она не None
+    // Если нода приконнекчена и она не None
+    if(node->isConnected() && node->backupStatus() != 0)
     {
         // Берем указатель на модель
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
@@ -388,12 +396,19 @@ void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
+    // Берем указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+    // Через указатель на модель достаем уровень текущей ноды
     int row = mod->indexOfNode(node);
+
+    // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
-    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
+    // Если нода мастер и у него есть неактивная кнопка перехода
+    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
     {
+        // Устанавливаем кнопку активной
         ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
     }
 
@@ -406,13 +421,21 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
+    // Берем указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+    // Через указатель на модель достаем уровень текущей ноды
     int row = mod->indexOfNode(node);
-    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
+    // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
+
+    // Если нода мастер и у него есть активная кнопка перехода
     if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+    {
+        // Дизэйблим кнопку
         ui->treeStatus->indexWidget(currentModelIndex)->setDisabled(true);
-
+    }
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
              .arg(QString::fromStdString(err.message())));
@@ -498,17 +521,23 @@ void MainWindow::deploy()
 
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-        QPushButton *pushButton = qobject_cast<QPushButton*>(object);
-            if(event->type() == QEvent::Enter && pushButton->isEnabled())
-            {
-                pushButton->setIcon(QIcon(":/images/backupTransition.png"));
-                return true;
-            }
-            if(event->type() == QEvent::Leave && pushButton->isEnabled())
-            {
-                pushButton->setIcon(QIcon(":/images/master.png"));
-                return true;
-            }
+    // Ивент фильтр привязан только к кнопкам бэкап статуса, кастим к типу кнопки
+    QPushButton *pushButton = qobject_cast<QPushButton*>(object);
+
+    // Если это кнопка, ивент это вход на нее мышью и кнопка активна
+    if(pushButton && event->type() == QEvent::Enter && pushButton->isEnabled())
+    {
+        // Меняем иконку при входе на кнопку
+        pushButton->setIcon(QIcon(":/images/backupTransition.png"));
+        return true;
+    }
+    // Если это кнопка, ивент это выход из нее курсором мыши и кнопка активна
+    if(pushButton && event->type() == QEvent::Leave && pushButton->isEnabled())
+    {
+        // Меняем иконку при выходе за пределы кнопки
+        pushButton->setIcon(QIcon(":/images/master.png"));
+        return true;
+    }
 //            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())
 //            {
 
@@ -528,18 +557,32 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     return QMainWindow::eventFilter(object, event);
 }
 
+/*!
+ * \brief Метод срабатыает при нажатии кнопки backupTransition
+ * СОздает соответствующий пакет и отправляет его на remote node
+ */
 void MainWindow::on_backup_transition()
 {
+    //Сигнал привязан только к кнопкам резервного перехода
     QPushButton *backupPushButton = qobject_cast<QPushButton*>(sender());
-    if(backupPushButton->isEnabled())
+
+    // Если это кнопка и она активна
+    if(backupPushButton && backupPushButton->isEnabled())
     {
-        int row = sender()->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
-        RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
+        // У отправителя сигнала узнаем на каком уровне расположена кнопка
+        int row = sender()->property("row").toInt();
 
-        alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
-        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);// Устанавливаем тип пакета
+        // Нода, которая расположена на том же уровне
+        RemoteNodePtr remoteNode = remoteNodes_.at(row);
 
-        remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+        // Создаем пакет
+        alpha::protort::protocol::Packet_Payload backup;
+
+        // Устанавливаем тип пакета
+        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);
+
+        // Вызываем функцию, которая отправит этот пакет ноде
+        remoteNode->async_backup_transition(backup);
     }
 }
 
@@ -769,10 +812,18 @@ void MainWindow::activateStatus() const
 
 void MainWindow::button_clickedSetup()
 {
+    // Удаление кнопок, если они имеются
     for (size_t i(0); i < remoteNodes_.count(); ++i)
     {
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, 10 );
+        // Указатель на модель
+        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+        //Индекс модели, в которой установлена кнопка
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
+
+        // Указатель на кнопку из текущего индекса
         QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+
         if(backupPushButton)
             delete backupPushButton;
     }

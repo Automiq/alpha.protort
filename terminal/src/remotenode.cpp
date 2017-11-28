@@ -75,6 +75,8 @@ void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payloa
     callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
             emit backupTransitionRequestFinished(packet.deploy_packet());
     });
+
+    // Отправка реквеста на ноду
     client_->async_send_request(backup, callbacks);
 }
 
@@ -264,6 +266,7 @@ void RemoteNode::setConnected(bool value)
 
 void RemoteNode::setBackupStatus(alpha::protort::protocol::backup::BackupStatus value)
 {
+    // Если такие значения есть в перечислении
     if(value >= 0 && value <= 2)
         backupStatus_ = static_cast<BackupStatus>(value);
 }
@@ -321,6 +324,11 @@ uint32_t RemoteNode::upSpeed() const
     return upSpeed_;
 }
 
+/*!
+ * \brief Функция для проверки текущего состояния ноды
+ * \return Возвращает состояние ноды в
+ * соответствии с перечислением BackupStatus
+ */
 uint32_t RemoteNode::backupStatus() const
 {
     return static_cast<uint32_t>(backupStatus_);
@@ -367,7 +375,12 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
     //setBackupStatus(status.backup_status());
-    setBackupStatus(status.node_info().backup_status());
+ //   if(status.node_name() == "node1")
+        setBackupStatus(status.node_info().backup_status());
+//    else if(status.node_name() == "node2")
+//        setBackupStatus(alpha::protort::protocol::backup::Slave);
+//    else if(status.node_name() == "node3")
+//        setBackupStatus(alpha::protort::protocol::backup::None);
 
     emit statusChanged();
 }

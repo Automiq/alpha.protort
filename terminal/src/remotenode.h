@@ -143,5 +143,7 @@ private:
         Master= 1,
         Slave = 2
     } backupStatus_;
+
+     uint32_t test;
 };
 #endif // TERMINAL_CLIENT_H
