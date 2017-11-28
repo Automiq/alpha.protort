@@ -175,11 +175,6 @@ public:
             std::string address;
             uint32_t port;
         };
-        std::string str="1010011";
-        uint32_t ppt=101;
-        std::cout<<"deploy_start"<<std::endl;
-        backup_manager=boost::make_shared<Backup_manager>( str, ppt , service_ , router_, Node_status::slave);
-
         // узнать
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
@@ -310,6 +305,7 @@ private:
         response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
+        response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(backup_manager_->backup_status());
 
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
@@ -381,12 +377,11 @@ private:
     boost::chrono::steady_clock::time_point start_time_;
 
     boost::thread_group workers_;
-    boost::optional<Backup_manager> backup_manager_;
-
-    boost::shared_ptr<Backup_manager> backup_manager;
+    //! менеджер для работы с парой
+    boost::shared_ptr<Backup_manager> backup_manager_;
 public:
     //! Роутер пакетов
-    //TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
+    //!TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
     boost::shared_ptr<router<node>> router_;
 };
 
