@@ -19,12 +19,10 @@
 #include "protocol.pb.h"
 #include "deploy.pb.h"
 #include "factory.h"
-#include "logi.h"
 #include "backup_manager.h"
-
+#include "logi.h"
 
 namespace alpha {
-
 namespace protort {
 namespace node {
 
@@ -275,7 +273,6 @@ private:
         }
         case protocol::deploy::PacketKind::Switch:
 //            backup_manager_.get().backup_transition();
-
         case protocol::deploy::PacketKind::Start:
             router_->start();
             return {};
