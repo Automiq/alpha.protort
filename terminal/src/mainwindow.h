@@ -129,6 +129,7 @@ private:
     void deploy();
     void createRemoteNodes();
     void connectRemoteNodeSignals(RemoteNode* node);
+    void connectRemoteNode(alpha::protort::parser::node &node);
     void save_session();
     void load_session();
     void load_file(const QString& fileName);

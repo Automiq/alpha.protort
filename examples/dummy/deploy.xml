@@ -1,8 +1,10 @@
 <deploy>
- <node name="node1" address="127.0.0.1" port="41337" config_port="31337" />
+ <node name="ZZZZ" address="127.0.0.1" port="41337" config_port="31337">
+ <pairnode address="127.0.0.1" port="41340" config_port="31340"/>
+ </node>
  <node name="node2" address="127.0.0.1" port="41338" config_port="31338" />
  <node name="node3" address="127.0.0.1" port="41339" config_port="31339" />
- <map instance="ge" node="node1" />
+ <map instance="ge" node="ZZZZ" />
  <map instance="re" node="node2" />
  <map instance="te" node="node3" />
 </deploy>

@@ -613,7 +613,7 @@ void MainWindow::on_status_triggered()
         return;
 
     ui->treeStatus->expandAll();
-    alpha::protort::protocol::Packet_Payload status;// ERRROR!
+    alpha::protort::protocol::Packet_Payload status;
     status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
     for (auto &remoteNode: remoteNodes_)
@@ -671,7 +671,7 @@ void MainWindow::createRemoteNodes()
         config_.parse_deploy(m_deploySchema->filePath().toStdString());
 
         deploy_config_.parse_deploy(config_);
-    }
+
 
     for (auto &remoteNode : remoteNodes_)
         remoteNode->shutdown();
@@ -679,19 +679,33 @@ void MainWindow::createRemoteNodes()
     deploying = true;
     remoteNodes_.clear();
 
-    for (auto node : deploy_config_.map_node)
+    for (auto &node : config_.nodes)
     {
-        auto remoteNode = boost::make_shared<RemoteNode>(node.second);
-        remoteNodes_.append(remoteNode);
+        connectRemoteNode(node);
 
-        connectRemoteNodeSignals(remoteNode.get());
+        if(node.pairnode)
+        {
+            std::string name = (boost::format("pairnode.%1%")%node.name).str();
 
-        remoteNode->init(service_);
+            if(deploy_config_.map_node.find(name) != deploy_config_.map_node.end())
+            {
+                auto nodeSlave = deploy_config_.map_node.find(name);
+                connectRemoteNode(nodeSlave->second);
+            }
+        }
     }
-
+    }
     static_cast<TreeModel*>(ui->treeStatus->model())->setupModelData(remoteNodes_);
 
     m_statusTimer->start(500);
+}
+
+void MainWindow::connectRemoteNode(alpha::protort::parser::node &node)
+{
+    auto remoteNode = boost::make_shared<RemoteNode>(node);
+    remoteNodes_.append(remoteNode);
+    connectRemoteNodeSignals(remoteNode.get());
+    remoteNode->init(service_);
 }
 
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
