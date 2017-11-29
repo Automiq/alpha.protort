@@ -332,10 +332,6 @@ private:
         node_name_ = config.this_node_info().name();
         port_ = config.this_node_info().port();
 
-        if(config.this_node_info().backup_status() != protocol::backup::BackupStatus::None){
-           //backup_manager_ = new Backup_manager(service_, config.this_node_info().backup_status());
-        }
-
         parser::configuration pconf;
 
         for (auto & inst : config.instances())
@@ -345,8 +341,13 @@ private:
             pconf.connections.push_back({conn.source().name(), conn.source().port(),
                                          conn.destination().name(), conn.destination().port()});
 
-        for (auto & node : config.node_infos())
-            pconf.nodes.push_back({node.name(), node.address(), node.port()});
+        for (auto & node : config.node_infos()){
+            if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
+                //backup_manager_ = new Backup_manager(pairnode_address = node.address(), node.port(), service_, config.this_node_info().backup_status());
+            }
+            else
+                pconf.nodes.push_back({node.name(), node.address(), node.port()});
+        }
 
         for (auto & map : config.maps())
             pconf.mappings.push_back({map.instance_name(), map.node_name()});
@@ -378,7 +379,7 @@ private:
 
     boost::thread_group workers_;
     //! менеджер для работы с парой
-    boost::shared_ptr<Backup_manager> backup_manager_;
+    //boost::optional<Backup_manager> backup_manager_;
 public:
     //! Роутер пакетов
     //!TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)

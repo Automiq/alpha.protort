@@ -63,6 +63,36 @@ QString RemoteNode::info() const
     return QString("%1 (%2)").arg(name()).arg(address());
 }
 
+void RemoteNode::init_info_node(const alpha::protort::parser::node &node,
+                                const std::string &name_node,
+                                alpha::protort::protocol::deploy::NodeInfo* node_info)
+{
+    node_info->set_name(name_node);
+    node_info->set_address(node.host.ip_address);
+    node_info->set_port(node.host.port);
+}
+
+void RemoteNode::init_backup_status_node_info(const alpha::protort::parser::node &node,
+                                              const std::string &name_node,
+                                              alpha::protort::protocol::deploy::Config* configuration,
+                                              alpha::protort::protocol::deploy::NodeInfo* node_info)
+{
+    if(!node_info)
+       node_info = configuration->add_node_infos();
+
+    init_info_node(node, name_node, node_info);
+
+    if(node.pairnode){
+        node_info->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Master);
+    }
+    else if(node.name.find("pairnode.") != -1){
+        node_info->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Slave);
+    }
+    else{
+        node_info->set_backup_status(alpha::protort::protocol::backup::BackupStatus::None);
+    }
+}
+
 void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
 {
     std::string current_node = node_information_.name;
@@ -73,25 +103,25 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
     alpha::protort::protocol::Packet_Payload payload;
 
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::DeployConfig);
+
     alpha::protort::protocol::deploy::Config* configuration =
         payload.mutable_deploy_packet()->mutable_request()->mutable_deploy_config()->mutable_config();
 
-    configuration->mutable_this_node_info()->set_name(current_node);
-    configuration->mutable_this_node_info()->set_port(deploy_configuration.map_node[current_node].host.port);
+    init_backup_status_node_info(node_information_, node_information_.name, configuration, configuration->mutable_this_node_info());
+    init_backup_status_node_info(node_information_, node_information_.name, configuration);
 
-    alpha::protort::protocol::deploy::NodeInfo* node_info_ = configuration->add_node_infos();
-    node_info_->set_name(current_node);
-    node_info_->set_port(deploy_configuration.map_node[current_node].host.port);
-    node_info_->set_address(deploy_configuration.map_node[current_node].host.ip_address);
+    if(node_information_.pairnode){
+        std::string pairnode_name = (boost::format("pairnode.%1%") % node_information_.name).str();
+        alpha::protort::parser::node slave_node = deploy_configuration.map_node[pairnode_name];
 
-    if(deploy_configuration.map_node.find((boost::format("pairnode.%1%") % current_node).str()) != deploy_configuration.map_node.end()){
-        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Master);
+        init_backup_status_node_info(slave_node, node_information_.name, configuration);
     }
-    else if(current_node.find("pairnode") != -1){
-        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::Slave);
-    }
-    else{
-        node_info_->set_backup_status(alpha::protort::protocol::backup::BackupStatus::None);
+
+    if(current_node.find("pairnode.") != -1){
+        std::string node_name = current_node.substr(9);
+        alpha::protort::parser::node master_node = deploy_configuration.map_node[node_name];
+
+         init_backup_status_node_info(master_node, current_node, configuration);
     }
 
     for (auto &component : deploy_configuration.map_node_with_components[current_node])
@@ -133,11 +163,8 @@ void RemoteNode::async_deploy(deploy_configuration& deploy_configuration)
                 if(added_nodes.find(node_.name) == added_nodes.end())
                 {
                     // Добавляем информацию о ноде в конфигурацию
-                    alpha::protort::protocol::deploy::NodeInfo* remote_node_info_ = configuration->add_node_infos();
+                    init_backup_status_node_info(node_, node_.name, configuration);
 
-                    remote_node_info_->set_name(node_.name);
-                    remote_node_info_->set_port(node_.host.port);
-                    remote_node_info_->set_address(node_.host.ip_address);
                     added_nodes.insert(node_.name);
                 }
 
@@ -227,7 +254,10 @@ QList<RemoteComponent *> RemoteNode::components() const
 }
 
 //! Методы изменения данных узла
-void RemoteNode::setUptime(uint32_t time){ uptime_  = time; }
+void RemoteNode::setUptime(uint32_t time)
+{
+    uptime_  = time;
+}
 
 void RemoteNode::setPacketsReceived(uint32_t value)
 {
