@@ -44,6 +44,13 @@ public:
     QString address() const;
     QString info() const;
 
+    void init_info_node(const alpha::protort::parser::node &node,
+                        const std::string &name_node,
+                        alpha::protort::protocol::deploy::NodeInfo* node_info);
+    void init_backup_status_node_info(const alpha::protort::parser::node &node,
+                                      const std::string &name_node,
+                                      alpha::protort::protocol::deploy::Config* configuration,
+                                      alpha::protort::protocol::deploy::NodeInfo* node_info = NULL);
     void async_deploy(deploy_configuration& deploy_configuration_);
     void async_start(alpha::protort::protocol::Packet_Payload& packet);
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);
