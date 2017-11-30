@@ -49,6 +49,11 @@ class router : public boost::enable_shared_from_this<router<app>>
             this->client=client;
         }
 
+        virtual ~remote_host()
+        {
+
+        }
+
         virtual void send_message(alpha::protort::protocol::Packet::Payload const &payload)
         {
             client->async_send_message(payload);
@@ -66,6 +71,11 @@ class router : public boost::enable_shared_from_this<router<app>>
         {
             host2_name=name2;
             this->client2=client2;
+        }
+
+        ~remote_pair()
+        {
+
         }
 
         //отправляет сообщение мастер ноде
@@ -93,19 +103,13 @@ class router : public boost::enable_shared_from_this<router<app>>
             callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
                 on_backup_status_finished(packet.deploy_packet());
             });
-            /*callbacks->on_timeout.connect([&]() {
-                std::cout << "BACKUP TIMEOUT" << std::endl;
-                switch_nodes();
-            });
-            callbacks->on_abort.connect([&]() {
-                std::cout << "BACKUP ABORT" << std::endl;
-                switch_nodes();
-            });*/
+
             ++timeout;
             if(timeout>3)
             {
                 switch_nodes();
             }
+
             if(is_master_valid)
             {
                 std::cout << "Sending to " << host_name << " Backupstatus request" << std::endl;
@@ -113,7 +117,7 @@ class router : public boost::enable_shared_from_this<router<app>>
             }
             else
             {
-                std::cout << "Sending to " << host2_name << "Backupstatus request" << std::endl;
+                std::cout << "Sending to " << host2_name << " Backupstatus request" << std::endl;
                 client2->async_send_request(status, callbacks);
             }
         }
