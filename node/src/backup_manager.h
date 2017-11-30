@@ -4,9 +4,6 @@
 
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/move/unique_ptr.hpp>
-#include <boost/move/make_unique.hpp>
-
 #include "node.h"
 
 
@@ -22,7 +19,7 @@ enum Node_status {master=1 , slave};
 
 class Backup_manager;
 
-class master_manager: public boost::enable_shared_from_this<master_manager>
+class master_monitor: public boost::enable_shared_from_this<master_monitor>
 {
     friend class Backup_manager;
     using port_id=uint32_t;
@@ -31,7 +28,7 @@ class master_manager: public boost::enable_shared_from_this<master_manager>
 
 public:
 
-    master_manager(boost::asio::io_service& service,
+    master_monitor(boost::asio::io_service& service,
                 uint32_t interval,
                 client_ptr client
                 ):
@@ -44,17 +41,17 @@ public:
         signal_=boost::make_shared<alpha::protort::protolink::request_callbacks>();
     }
 
-    ~master_manager(){
+    ~master_monitor(){
        // signal_->on_timeout.realised();
        // спросить как лучше отвязать сигналы
         timer_.cancel();
     }
-
+    //начало мониторинга мастера
     void start_check(){
-            IO_service_.post(boost::bind(&master_manager::dispatch_on_master ,
-                                            boost::static_pointer_cast<master_manager>(this->shared_from_this())));
+            IO_service_.post(boost::bind(&master_monitor::dispatch_on_master ,
+                                            boost::static_pointer_cast<master_monitor>(this->shared_from_this())));
     }
-
+    //вызывает сигнал
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> get_signal(){
         return signal_;
     }
@@ -64,13 +61,13 @@ private:
     void master_is_life(const alpha::protort::protocol::backup::Packet& packet){
         count_timeout_--;
     }
-
+    //таймер
     void master_check(){
         timer_.expires_from_now(boost::posix_time::milliseconds(this->interval_));
-        timer_.async_wait(boost::bind(&master_manager::dispatch_on_master ,
-                          boost::static_pointer_cast<master_manager>(this->shared_from_this())));
+        timer_.async_wait(boost::bind(&master_monitor::dispatch_on_master ,
+                          boost::static_pointer_cast<master_monitor>(this->shared_from_this())));
     }
-
+    //отправка запроса на мастер и в случае смерти мастера вызывает backup_transition
     void dispatch_on_master(){
             //отправка пакета keepalife
             //если ответ не пришел то возвращаем false
@@ -89,8 +86,8 @@ private:
         });
         client_->async_send_request(packet , callback);
 
-        IO_service_.post(boost::bind(&master_manager::master_check ,
-                                           boost::static_pointer_cast<master_manager>(this->shared_from_this())));
+        IO_service_.post(boost::bind(&master_monitor::master_check ,
+                                           boost::static_pointer_cast<master_monitor>(this->shared_from_this())));
     }
     //IO сервис ноды
     boost::asio::io_service &IO_service_;
@@ -101,8 +98,8 @@ private:
     //клиент для связи с парной нрдой
     client_ptr client_;
     //количество пакетов от которых не пришел ответ
-    uint32_t count_timeout_;
-    //сигнал
+    boost::atomic<uint32_t> count_timeout_;
+    //сигнал для timeout
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> signal_;
 };
 
@@ -128,12 +125,12 @@ public:
     }
 
 
-    // спросить можноли так делать в данном случае
+    //возвращает текущий статус узла
     alpha::protort::protocol::backup::BackupStatus backup_status(){
         return (alpha::protort::protocol::backup::BackupStatus)node_status_;
     }
 
-
+    //выполняется резервный переход
     void backup_transition(){
         //проверка пары на жизнь если он жив то
         //отправка на пару запроса на backup_nransition
@@ -148,20 +145,19 @@ public:
         }
         else{
             switch_status();
-            life_master_.get_deleter();
-            //life_master_=boost::make_shared<Life_master>(service__ , 500);
+            master_monitor_.reset();
         }
 
     }
 
-
+    //запускает процес проверки мастера на работоспособность
     void start_keepalife(){
         if(node_status_==Node_status::slave){
-            life_master_=boost::movelib::make_unique<master_manager>(service__ , 500 , client_);
-            life_master_->get_signal()->on_timeout.connect([&](){
+            master_monitor_=boost::make_shared<master_monitor>(service__ , 500 , client_);
+            master_monitor_->get_signal()->on_timeout.connect([&](){
                 backup_transition();
             });
-            life_master_.get()->start_check();
+            master_monitor_.get()->start_check();
             //    backup_transition();
         }
     }
@@ -170,12 +166,10 @@ private:
     void backup_is_life(const alpha::protort::protocol::backup::Packet& packet){
         switch_status();
         start_keepalife();
-     }
-
+    }
+    //меняет node_status текущей компоненты на противоположный
     void switch_status(){
-
         node_status_=(Node_status::slave==node_status_)?Node_status::master : Node_status::slave;
-
     }
 
     //io сервис узла
@@ -183,8 +177,8 @@ private:
     //статус узла
     Node_status node_status_;
     //объект для проверки жизни мастера
-    boost::movelib::unique_ptr<alpha::protort::node::master_manager> life_master_;
-    //
+    boost::shared_ptr<alpha::protort::node::master_monitor> master_monitor_;
+    //клиент для работы с парной нодой
     client_ptr client_;
 };
 
