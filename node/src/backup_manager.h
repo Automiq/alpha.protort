@@ -4,7 +4,8 @@
 
 
 #include <boost/date_time/posix_time/posix_time.hpp>
-
+#include <boost/move/unique_ptr.hpp>
+#include <boost/move/make_unique.hpp>
 
 #include "node.h"
 
@@ -70,7 +71,7 @@ private:
                           boost::static_pointer_cast<master_manager>(this->shared_from_this())));
     }
 
-    bool dispatch_on_master(){
+    void dispatch_on_master(){
             //отправка пакета keepalife
             //если ответ не пришел то возвращаем false
             //реализовать
@@ -112,9 +113,7 @@ class Backup_manager: public boost::enable_shared_from_this<Backup_manager>
     using client_ptr=boost::shared_ptr<client_t>;
     using port_id=uint32_t;
 public:
-    Backup_manager(std::string &addres_pair_node ,
-                   port_id &pair_node_port ,
-                   boost::asio::io_service& service,
+    Backup_manager(boost::asio::io_service& service,
                    Node_status node_status,
                    client_ptr client
                  ):
@@ -127,30 +126,18 @@ public:
     ~Backup_manager(){
 
     }
-// спросить можноли так делать в данном случае
+
+
+    // спросить можноли так делать в данном случае
     alpha::protort::protocol::backup::BackupStatus backup_status(){
         return (alpha::protort::protocol::backup::BackupStatus)node_status_;
     }
 
 
-
-   void backup_is_life(const alpha::protort::protocol::backup::Packet& packet){
-        switch_status();
-        start_keepalife();
-      //  protocol_payload responce;
-      //  responce.mutable_backup_packet()->set_kind(protocol::backup::SwitchResponse);
-      //  return responce;
-    }
-
     void backup_transition(){
         //проверка пары на жизнь если он жив то
         //отправка на пару запроса на backup_nransition
-        if(node_status_==Node_status::slave){
-            switch_status();
-            life_master_.get_deleter();//спросить
-        //    return true;
-        }
-        else{
+        if(node_status_==Node_status::master){
             alpha::protort::protocol::Packet_Payload packet;
             packet.mutable_backup_packet()->set_kind(alpha::protort::protocol::backup::Switch);
             auto callback = boost::make_shared<alpha::protort::protolink::request_callbacks>();
@@ -158,6 +145,10 @@ public:
                 backup_is_life(packet.backup_packet());
             });
             client_->async_send_request(packet , callback);
+        }
+        else{
+            switch_status();
+            life_master_.get_deleter();
             //life_master_=boost::make_shared<Life_master>(service__ , 500);
         }
 
@@ -166,7 +157,7 @@ public:
 
     void start_keepalife(){
         if(node_status_==Node_status::slave){
-            life_master_=std::make_unique<master_manager>(service__ , 500 , client_);
+            life_master_=boost::movelib::make_unique<master_manager>(service__ , 500 , client_);
             life_master_->get_signal()->on_timeout.connect([&](){
                 backup_transition();
             });
@@ -176,6 +167,10 @@ public:
     }
 
 private:
+    void backup_is_life(const alpha::protort::protocol::backup::Packet& packet){
+        switch_status();
+        start_keepalife();
+     }
 
     void switch_status(){
 
@@ -183,16 +178,12 @@ private:
 
     }
 
-    void loss_of_master(){
-        this->backup_transition();
-    }
-
     //io сервис узла
     boost::asio::io_service& service__;
     //статус узла
     Node_status node_status_;
     //объект для проверки жизни мастера
-    std::unique_ptr<alpha::protort::node::master_manager> life_master_;
+    boost::movelib::unique_ptr<alpha::protort::node::master_manager> life_master_;
     //
     client_ptr client_;
 };
