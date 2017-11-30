@@ -340,7 +340,7 @@ private:
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
-                //backup_manager_ = new Backup_manager(pairnode_address = node.address(), node.port(), service_, config.this_node_info().backup_status());
+                backup_manager_ = boost::make_shared<Backup_manger>(service_, (alpha::protort::node::Backup_manager::Node_status)config.this_node_info().backup_status,client_)
             }
             else
                 pconf.nodes.push_back({node.name(), node.address(), node.port()});
@@ -376,7 +376,7 @@ private:
 
     boost::thread_group workers_;
     //! менеджер для работы с парой
-    //boost::optional<Backup_manager> backup_manager_;
+    boost::shared_ptr<Backup_manager> backup_manager_;
 public:
     //! Роутер пакетов
     //!TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
