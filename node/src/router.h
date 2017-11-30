@@ -138,7 +138,7 @@ class router : public boost::enable_shared_from_this<router<app>>
         //Колбек по завершению запроса статуса
         void on_backup_status_finished(const alpha::protort::protocol::deploy::Packet& packet)
         {
-            --timeout;
+            timeout=0;
             if(packet.has_error() || !packet.has_response())
             {
                 return;
@@ -290,7 +290,7 @@ public:
                                      payload));
         }
     }
-    int i=0;
+
     /*!
      * \brief Рассылает выходные данные компонента по маршрутам
      * \param comp_inst Компонент
@@ -351,18 +351,12 @@ public:
                     // payload
                     packet->set_payload(output.payload);
 
-                    //запрос о статусе. Если ответил не мастер то отправка произойдет на другую ноду.
-                    if(i<10)
-                    {
-                        i++;
-                    }
-                    else
-                    {
-                        sp_rp->request_backup_status();
-                        i=0;
-                    }
+
                     sp_rp->send_message(payload);
                     //remote_route.client->async_send_message(payload); //старый метод
+
+                    //запрос о статусе. Если ответил не мастер то отправка произойдет на другую ноду.
+                    sp_rp->request_backup_status();
 
 
                     out_bytes_ += payload.ByteSize();
