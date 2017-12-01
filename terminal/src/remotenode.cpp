@@ -375,12 +375,14 @@ void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
     //setBackupStatus(status.backup_status());
- //   if(status.node_name() == "node1")
+    if(status.node_name() == "node1")
         setBackupStatus(status.node_info().backup_status());
-//    else if(status.node_name() == "node2")
-//        setBackupStatus(alpha::protort::protocol::backup::Slave);
-//    else if(status.node_name() == "node3")
-//        setBackupStatus(alpha::protort::protocol::backup::None);
+    else if(status.node_name() == "node2")
+        setBackupStatus(alpha::protort::protocol::backup::None);
+    else if(status.node_name() == "node3")
+        setBackupStatus(alpha::protort::protocol::backup::None);
+    else if(status.node_name() == "pairnode.node1")
+        setBackupStatus(alpha::protort::protocol::backup::Slave);
 
     emit statusChanged();
 }

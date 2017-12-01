@@ -320,7 +320,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
         // Если нода мастер и иконка не установлена
-        // Если нода слейв, кнопка активна и иконка установлена(произошел переход)
+        // Если нода слейв, кнопка активна и иконка установлена(произошел переход) и она приконнекчена
         if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
             node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
                                       && !(backupTransitionButton->icon().isNull()))
@@ -406,7 +406,7 @@ void MainWindow::onConnected()
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
     // Если нода мастер и у него есть неактивная кнопка перехода
-    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
     {
         // Устанавливаем кнопку активной
         ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
