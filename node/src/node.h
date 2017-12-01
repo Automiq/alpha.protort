@@ -35,6 +35,8 @@ class node : public boost::enable_shared_from_this<node>
 {
 public:
     using protocol_payload = protocol::Packet::Payload;
+    using client_t = alpha::protort::protolink::client<node>;
+    using client_ptr = boost::shared_ptr<client_t>;
 /*
  *  //! I/O сервис
     boost::asio::io_service service_;
