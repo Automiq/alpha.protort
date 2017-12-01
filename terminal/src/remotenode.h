@@ -37,6 +37,7 @@ public:
     RemoteNode(alpha::protort::parser::node const& node);
     ~RemoteNode();
     void init(boost::asio::io_service& service);
+    void connectNoda(boost::asio::io_service &service);
 
     void shutdown();
 

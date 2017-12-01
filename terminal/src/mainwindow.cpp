@@ -478,7 +478,41 @@ void MainWindow::createRemoteNodes()
 
     m_statusTimer->start(500);
 }
+void MainWindow::connetNoda()
+{
 
+
+        //auto Node = boost::make_shared<RemoteNode>();
+
+//  connectRemoteNodeSignals(remoteNode.get());
+
+//        remoteNode->connectNoda(service_);
+       // RemoteNode::connectNoda(service_);
+    //boost::asio::ip::tcp::endpoint ep( boost::asio::ip::address::from_string("127.0.0.1"), 41337);
+     boost::asio::ip::tcp::socket sock(service_);
+   // sock.async_connect(ep);
+    //client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
+
+      std::string address = "127.0.0.1";
+//    boost::asio::ip::tcp::endpoint ep(
+//                boost::asio::ip::address::from_string(address),
+//                41337);
+
+//    client_->async_connect(ep);
+        boost::asio::ip::tcp::endpoint ep(
+                    boost::asio::ip::address::from_string(address),
+                    41337);
+
+        //boost::asio::ip::tcp::socket sock(service);
+        sock.connect(ep);
+        //client_->async_connect(ep);
+
+
+
+        //RemoteNode::connectNoda(service_);
+
+
+}
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
 {
     connect(node, &RemoteNode::connected, this, &MainWindow::onConnected);
@@ -562,6 +596,11 @@ void MainWindow::createConfigurationToolBar()
     m_setupConfig->setText(tr("Загрузить"));
     m_setupConfig->setIcon(QIcon(":/images/configure.ico"));
 
+    m_connectNoda = new QToolButton;
+    m_connectNoda->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+    m_connectNoda->setText(tr("получить конфигурацию"));
+    m_connectNoda->setIcon(QIcon(":/images/radCog.png"));
+
     QWidget *w = new QWidget;
     QHBoxLayout *l = new QHBoxLayout;
     l->addWidget(app);
@@ -569,12 +608,14 @@ void MainWindow::createConfigurationToolBar()
     l->addWidget(schema);
     l->addWidget(m_deploys);
     l->addWidget(m_setupConfig);
+    l->addWidget(m_connectNoda);
     l->setContentsMargins(0, 0, 0, 0);
     w->setLayout(l);
 
     addWidgetOnBar(w);
 
     connect(m_setupConfig, SIGNAL(clicked()), this, SLOT(button_clickedSetup()));
+    connect(m_connectNoda, SIGNAL(clicked()), this, SLOT(button_getConfig()));
 }
 
 void MainWindow::setupConfigMembers()
@@ -602,6 +643,15 @@ void MainWindow::button_clickedSetup()
     }
 }
 
+void MainWindow::button_getConfig()
+{
+    if (m_apps->count()> 0 && m_deploys->count() > 0) {
+        //setupConfigMembers();
+        connetNoda();
+    }
+}
+
+
 void MainWindow::setActiveConfig()
 {
     for (int i = 0; i != ui->tabWidget->count(); ++i)
@@ -622,7 +672,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    //    ui->statusLog->append(message);
+    //ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)
@@ -633,4 +683,14 @@ Document *MainWindow::currentDocument(QComboBox *combobox)
 void MainWindow::setCurrentDocument(QComboBox * combobox, Document *doc)
 {
     combobox->setCurrentIndex(combobox->findData(QVariant::fromValue(doc)));
+}
+
+void MainWindow::on_get_status_triggered()
+{
+
+}
+
+void MainWindow::on_get_status_changed()
+{
+
 }

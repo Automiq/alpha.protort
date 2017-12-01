@@ -25,7 +25,8 @@ SOURCES += main.cpp\
     document.cpp \
     remotenode.cpp \
     treemodel.cpp \
-    remotecomponent.cpp
+    remotecomponent.cpp \
+    getconfiguration.cpp
 
 HEADERS  += mainwindow.h \
     configdialog.h \
@@ -33,7 +34,8 @@ HEADERS  += mainwindow.h \
     remotenode.h \
     deployconfiguration.h \
     treemodel.h \
-    remotecomponent.h
+    remotecomponent.h \
+    getconfiguration.h
 
 FORMS    += mainwindow.ui \
     configdialog.ui

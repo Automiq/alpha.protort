@@ -48,6 +48,7 @@ public:
 
 public slots:
     void button_clickedSetup();
+    void button_getConfig();
 
 private slots:
     void on_save_file_triggered();
@@ -87,12 +88,17 @@ private slots:
     void onConnected();
     void onConnectionFailed(const boost::system::error_code&);
 
+    void on_get_status_triggered();
+
+    void on_get_status_changed();
+
 private:
     Ui::MainWindow *ui;
     ConfigDialog *dlg;
     QComboBox *m_apps;
     QComboBox *m_deploys;
     QToolButton *m_setupConfig;
+    QToolButton *m_connectNoda;
     QTimer *m_statusTimer;
     Document *m_app = nullptr;
     Document *m_deploySchema = nullptr;
@@ -119,6 +125,7 @@ private:
     void showMessage();
     void deploy();
     void createRemoteNodes();
+    void connetNoda();
     void connectRemoteNodeSignals(RemoteNode* node);
     void save_session();
     void load_session();

@@ -42,6 +42,27 @@ void RemoteNode::init(boost::asio::io_service &service)
     client_->async_connect(ep);
 }
 
+
+void RemoteNode::connectNoda(boost::asio::io_service &service)
+{
+    client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
+
+       std::string address = "127.0.0.1";
+//    boost::asio::ip::tcp::endpoint ep(
+//                boost::asio::ip::address::from_string(address),
+//                41337);
+
+//    client_->async_connect(ep);
+        boost::asio::ip::tcp::endpoint ep(
+                    boost::asio::ip::address::from_string(address),
+                    41337);
+
+        //boost::asio::ip::tcp::socket sock(service);
+        //sock.connect(ep);
+        client_->async_connect(ep);
+
+}
+
 void RemoteNode::shutdown()
 {
     client_->prepare_shutdown();

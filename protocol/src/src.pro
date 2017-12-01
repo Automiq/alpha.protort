@@ -31,3 +31,9 @@ PROTOS += \
 
 # Для компиляции протокола с помощью protoc налету
 include(protobuf/compiler.pri)
+
+HEADERS += \
+    ../../protolink/src/getconfig.h
+
+SOURCES += \
+    ../../protolink/src/getconfig.cpp
