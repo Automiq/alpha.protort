@@ -353,6 +353,7 @@ private:
                 backup_manager_ = boost::make_shared<Backup_manager>(service_,
                                                     (alpha::protort::node::Node_status)config.this_node_info().backup_status(),
                                                                     client_);
+                backup_manager_->start_keepalife();
             }
             else
                 pconf.nodes.push_back({node.name(), node.address(), node.port()});
