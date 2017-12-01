@@ -35,6 +35,8 @@ class node : public boost::enable_shared_from_this<node>
 {
 public:
     using protocol_payload = protocol::Packet::Payload;
+    using client_t = alpha::protort::protolink::client<node>;
+    using client_ptr = boost::shared_ptr<client_t>;
 /*
  *  //! I/O сервис
     boost::asio::io_service service_;
@@ -340,7 +342,17 @@ private:
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
-                backup_manager_ = boost::make_shared<Backup_manger>(service_, (alpha::protort::node::Backup_manager::Node_status)config.this_node_info().backup_status,client_)
+                client_ = boost::make_shared<client_t>(this->shared_from_this(), service_);
+                boost::asio::ip::tcp::endpoint ep(
+                    boost::asio::ip::address::from_string(node.address()),
+                    node.port());
+
+                client_->async_connect(ep);
+
+                backup_manager_ = boost::make_shared<Backup_manager>(service_,
+                                                    (alpha::protort::node::Node_status)config.this_node_info().backup_status(),
+                                                                    client_);
+                backup_manager_->start_keepalife();
             }
             else
                 pconf.nodes.push_back({node.name(), node.address(), node.port()});
@@ -381,6 +393,8 @@ public:
     //! Роутер пакетов
     //!TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
     boost::shared_ptr<router<node>> router_;
+
+    client_ptr client_;
 };
 
 } // namespace node

@@ -24,6 +24,8 @@
 #include "deployconfiguration.h"
 #include "treemodel.h"
 
+using namespace alpha::protort;
+
 class QTextEdit;
 
 namespace Ui {
@@ -80,12 +82,12 @@ public slots:
     void showLog() const;
 
 private slots:
-    void onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
-    void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& status);
-    void onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
-    void onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onDeployConfigRequestFinished(const protocol::deploy::Packet &packet);
+    void onStatusRequestFinished(const protocol::deploy::Packet &status);
+    void onStartRequestFinished(const protocol::deploy::Packet &packet);
+    void onStopRequestFinished(const protocol::deploy::Packet &packet);
     void onConnected();
-    void onConnectionFailed(const boost::system::error_code&);
+    void onConnectionFailed(const boost::system::error_code &err);
 
 private:
     Ui::MainWindow *ui;
@@ -118,6 +120,8 @@ private:
     void resetDeployActions() const;
     void showMessage();
     void deploy();
+    boost::shared_ptr<RemoteNode> connectRemoteNode(const parser::node &node,
+                                                    protocol::backup::BackupStatus backup_status);
     void createRemoteNodes();
     void connectRemoteNodeSignals(RemoteNode* node);
     void save_session();
@@ -126,8 +130,8 @@ private:
 
     Document* document(int index);
 
-    void writeLog(const QString& message);
-    void writeStatusLog(const QString& message);
+    void writeLog(const QString &message);
+    void writeStatusLog(const QString &message);
 
     boost::asio::io_service service_;
 

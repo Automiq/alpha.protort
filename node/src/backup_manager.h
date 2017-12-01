@@ -85,6 +85,7 @@ private:
             master_is_life(packet.backup_packet());
         });
         client_->async_send_request(packet , callback);
+        std::cout<<"keepalife\n";
 
         IO_service_.post(boost::bind(&master_monitor::master_check ,
                                            boost::static_pointer_cast<master_monitor>(this->shared_from_this())));
@@ -142,6 +143,7 @@ public:
                 backup_is_life(packet.backup_packet());
             });
             client_->async_send_request(packet , callback);
+            std::cout<<"backup_transition\n";
         }
         else{
             switch_status();
