@@ -134,6 +134,8 @@ private:
     void load_session();
     void load_file(const QString& fileName);
 
+    void deleteBackupPushButtons();
+
     Document* document(int index);
 
     void writeLog(const QString& message);

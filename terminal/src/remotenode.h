@@ -24,6 +24,13 @@ Q_DECLARE_METATYPE(boost::system::error_code)
 
 class RemoteComponent;
 
+enum class BackupStatus
+{
+    None = 0,
+    Master= 1,
+    Slave = 2
+};
+
 class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
     Q_OBJECT
@@ -65,7 +72,7 @@ public:
     uint32_t downSpeed() const;
     uint32_t upSpeed() const;
 
-    uint32_t backupStatus() const;
+    BackupStatus backupStatus() const;
 
     RemoteComponent *componentAt(int index) const;
 
@@ -137,13 +144,9 @@ private:
 
     QTime m_lastStatusTime;
 
-    enum class BackupStatus
-    {
-        None = 0,
-        Master= 1,
-        Slave = 2
-    } backupStatus_;
-
-     uint32_t test;
+    BackupStatus backupStatus_;
+    uint32_t test;
 };
 #endif // TERMINAL_CLIENT_H
+
+

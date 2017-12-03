@@ -53,21 +53,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    // Удаление кнопок, если они имеются
-    for (size_t i(0); i < remoteNodes_.count(); ++i)
-    {
-        // Указатель на модель
-        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-
-        //Индекс модели, в которой установлена кнопка
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
-
-        // Указатель на кнопку из текущего индекса
-        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
-
-        if(backupPushButton)
-            delete backupPushButton;
-    }
+    deleteBackupPushButtons();
 
     for (int i = 0; i < ui->tabWidget->count(); ++i)
         if (!QFile(document(i)->filePath()).exists())
@@ -159,6 +145,25 @@ void MainWindow::load_file(const QString& fileName)
     addDocument(doc);
     setIcon(doc);
 
+}
+
+void MainWindow::deleteBackupPushButtons()
+{
+    // Удаление кнопок резервного перехода, если они имеются
+    for (size_t i(0); i < remoteNodes_.count(); ++i)
+    {
+        // Указатель на модель
+        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+        //Индекс модели, в которой могла быть установлена кнопка
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
+
+        // Указатель на кнопку из текущего индекса
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+
+        if(backupPushButton)
+            delete backupPushButton;
+    }
 }
 
 void MainWindow::on_load_file_triggered()
@@ -280,26 +285,21 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    // Если нода приконнекчена и она не None
-    if(node->isConnected() && node->backupStatus() != 0)
+    // Если нода приконнекчена и она состоит в резервной паре
+    if(node->isConnected() && node->backupStatus() != BackupStatus::None)
     {
         // Берем указатель на модель
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
-        // Через указатель на модель достаем уровень текущей ноды
+        // Через указатель на модель получаем уровень текущей ноды
         int row = mod->indexOfNode(node);
 
-        // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+        // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
         QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
 
-//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-//        int row = mod->indexOfNode(node);//только если вытащим из private функцию.
-//        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
-        //RemoteNodePtr remNode = remoteNodes_.at(row);
-
-        // Если нода мастер или слэйв и кнопка не установлена
-        if (node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
-            node->backupStatus() == 2 && !(ui->treeStatus->indexWidget(currentModelIndex)))
+        // Если нода состоит в резервной паре и ей требуется кнопка перехода
+        if (node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
+            node->backupStatus() == BackupStatus::Slave && !(ui->treeStatus->indexWidget(currentModelIndex)))
         {
             QPushButton *backupTransitionButton = new QPushButton;
 
@@ -316,23 +316,27 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
             backupTransitionButton->installEventFilter(this);
         }
 
-        // Указатель на кнопку резервного перехода
+        // Кнопка резервного перехода текущей модели
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
-        // Если нода мастер и иконка не установлена
-        // Если нода слейв, кнопка активна и иконка установлена(произошел переход) и она приконнекчена
-        if (node->backupStatus() == 1 && backupTransitionButton->icon().isNull() ||
-            node->backupStatus() == 2 && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
-                                      && !(backupTransitionButton->icon().isNull()))
+
+
+        // 1.Нода слейв, а состояние кнопки как у мастера
+        //          (произошел переход и есть вязь с обеими нодами)
+        // 2.Нода мастер и кнопка толькочто была создана
+        if (node->backupStatus() == BackupStatus::Slave && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
+                                                       && !(backupTransitionButton->icon().isNull()) ||
+            node->backupStatus() == BackupStatus::Master && backupTransitionButton->icon().isNull())
         {
             backupTransitionButton->setIcon(QIcon(":/images/master.png"));
             backupTransitionButton->setEnabled(true);
         }
-        // Если нода слэйв и иконка не установлена
-        // Если нода мастер, кнопка неактивна и иконка установлена(произошел переход)
-        else if(node->backupStatus() == 2 && backupTransitionButton->icon().isNull()  ||
-                node->backupStatus() == 1 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
-                                          && !(backupTransitionButton->icon().isNull()))
+
+        // 1.Нода мастер, а состояние кнопки как у слэйва
+        // 2.Нода слэйв и кнопка только что была создана
+        else if(node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+                                                          && !(backupTransitionButton->icon().isNull()) ||
+                node->backupStatus() == BackupStatus::Slave && backupTransitionButton->icon().isNull())
         {
             backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
             backupTransitionButton->setDisabled(true);
@@ -399,17 +403,30 @@ void MainWindow::onConnected()
     // Берем указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
-    // Через указатель на модель достаем уровень текущей ноды
+    // Через указатель на модель получаем уровень текущей ноды
     int row = mod->indexOfNode(node);
 
-    // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
-    // Если нода мастер и у него есть неактивная кнопка перехода
-    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()))
+    // Кнопка резервного перехода текущей модели
+    QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+
+    // Нода мастера потеряла связь и после переподключилась
+    // (если резервный переход был неуспешен по каким-то причинам)
+    if (node->backupStatus() == BackupStatus::Master && backupTransitionButton
+                                 && !(backupTransitionButton->isEnabled()))
     {
-        // Устанавливаем кнопку активной
+        // Устанавливаем кнопку в состояние мастера
         ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
+    }
+
+    // Мастер когда отключился стал слейвом
+    else if (node->backupStatus() == BackupStatus::Slave &&
+                    backupTransitionButton->icon().pixmap(32, 32).toImage() ==
+                      QIcon(":/images/master.png").pixmap(32, 32).toImage())
+    {
+         backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
     }
 
     writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
@@ -424,16 +441,19 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
     // Берем указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
-    // Через указатель на модель достаем уровень текущей ноды
+    // Через указатель на модель получаем уровень текущей ноды
     int row = mod->indexOfNode(node);
 
-    // Достаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
 
-    // Если нода мастер и у него есть активная кнопка перехода
-    if(node->backupStatus() == 1 && ui->treeStatus->indexWidget(currentModelIndex) && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+    // Кнопка резервного перехода текущей модели
+    QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+
+    // При дисконнекте нода мастера имеет активную кнопку
+    if(node->backupStatus() == BackupStatus::Master && backupTransitionButton
+                                 && backupTransitionButton->isEnabled())
     {
-        // Дизэйблим кнопку
         ui->treeStatus->indexWidget(currentModelIndex)->setDisabled(true);
     }
     writeLog(tr("Невозможно подключиться к %1: %2")
@@ -458,13 +478,6 @@ void MainWindow::on_start_triggered()
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_start(payload);
-//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-//        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());//Индекс ячейки перехода
-//        if(remoteNode->backupStatus() == 0 && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnebled()))
-//        {
-//            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
-//        }
-//            ++i;
     }
 }
 
@@ -480,13 +493,6 @@ void MainWindow::on_stop_triggered()
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_stop(payload);
-//        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-//        QModelIndex currentModelIndex = ui->treeStatus->model()->index(i, mod->BackupTransitionColumn());
-//        if(remoteNode->backupStatus() == 0 && ui->treeStatus->indexWidget(currentModelIndex)->isEnebled())
-//        {
-//            ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(false);
-//        }
-//        ++i;
     }
 }
 
@@ -519,6 +525,13 @@ void MainWindow::deploy()
     ui->treeStatus->show();
 }
 
+
+/*!
+ * \brief Фильтер, для обработки собыйтий входа на кнопку
+ * и выхода с нее указателем мыши
+ * \param object - объект, на к которому привязан фильтер(кнопка бэкапа)
+ * \param event -событие
+ */
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
     // Ивент фильтр привязан только к кнопкам бэкап статуса, кастим к типу кнопки
@@ -559,7 +572,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
 
 /*!
  * \brief Метод срабатыает при нажатии кнопки backupTransition
- * СОздает соответствующий пакет и отправляет его на remote node
+ * Создает соответствующий пакет и отправляет его на remote node
  */
 void MainWindow::on_backup_transition()
 {
@@ -826,21 +839,7 @@ void MainWindow::activateStatus() const
 
 void MainWindow::button_clickedSetup()
 {
-    // Удаление кнопок, если они имеются
-    for (size_t i(0); i < remoteNodes_.count(); ++i)
-    {
-        // Указатель на модель
-        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
-
-        //Индекс модели, в которой установлена кнопка
-        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
-
-        // Указатель на кнопку из текущего индекса
-        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
-
-        if(backupPushButton)
-            delete backupPushButton;
-    }
+    deleteBackupPushButtons();
 
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();

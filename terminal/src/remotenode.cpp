@@ -326,12 +326,12 @@ uint32_t RemoteNode::upSpeed() const
 
 /*!
  * \brief Функция для проверки текущего состояния ноды
- * \return Возвращает состояние ноды в
+ * \return Состояние ноды в
  * соответствии с перечислением BackupStatus
  */
-uint32_t RemoteNode::backupStatus() const
+BackupStatus RemoteNode::backupStatus() const
 {
-    return static_cast<uint32_t>(backupStatus_);
+    return backupStatus_;
 }
 
 RemoteComponent *RemoteNode::componentAt(int index) const
