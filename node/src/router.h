@@ -66,6 +66,7 @@ class router : public boost::enable_shared_from_this<router<app>>
     class remote_pair: public remote_host
     {
     public:
+        bool is_master_valid = true;
         remote_pair(std::string name, boost::shared_ptr<protolink::client<app>> client, std::string name2,
                     boost::shared_ptr<protolink::client<app>> client2): remote_host(name, client)
         {
@@ -83,12 +84,12 @@ class router : public boost::enable_shared_from_this<router<app>>
         {
             if(is_master_valid)
             {
-                std::cout << "Sending to " << host_name << "message" << std::endl;
+                std::cout << "Sending to " << host_name << " message" << std::endl;
                 client->async_send_message(payload);
             }
             else
             {
-                std::cout << "Sending to " << host2_name << "message" << std::endl;
+                std::cout << "Sending to " << host2_name << " message" << std::endl;
                 client2->async_send_message(payload);
             }
         }
@@ -110,6 +111,8 @@ class router : public boost::enable_shared_from_this<router<app>>
                 switch_nodes();
             }
 
+            std::cout << "is_master_valid:|" << is_master_valid << "|" << "timeout:| " << timeout << "|" << std::endl;
+
             if(is_master_valid)
             {
                 std::cout << "Sending to " << host_name << " Backupstatus request" << std::endl;
@@ -130,7 +133,6 @@ class router : public boost::enable_shared_from_this<router<app>>
         }
 
     private:
-        bool is_master_valid;
         int timeout = 0;
         std::string host2_name;
         boost::shared_ptr<protolink::client<app>> client2;
@@ -334,9 +336,30 @@ public:
                                              output.payload));
                 }
 
+                //hardcode1
+                bool h = true;
+
                 // Формируем и рассылаем пакеты по удаленным маршрутам
                 for (auto &remote_route : port_routes.remote_routes)
                 {
+                    //hardcode1
+                    if(!sp_rp->is_master_valid)
+                    {
+                        if(h)
+                        {
+                            h=false;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        if (h)
+                        {h=false;}
+                        else
+                        {continue;}
+                    }
+
+
                     alpha::protort::protocol::Packet::Payload payload;
                     auto packet = payload.mutable_communication_packet();
 
@@ -365,6 +388,7 @@ public:
                     boost::mutex::scoped_lock lock(cout_mutex);
                     std::cout << "Sending packet to " << remote_route.name << std::endl;
 #endif
+
                 }
             }
         }

@@ -232,7 +232,7 @@ public:
         }
 
 
-        //RemotePair test!  Debug! trash!
+        //RemotePair test!  Debug! trash! HARDCODE!
         //Если это нода1 (в моей конфигурации пишушая) то мы создаем удаленую пару
         //работать с ней будем в route::do_route()
         if(node_name_=="node1")
