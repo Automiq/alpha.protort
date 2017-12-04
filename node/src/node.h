@@ -22,11 +22,11 @@
 #include "backup_manager.h"
 #include "logi.h"
 
+using namespace alpha::protort;
+
 namespace alpha {
 namespace protort {
 namespace node {
-
-using namespace alpha::protort::protolink;
 
 /*!
  * \brief Класс сетевого узла
@@ -35,33 +35,12 @@ class node : public boost::enable_shared_from_this<node>
 {
 public:
     using protocol_payload = protocol::Packet::Payload;
-    using client_t = alpha::protort::protolink::client<node>;
+    using client_t = protolink::client<node>;
     using client_ptr = boost::shared_ptr<client_t>;
-/*
- *  //! I/O сервис
-    boost::asio::io_service service_;
-    //! Сервер
-    protolink::server<node> server_for_conf_;
-    //! Сервер
-    protolink::server<node> server_;
 
-    //! Настройки узла
-    node_settings settings_;
-
-    //! Подписанные сигналы
-    boost::asio::signal_set signals_;
-
-    //! Имя узла
-    std::string node_name_;
-
-    //! Порт, прослушиваемый сервером узла
-    port_id port_;
-
-    //! Время запуска узла
-    boost::chrono::steady_clock::time_point start_time_;
-
-    boost::thread_group workers_;
- */
+    /*!
+     * \brief Конструктор по умолчанию
+     */
     node()
         : server_(*this, service_),//создает сервер
           server_for_conf_(*this,service_),//создает сервер
@@ -71,6 +50,9 @@ public:
     {
     }
 
+    /*!
+     * \brief Конструктор с использование конфигурации
+     */
     node(const node_settings &settings)
         : server_(*this, service_),
           server_for_conf_(*this,service_),
@@ -80,27 +62,38 @@ public:
     {
     }
 
+    /*!
+     * \brief Деструктор
+     */
     ~node()
     {
         stop();//останавливает работу ноды
     }
 
-    //! Запускает сетевой узел
+    /*!
+     * \brief Метод запускает узел
+     */
     void start()
     {
         start_time_ = boost::chrono::steady_clock::now();// время запуска.
         signals_.async_wait(boost::bind(&boost::asio::io_service::stop, &service_));// разбрать как работает bind
+
         // запускает асинхронную операцию, ожидание сигналов
         server_for_conf_.listen(
                     boost::asio::ip::tcp::endpoint
                     (boost::asio::ip::tcp::v4(),
                      settings_.configuration_port));//слушает новые подключения на данном порту
-        for (int i = 0; i != settings_.threads; i++)
+
+        for (int16_t i = 0; i != settings_.threads; i++){
             workers_.create_thread([this](){ service_.run(); }); // разобрать !!!!!!
+        }
+
         service_.run();
     }
 
-    //! Останавливает работу роутера и I/O сервиса
+    /*!
+     * \brief Метод oстанавливает работу роутера и I/O сервиса
+     */
     void stop()
     {
         router_->stop();
@@ -167,7 +160,7 @@ public:
      * \param conf Конфигурация полученная парсером из xml
      * Создает необходимые компоненты, локальные и удаленные связи роутера.
      */
-    void deploy_from_config(const alpha::protort::parser::configuration& conf)
+    void deploy_from_config(const parser::configuration& conf)
     {
         struct node_info
         {
@@ -175,25 +168,29 @@ public:
             std::string address;
             uint32_t port;
         };
-        // узнать
+
         // Создаем отображение имени компонента на информацию о узле
         std::map<std::string, node_info> comp_to_node;
 
         {
             std::map<std::string, node_info> nodes;
 
-            for (const auto& node : conf.nodes)
+            for (const auto &node : conf.nodes){
                 nodes.emplace(node.name, node_info{node.name, node.host.ip_address, node.host.port});
+            }
 
-            for (const auto& mapp : conf.mappings)
+            for (const auto& mapp : conf.mappings){
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
+            }
         }
 
         // Создаем экземпляры локальных компонентов
-        for (const auto& comp : conf.components) {
+        for (const auto &comp : conf.components) {
             if (comp_to_node[comp.name].name == node_name_) {
+
                 // Добавляем ссылки на экземпляры в таблицу маршрутов роутера
-                component_shared_ptr new_comp = alpha::protort::components::factory::create(comp.kind, router_);
+                component_shared_ptr new_comp = components::factory::create(comp.kind, router_);
+
                 router_->components_[comp.name] = {new_comp, comp.name, {}};
                 new_comp->set_comp_inst(&router_->components_[comp.name]);
             }
@@ -202,6 +199,7 @@ public:
         // Для каждого локального компонента
         for (const auto& conn : conf.connections) {
             auto name_to_comp_inst = router_->components_.find(conn.source);
+
             if (name_to_comp_inst != router_->components_.end()) {
                 auto& comp_inst = name_to_comp_inst->second;
                 const auto& dest_node_name = comp_to_node[conn.dest].name;
@@ -209,27 +207,31 @@ public:
                 // Копируем локальный маршрут
                 if (dest_node_name == node_name_) {
                     router<node>::component_instance* dest_ptr = &(router_->components_[conn.dest]);
+
                     comp_inst.port_to_routes[conn.source_out].local_routes.push_back({conn.dest_in, dest_ptr});
                 }
                 // Копируем удаленный маршрут
                 else {
                     // Если нет клиента для удаленного узла, то создаем соответствующий
                     auto client = router_->clients_.find(dest_node_name);
+
                     if (client == router_->clients_.end()) {
-                        const auto& n_info = comp_to_node[conn.dest];
+                        const auto &n_info = comp_to_node[conn.dest];
+
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
+
                         auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_);
+
                         client_ptr->async_connect(ep);
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr}
-                                    );
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client_ptr});
+
                         router_->clients_[dest_node_name] = client_ptr;
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
-                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second}
-                                    );
+                                    router<node>::remote_route{conn.dest_in, conn.dest, client->second});
                     }
                 }
             }
@@ -237,69 +239,119 @@ public:
 
         // Начинаем прослушивать порт
         server_.listen(boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_));
+
         std::cout<<"deploy_stop"<<std::endl;
     }
 
 private:
+
+    /*!
+     * \brief Обработчик содержимого пакетов
+     */
     protocol_payload process_request(const protocol_payload& payload)
     {
         using PayloadCase = alpha::protort::protocol::Packet_Payload::PayloadCase;
 
         switch (payload.Payload_case()) {
+            case PayloadCase::kCommunicationPacket:
 
-        case PayloadCase::kCommunicationPacket:
-        case PayloadCase::kDeployPacket:
-            return process_deploy_request(payload.deploy_packet());
-        case PayloadCase::kPayload:
-        case PayloadCase::kAnyPayload:
-        default:
-            assert(false);
-            return protocol_payload();
+            case PayloadCase::kDeployPacket:
+                return process_deploy_request(payload.deploy_packet());
+
+            case PayloadCase::kBackupPacket:
+                return process_backup_request(payload.backup_packet());
+
+            case PayloadCase::kPayload:
+
+            case PayloadCase::kAnyPayload:
+
+            default:
+                assert(false);
+                return protocol_payload();
         }
     }
 
+    /*!
+     * \brief  Обработчик backup пакетов
+     */
+    protocol_payload process_backup_request(const protocol::backup::Packet packet)
+    {
+        switch(packet.kind()){
+            case protocol::backup::PacketType::KeepAlive:
+                return keepalive_response();
+
+            case protocol::backup::PacketType::Switch:
+                backup_manager_->backup_transition();
+                return{};
+
+            case protocol::backup::PacketType::GetStatus:
+                //return status_response();
+
+            default:
+                assert(false);
+                return protocol_payload();
+        }
+    }
+
+    /*!
+     * \brief Обработчик deploy пакетов
+     */
     protocol_payload process_deploy_request(const protocol::deploy::Packet& packet)
     {
         switch (packet.kind()) {
+            case protocol::deploy::PacketKind::DeployConfig:{
+                bool router_previous_state = router_->started_;
+                boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
+                auto old_router = boost::atomic_exchange(&router_, new_router);
 
-        case protocol::deploy::PacketKind::DeployConfig:
-        {
-            bool router_previous_state = router_->started_;
-            boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
-            auto old_router = boost::atomic_exchange(&router_, new_router);
-            deploy_from_packet(packet.request().deploy_config().config());
-            if (router_previous_state)
+                deploy_from_packet(packet.request().deploy_config().config());
+
+                if (router_previous_state){
+                    router_->start();
+                }
+
+                old_router->stop();
+
+                return {};
+            }
+
+            case protocol::deploy::PacketKind::Start:
                 router_->start();
-            old_router->stop();
-            return {};
-        }
-        case protocol::deploy::PacketKind::Switch:
-//            backup_manager_.get().backup_transition();
-        case protocol::deploy::PacketKind::Start:
-            router_->start();
-            return {};
-        case protocol::deploy::PacketKind::Stop:
-            router_->stop();
-            return {};
-        case protocol::deploy::PacketKind::GetStatus:
-            return status_response();
-        default:
-            assert(false);
+                return {};
+
+            case protocol::deploy::PacketKind::Stop:
+                router_->stop();
+                return {};
+
+            case protocol::deploy::PacketKind::GetStatus:
+                return status_response();
+
+            case protocol::deploy::PacketKind::Update:
+
+
+            case protocol::deploy::PacketKind::Switch:
+
+            default:
+                assert(false);
+                return protocol_payload();
         }
     }
 
+    /*!
+     * \brief Метод формирует ответ на запрос GetStatus
+     */
     protocol_payload status_response()
     {
         protocol_payload response;
         protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
-        response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
 
+        response_packet->set_kind(protocol::deploy::PacketKind::GetStatus);
         response_packet->mutable_response()->mutable_status()->set_node_name(node_name_);
 
         boost::chrono::duration<double> uptime_period = boost::chrono::steady_clock::now() - start_time_;
-        uint32_t uptime = uptime_period.count();
-        response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
+        uint32_t uptime = static_cast<uint32_t>(uptime_period.count());
 
+        response_packet->mutable_response()->mutable_status()->set_uptime(uptime);
         response_packet->mutable_response()->mutable_status()->set_in_bytes_count(router_->in_bytes_);
         response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
@@ -308,10 +360,24 @@ private:
 
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
+
             comp_status->set_in_packet_count(component.second.component_->in_packet_count());
             comp_status->set_out_packet_count(component.second.component_->in_packet_count());
             comp_status->set_name(component.first);
         }
+
+        return response;
+    }
+
+    /*!
+     * \brief Метод формирует ответ на запрос keepalive
+     */
+    protocol_payload keepalive_response()
+    {
+        protocol_payload response;
+        protocol::backup::Packet *response_packet = response.mutable_backup_packet();
+
+        response_packet->set_kind(protocol::backup::PacketType::KeepAlive);
 
         return response;
     }
@@ -333,26 +399,30 @@ private:
 
         parser::configuration pconf;
 
-        for (auto & inst : config.instances())
+        for (auto & inst : config.instances()){
             pconf.components.push_back({inst.name(), components::get_component_kind(inst.kind())});
+        }
 
-        for (auto & conn : config.connections())
+        for (auto & conn : config.connections()){
             pconf.connections.push_back({conn.source().name(), conn.source().port(),
                                          conn.destination().name(), conn.destination().port()});
+        }
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
                 backup_manager_ = boost::make_shared<Backup_manager>(service_,
-                                                    (alpha::protort::node::Node_status)config.this_node_info().backup_status(),
+                                                                    static_cast<alpha::protort::node::Node_status>(config.this_node_info().backup_status()),
                                                                     client_);
                 backup_manager_->start_keepalife();
             }
-            else
+            else{
                 pconf.nodes.push_back({node.name(), node.address(), node.port()});
+            }
         }
 
-        for (auto & map : config.maps())
+        for (auto & map : config.maps()){
             pconf.mappings.push_back({map.instance_name(), map.node_name()});
+        }
 
         deploy_from_config(pconf);
     }
@@ -363,7 +433,14 @@ private:
     protolink::server<node> server_for_conf_;
     //! Сервер
     protolink::server<node> server_;
+    //! Клиент
+    client_ptr client_;
 
+public:
+    //! Роутер
+    boost::shared_ptr<router<node>> router_;
+
+private:
     //! Настройки узла
     node_settings settings_;
 
@@ -376,18 +453,13 @@ private:
     //! Порт, прослушиваемый сервером узла
     port_id port_;
 
+    //! Менеджер для работы с парой
+    boost::shared_ptr<Backup_manager> backup_manager_;
+
     //! Время запуска узла
     boost::chrono::steady_clock::time_point start_time_;
 
     boost::thread_group workers_;
-    //! менеджер для работы с парой
-    boost::shared_ptr<Backup_manager> backup_manager_;
-public:
-    //! Роутер пакетов
-    //!TODO (ПЕРЕНЕСТИ в private после реализации public методов для использования роутера)
-    boost::shared_ptr<router<node>> router_;
-
-    client_ptr client_;
 };
 
 } // namespace node
