@@ -161,6 +161,8 @@ void MainWindow::deleteBackupPushButtons()
         // Указатель на кнопку из текущего индекса
         QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
 
+
+        // У ноды есть кнопка
         if(backupPushButton)
             delete backupPushButton;
     }
@@ -288,13 +290,13 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
     // Если нода приконнекчена и она состоит в резервной паре
     if(node->isConnected() && node->backupStatus() != BackupStatus::None)
     {
-        // Берем указатель на модель
+        // Указатель на модель
         TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
         // Через указатель на модель получаем уровень текущей ноды
         int row = mod->indexOfNode(node);
 
-        // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+        // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
         QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
 
         // Если нода состоит в резервной паре и ей требуется кнопка перехода
@@ -316,7 +318,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
             backupTransitionButton->installEventFilter(this);
         }
 
-        // Кнопка резервного перехода текущей модели
+        // Кнопка резервного перехода текущего индекса модели
         QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
 
@@ -400,16 +402,16 @@ void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    // Берем указатель на модель
+    // Указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
     // Через указатель на модель получаем уровень текущей ноды
     int row = mod->indexOfNode(node);
 
-    // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
 
-    // Кнопка резервного перехода текущей модели
+    // Кнопка резервного перехода текущего индекса модели
     QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
     // Нода мастера потеряла связь и после переподключилась
@@ -438,19 +440,19 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    // Берем указатель на модель
+    // Указатель на модель
     TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
     // Через указатель на модель получаем уровень текущей ноды
     int row = mod->indexOfNode(node);
 
-    // Получаем через тукущий уровень и бэкап колонну индекс ячейки перехода
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
     QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
 
-    // Кнопка резервного перехода текущей модели
+    // Кнопка резервного перехода текущего индекса модели
     QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
 
-    // При дисконнекте нода мастера имеет активную кнопку
+    // Дизейбл кнопки мастера при дисконнекте
     if(node->backupStatus() == BackupStatus::Master && backupTransitionButton
                                  && backupTransitionButton->isEnabled())
     {
@@ -474,7 +476,6 @@ void MainWindow::on_start_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
 
-//    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_start(payload);
@@ -489,7 +490,6 @@ void MainWindow::on_stop_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
 
-//    size_t i(0);
     for (auto &remoteNode: remoteNodes_)
     {
         remoteNode->async_stop(payload);
@@ -534,17 +534,15 @@ void MainWindow::deploy()
  */
 bool MainWindow::eventFilter(QObject *object, QEvent *event)
 {
-    // Ивент фильтр привязан только к кнопкам бэкап статуса, кастим к типу кнопки
     QPushButton *pushButton = qobject_cast<QPushButton*>(object);
 
-    // Если это кнопка, ивент это вход на нее мышью и кнопка активна
+    // Каст успешен, ивент - вход на нее курсором, кнопка активна
     if(pushButton && event->type() == QEvent::Enter && pushButton->isEnabled())
     {
-        // Меняем иконку при входе на кнопку
         pushButton->setIcon(QIcon(":/images/backupTransition.png"));
         return true;
     }
-    // Если это кнопка, ивент это выход из нее курсором мыши и кнопка активна
+    // Каст успешен, ивент - выход за пределы кнопки, и кнопка активна
     if(pushButton && event->type() == QEvent::Leave && pushButton->isEnabled())
     {
         // Меняем иконку при выходе за пределы кнопки
@@ -576,25 +574,23 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
  */
 void MainWindow::on_backup_transition()
 {
-    //Сигнал привязан только к кнопкам резервного перехода
     QPushButton *backupPushButton = qobject_cast<QPushButton*>(sender());
 
-    // Если это кнопка и она активна
+    // Каст успешен и кнопка активна
     if(backupPushButton && backupPushButton->isEnabled())
     {
-        // У отправителя сигнала узнаем на каком уровне расположена кнопка
+        // Уровень, на котором расположена кнопка
         int row = sender()->property("row").toInt();
 
         // Нода, которая расположена на том же уровне
         RemoteNodePtr remoteNode = remoteNodes_.at(row);
 
-        // Создаем пакет
         alpha::protort::protocol::Packet_Payload backup;
 
-        // Устанавливаем тип пакета
+        // Устанавливаем тип пакета в резервный переход
         backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);
 
-        // Вызываем функцию, которая отправит этот пакет ноде
+        // Функция, отправляющая пакет ноде
         remoteNode->async_backup_transition(backup);
     }
 }
@@ -698,8 +694,10 @@ void MainWindow::createRemoteNodes()
 
         if(node.pairnode)
         {
+            // Форматная строка стиля pairnode.nodename
             std::string name = (boost::format("pairnode.%1%")%node.name).str();
 
+            // В map деплоя имеется элемент с таким ключом
             if(deploy_config_.map_node.find(name) != deploy_config_.map_node.end())
             {
                 auto nodeSlave = deploy_config_.map_node.find(name);
