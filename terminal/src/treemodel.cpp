@@ -22,6 +22,11 @@ int TreeModel::BackupTransitionColumn() const
     return Column::Backup;
 }
 
+int TreeModel::NodeNameColumn() const
+{
+    return Column::Name;
+}
+
 QObject* TreeModel::object(const QModelIndex &index) const
 {
     return static_cast<QObject *>(index.internalPointer());

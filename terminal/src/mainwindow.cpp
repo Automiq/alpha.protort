@@ -49,6 +49,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     TreeModel *model = new TreeModel(remoteNodes_);
     ui->treeStatus->setModel(model);
+
+    // Колонна с именем ноды рахворачивается полностью, по самому длинному имени
+    ui->treeStatus->header()->setSectionResizeMode(model->NodeNameColumn(), QHeaderView::ResizeToContents);
 }
 
 MainWindow::~MainWindow()
@@ -160,7 +163,6 @@ void MainWindow::deleteBackupPushButtons()
 
         // Указатель на кнопку из текущего индекса
         QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
-
 
         // У ноды есть кнопка
         if(backupPushButton)
@@ -287,7 +289,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    // Если нода приконнекчена и она состоит в резервной паре
+    // Нода приконнекчена и состоит в резервной паре
     if(node->isConnected() && node->backupStatus() != BackupStatus::None)
     {
         // Указатель на модель
@@ -299,7 +301,7 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
         QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
 
-        // Если нода состоит в резервной паре и ей требуется кнопка перехода
+        // Нода состоит в резервной паре и ей требуется кнопка перехода
         if (node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
             node->backupStatus() == BackupStatus::Slave && !(ui->treeStatus->indexWidget(currentModelIndex)))
         {

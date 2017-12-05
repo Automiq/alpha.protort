@@ -36,6 +36,7 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
 
     int BackupTransitionColumn() const;
+    int NodeNameColumn() const;
 
 private slots:
     void onComponentsChanged();
@@ -59,6 +60,7 @@ private:
     enum Column
     {
         Name,
+        Backup,
         Address,
         Connection,
         Uptime,
@@ -68,8 +70,7 @@ private:
         PacketsSent,
         BytesSent,
         UpSpeed,
-        Backup,
-        LastColumn = Backup,
+        LastColumn =  UpSpeed,
         ColumnCount = LastColumn + 1,
     };
 };

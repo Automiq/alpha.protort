@@ -266,9 +266,11 @@ void RemoteNode::setConnected(bool value)
 
 void RemoteNode::setBackupStatus(alpha::protort::protocol::backup::BackupStatus value)
 {
-    // Если такие значения есть в перечислении
+    // Если такое поле есть в перечислении
     if(value >= 0 && value <= 2)
         backupStatus_ = static_cast<BackupStatus>(value);
+    else
+        assert(false);
 }
 
 double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
