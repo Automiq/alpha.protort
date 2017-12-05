@@ -52,11 +52,15 @@ public:
     void init_info_node(const std::string &name_node,
                         const parser::address &address,
                         protocol::backup::BackupStatus backup_status,
-                        protocol::deploy::NodeInfo *node_info) const;
+                        protocol::deploy::NodeInfo &node_info) const;
+
     void init_backup_status_node_infos(const RemoteNode &pairnode,
-                                       protocol::deploy::Config *configuration);
-    RemoteNode &search_pairnode(const std::string &name_node, QList<RemoteNodePtr> &remote_nodes);
-    void async_deploy(deploy_configuration &deploy_configuration_, QList<RemoteNodePtr> &remote_node);
+                                       protocol::deploy::Config &configuration);
+
+    RemoteNode &search_pairnode(const std::string &name_node,
+                                const QList<RemoteNodePtr> &remote_nodes) const;
+
+    void async_deploy(deploy_configuration &deploy_configuration_, const QList<RemoteNodePtr> &remote_node);
     void async_start(protocol::Packet_Payload &packet);
     void async_stop(protocol::Packet_Payload &packet);
     void async_status(protocol::Packet_Payload &status);

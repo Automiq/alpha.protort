@@ -78,52 +78,49 @@ boost::weak_ptr<RemoteNode> RemoteNode::pairnode() const
 void RemoteNode::init_info_node(const std::string &name_node,
                                 const parser::address &address,
                                 protocol::backup::BackupStatus backup_status,
-                                protocol::deploy::NodeInfo *node_info) const
+                                protocol::deploy::NodeInfo &node_info) const
 {
-    node_info->set_name(name_node);
-    node_info->set_address(address.ip_address);
-    node_info->set_port(address.port);
-    node_info->set_backup_status(backup_status);
+    node_info.set_name(name_node);
+    node_info.set_address(address.ip_address);
+    node_info.set_port(address.port);
+    node_info.set_backup_status(backup_status);
 }
 
 void RemoteNode::init_backup_status_node_infos(const RemoteNode &pairnode,
-                                               protocol::deploy::Config *configuration)
+                                               protocol::deploy::Config &configuration)
 {
-    protocol::deploy::NodeInfo *node_info = configuration->add_node_infos();
+    protocol::deploy::NodeInfo *node_info = configuration.add_node_infos();
 
     init_info_node(pairnode.node_information_.name,
                    pairnode.node_information_.host,
                    pairnode.backup_status_,
-                   node_info);
+                   *node_info);
 
     if(pairnode.backup_status_ != protocol::backup::BackupStatus::None){
         if(auto tmp_pairnode = pairnode.pairnode_.lock()){
-            node_info = configuration->add_node_infos();
+            node_info = configuration.add_node_infos();
 
             init_info_node(node_information_.name,
                            tmp_pairnode->node_information_.host,
                            tmp_pairnode->backup_status_,
-                           node_info);
+                           *node_info);
         }
     }
 }
 
-RemoteNode & RemoteNode::search_pairnode(const std::string &name_node, QList<RemoteNodePtr> &remote_nodes)
+RemoteNode &RemoteNode::search_pairnode(const std::string &name_node,
+                                         const QList<RemoteNodePtr> &remote_nodes) const
 {
-    boost::shared_ptr<RemoteNode> remote_node;
+    auto result = std::find_if(remote_nodes.begin(), remote_nodes.end(), [name_node](const RemoteNodePtr remote_node){return remote_node->node_information_.name == name_node;});
 
-    for(auto node : remote_nodes){
-        if(node->node_information_.name == name_node)
-            remote_node =  node;
+    if(result == remote_nodes.end()){
+            // rugaemsa
     }
 
-    if(!remote_node)
-        throw std::invalid_argument("33");
-
-    return *remote_node;
+    return *(*result);
 }
 
-void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, QList<RemoteNodePtr> &remote_node)
+void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const QList<RemoteNodePtr> &remote_node)
 {
     std::string current_node = node_information_.name;
 
@@ -140,9 +137,9 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, QList<
     init_info_node(current_node,
                    node_information_.host,
                    backup_status_,
-                   configuration->mutable_this_node_info());
+                   *configuration->mutable_this_node_info());
 
-    init_backup_status_node_infos(*this, configuration);
+    init_backup_status_node_infos(*this, *configuration);
 
     for (auto &component : deploy_configuration.map_node_with_components[current_node]){
         protocol::ComponentKind kind =
@@ -174,12 +171,11 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, QList<
             std::string node_name = deploy_configuration.map_component_node[connection.dest].node_name;
 
             if(node_name != current_node){
-                //parser::node &node_ = deploy_configuration.map_node[node_name];
                 RemoteNode &node_ = search_pairnode(node_name, remote_node);
 
                 if(added_nodes.find(node_.node_information_.name) == added_nodes.end()){
                     // Добавляем информацию о ноде в конфигурацию
-                    init_backup_status_node_infos(node_, configuration);
+                    init_backup_status_node_infos(node_, *configuration);
 
                     added_nodes.insert(node_.node_information_.name);
                 }

@@ -279,14 +279,15 @@ private:
     {
         switch(packet.kind()){
             case protocol::backup::PacketType::KeepAlive:
-                return keepalive_response();
+                //backup_manager_->keepalive_response();
+                return{};
 
             case protocol::backup::PacketType::Switch:
                 backup_manager_->backup_transition();
                 return{};
 
             case protocol::backup::PacketType::GetStatus:
-                //return status_response();
+                return backup_status_response();
 
             default:
                 assert(false);
@@ -331,6 +332,8 @@ private:
 
 
             case protocol::deploy::PacketKind::Switch:
+                backup_manager_->backup_transition();
+                return{};
 
             default:
                 assert(false);
@@ -368,6 +371,17 @@ private:
         }
 
         return response;
+    }
+
+    protocol_payload backup_status_response()
+    {
+        protocol_payload backup_response;
+        protocol::backup::Packet* backup_response_packet = backup_response.mutable_backup_packet();
+
+        backup_response_packet->set_kind(protocol::backup::PacketType::GetStatus);
+        backup_response_packet->mutable_response()->mutable_status()->set_backup_status(backup_manager_->backup_status());
+
+        return backup_response;
     }
 
     /*!
