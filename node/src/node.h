@@ -36,7 +36,7 @@ class node : public boost::enable_shared_from_this<node>
 public:
     using protocol_payload = protocol::Packet::Payload;
     using client_t = protolink::client<node>;
-    using client_ptr = boost::shared_ptr<client_t>;
+    using client_shared_ptr = boost::shared_ptr<client_t>;
 
     /*!
      * \brief Конструктор по умолчанию
@@ -222,7 +222,12 @@ public:
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
 
                         auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_ , ep);
-                        if(!backup_manager_&&backup_manager_->backup_status()!= protocol::backup::BackupStatus::Slave){
+                        if(backup_manager_){
+                             if(backup_manager_->backup_status()!= protocol::backup::BackupStatus::Slave){
+                                 client_ptr->async_connect(ep);
+                             }
+                        }
+                        else{
                             client_ptr->async_connect(ep);
                         }
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
@@ -308,6 +313,14 @@ private:
                 deploy_from_packet(packet.request().deploy_config().config());
 
                 if (router_previous_state){
+             /*       if(backup_manager_){
+                        if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
+                            router_->start();
+                        }
+                    }
+                    else{
+                        router_->start();
+                    }*/
                     router_->start();
                 }
 
@@ -317,7 +330,13 @@ private:
             }
 
             case protocol::deploy::PacketKind::Start:
+         /*   if(!backup_manager_){
                 router_->start();
+            }
+            else if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
+                router_->start();
+            }*/
+            router_->start();
                 return {};
 
             case protocol::deploy::PacketKind::Stop:
@@ -359,7 +378,10 @@ private:
         response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
-        response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(backup_manager_->backup_status());
+        if(backup_manager_)
+            response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(backup_manager_->backup_status());
+        else
+            response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(protocol::backup::BackupStatus::None);
 
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
@@ -410,12 +432,13 @@ private:
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
+                std::cout << node.port() <<" "<< node.backup_status() << std::endl;
                 boost::asio::ip::tcp::endpoint ep(
                             boost::asio::ip::address::from_string(node.address()),
                             node.port()
                             );
                 client_ = boost::make_shared<client_t>(this->shared_from_this(), service_ , ep);
-                client_->async_start();
+                client_->async_connect(ep);
                 backup_manager_ = boost::make_shared<Backup_manager>(service_,
                                                                     static_cast<alpha::protort::node::Node_status>(config.this_node_info().backup_status()),
                                                                     client_,
@@ -443,7 +466,7 @@ private:
     //! Сервер
     protolink::server<node> server_;
     //! Клиент
-    client_ptr client_;
+    client_shared_ptr client_;
 
 public:
     //! Роутер

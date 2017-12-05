@@ -35,7 +35,6 @@ RemoteNode::~RemoteNode()
 
 void RemoteNode::init(boost::asio::io_service &service)
 {
-
     boost::asio::ip::tcp::endpoint ep(
                 boost::asio::ip::address::from_string(node_information_.host.ip_address),
                 node_information_.host.config_port);
@@ -169,26 +168,28 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
             connection_->mutable_destination()->set_port(connection.dest_in);
 
             // Получаем имя нода компонента назначения
-            std::string node_name = deploy_configuration.map_component_node[connection.dest].node_name;
+            for(auto &map_component : deploy_configuration.map_component_node[connection.dest]){
+                std::string node_name = map_component.node_name;
 
-            if(node_name != current_node){
-                RemoteNode &node_ = search_pairnode(node_name, remote_node);
+                if(node_name != current_node){
+                    RemoteNode &node_ = search_pairnode(node_name, remote_node);
 
-                if(added_nodes.find(node_.node_information_.name) == added_nodes.end()){
-                    // Добавляем информацию о ноде в конфигурацию
-                    init_backup_status_node_infos(node_, *configuration);
+                    if(added_nodes.find(node_.node_information_.name) == added_nodes.end()){
+                        // Добавляем информацию о ноде в конфигурацию
+                        init_backup_status_node_infos(node_, *configuration);
 
-                    added_nodes.insert(node_.node_information_.name);
-                }
+                        added_nodes.insert(node_.node_information_.name);
+                    }
 
-                if(added_maps.find(connection.dest) == added_maps.end()){
-                    // Добавляем информацию о мэпинге удаленного компонента
-                    protocol::deploy::Map *components_map_ = configuration->add_maps();
+                    if(added_maps.find(connection.dest) == added_maps.end()){
+                        // Добавляем информацию о мэпинге удаленного компонента
+                        protocol::deploy::Map *components_map_ = configuration->add_maps();
 
-                    components_map_->set_node_name(node_.node_information_.name);
-                    components_map_->set_instance_name(connection.dest);
+                        components_map_->set_node_name(node_.node_information_.name);
+                        components_map_->set_instance_name(connection.dest);
 
-                    added_maps.insert(connection.dest);
+                        added_maps.insert(connection.dest);
+                    }
                 }
             }
         }

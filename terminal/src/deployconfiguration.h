@@ -12,7 +12,7 @@ using namespace alpha::protort;
 
 struct deploy_configuration
 {
-    std::unordered_map<std::string, parser::mapping> map_component_node;
+    std::unordered_map<std::string, std::vector<parser::mapping>> map_component_node;
     std::unordered_map<std::string, parser::component> map_components;
     std::unordered_map<std::string, parser::node> map_node;
     std::unordered_map<std::string, std::vector<parser::mapping>> map_node_with_components;
@@ -56,7 +56,7 @@ private:
     void map(const parser::mapping &mapping)
     {
         map_node_with_components[mapping.node_name].push_back(mapping);
-        map_component_node[mapping.comp_name] = mapping;
+        map_component_node[mapping.comp_name].push_back(mapping);
     }
 };
 

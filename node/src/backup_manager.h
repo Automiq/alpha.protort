@@ -9,7 +9,7 @@
 
 
 //время тайм аута для keepalife в секундах
-const uint32_t timeout_time=10;
+const uint32_t timeout_time=5;
 
 namespace alpha {
 namespace protort {
@@ -45,12 +45,15 @@ public:
     ~master_monitor(){
        // signal_->on_timeout.realised();
        // спросить как лучше отвязать сигналы
-        timer_.cancel();
     }
     //начало мониторинга мастера
     void start_check(){
             IO_service_.post(boost::bind(&master_monitor::dispatch_on_master ,
                                             boost::static_pointer_cast<master_monitor>(this->shared_from_this())));
+    }
+
+    void stop(){
+        timer_.cancel();
     }
     //вызывает сигнал
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> get_signal(){
@@ -147,14 +150,16 @@ public:
                 backup_is_life(packet.backup_packet());
             });
             client_->async_send_request(packet , callback);
-            std::cout<<"backup_transition\n";
+            std::cout<<"backup_transition master\n";
         }
         else{
             router_->activate();
             switch_status();
-            if(!master_monitor_){
+            if(master_monitor_){
+                master_monitor_->stop();
                 master_monitor_.reset();
             }
+             std::cout<<"backup_transition slave\n";
         }
 
     }
@@ -173,12 +178,11 @@ public:
     //запускает процес проверки мастера на работоспособность
     void start_keepalife(){
         if(node_status_==Node_status::slave){
-            master_monitor_=boost::make_shared<master_monitor>(service__ , 500 , client_);
+            master_monitor_=boost::make_shared<master_monitor>(service__ , 1000 , client_);
             master_monitor_->get_signal()->on_timeout.connect([&](){
                 backup_transition();
             });
-            master_monitor_.get()->start_check();
-            //    backup_transition();
+            master_monitor_->start_check();
         }
     }
 
