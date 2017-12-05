@@ -135,6 +135,31 @@ public:
         }
     }
 
+    void deactivate()
+    {
+        started_ = false;
+        for (auto & comp : components_) {
+            comp.second.component_->stop();
+        }
+
+        for(auto & client : clients_){
+            client.second->stop();
+        }
+    }
+
+    void activate()
+    {
+        started_ = true;
+        for(auto & client : clients_){
+            client.second->async_start();
+        }
+
+        for (auto & comp : components_) {
+            comp.second.component_->start();
+        }
+    }
+
+
     //! Удаляет компоненты и клиентов
     void clear()
     {

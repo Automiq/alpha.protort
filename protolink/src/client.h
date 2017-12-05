@@ -49,11 +49,12 @@ public:
      * \param callback Ссылка на объект, реализующий концепцию Callback
      * \param service Ссылка на io_service
      */
-    client(callback_ptr const& callback, boost::asio::io_service& service)
+    client(callback_ptr const& callback, boost::asio::io_service& service , boost::asio::ip::tcp::endpoint ep)
         : socket_(service),
           buffer_(new char[max_packet_size + header_size]),
           callback_(callback),
-          reconnect_timer_(service)
+          reconnect_timer_(service),
+          ep_(ep)
     {
     }
 
@@ -81,6 +82,11 @@ public:
     {
         ep_ = ep;
         do_connect(ep);
+    }
+
+    void async_start()
+    {
+        do_connect(ep_);
     }
 
     /*!

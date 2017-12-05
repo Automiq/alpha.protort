@@ -113,11 +113,13 @@ class Backup_manager: public boost::enable_shared_from_this<Backup_manager>
 public:
     Backup_manager(boost::asio::io_service& service,
                    Node_status node_status,
-                   client_ptr client
+                   client_ptr client,
+                   boost::shared_ptr<router<node> > router
                  ):
         service__(service),
         node_status_(node_status),
-        client_(client)
+        client_(client),
+        router_(router)
     {
     }
 
@@ -146,6 +148,7 @@ public:
             std::cout<<"backup_transition\n";
         }
         else{
+            router_->start();
             switch_status();
             master_monitor_.reset();
         }
@@ -166,6 +169,7 @@ public:
 
 private:
     void backup_is_life(const alpha::protort::protocol::backup::Packet& packet){
+        router_->;
         switch_status();
         start_keepalife();
     }
@@ -182,6 +186,8 @@ private:
     boost::shared_ptr<alpha::protort::node::master_monitor> master_monitor_;
     //клиент для работы с парной нодой
     client_ptr client_;
+    //роутер
+    boost::shared_ptr<router<node>> router_;
 };
 
 

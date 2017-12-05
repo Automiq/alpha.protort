@@ -222,8 +222,9 @@ public:
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
 
                         auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_);
-
-                        client_ptr->async_connect(ep);
+                        if(backup_manager_->backup_status()!= protocol::backup::BackupStatus::Slave){
+                            client_ptr->async_connect(ep);
+                        }
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr});
 
@@ -412,7 +413,10 @@ private:
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
                 backup_manager_ = boost::make_shared<Backup_manager>(service_,
                                                                     static_cast<alpha::protort::node::Node_status>(config.this_node_info().backup_status()),
-                                                                    client_);
+                                                                    client_,
+                                                                    router_
+                                                                    );
+
                 backup_manager_->start_keepalife();
             }
             else{
