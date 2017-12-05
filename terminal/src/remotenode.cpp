@@ -35,11 +35,12 @@ RemoteNode::~RemoteNode()
 
 void RemoteNode::init(boost::asio::io_service &service)
 {
-    client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
 
     boost::asio::ip::tcp::endpoint ep(
                 boost::asio::ip::address::from_string(node_information_.host.ip_address),
                 node_information_.host.config_port);
+
+    client_ = boost::make_shared<client_t>(this->shared_from_this(), service , ep);
 
     client_->async_connect(ep);
 }

@@ -221,8 +221,8 @@ public:
                         boost::asio::ip::address_v4 addr(boost::asio::ip::address_v4::from_string(n_info.address));
                         boost::asio::ip::tcp::endpoint ep(addr, n_info.port);
 
-                        auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_);
-                        if(backup_manager_->backup_status()!= protocol::backup::BackupStatus::Slave){
+                        auto client_ptr = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_ , ep);
+                        if(!backup_manager_&&backup_manager_->backup_status()!= protocol::backup::BackupStatus::Slave){
                             client_ptr->async_connect(ep);
                         }
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(
@@ -279,8 +279,7 @@ private:
     {
         switch(packet.kind()){
             case protocol::backup::PacketType::KeepAlive:
-                //backup_manager_->keepalive_response();
-                return{};
+                return backup_manager_->keepalive_response();
 
             case protocol::backup::PacketType::Switch:
                 backup_manager_->backup_transition();
@@ -383,20 +382,6 @@ private:
 
         return backup_response;
     }
-
-    /*!
-     * \brief Метод формирует ответ на запрос keepalive
-     */
-    protocol_payload keepalive_response()
-    {
-        protocol_payload response;
-        protocol::backup::Packet *response_packet = response.mutable_backup_packet();
-
-        response_packet->set_kind(protocol::backup::PacketType::KeepAlive);
-
-        return response;
-    }
-
     /*!
      * \brief Разворачивает узел, используя пакет, полученный от терминала
      * \param config Конфигурация из пакета
@@ -425,6 +410,12 @@ private:
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
+                boost::asio::ip::tcp::endpoint ep(
+                            boost::asio::ip::address::from_string(node.address()),
+                            node.port()
+                            );
+                client_ = boost::make_shared<client_t>(this->shared_from_this(), service_ , ep);
+                client_->async_start();
                 backup_manager_ = boost::make_shared<Backup_manager>(service_,
                                                                     static_cast<alpha::protort::node::Node_status>(config.this_node_info().backup_status()),
                                                                     client_,

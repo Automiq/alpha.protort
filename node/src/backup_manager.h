@@ -25,6 +25,7 @@ class master_monitor: public boost::enable_shared_from_this<master_monitor>
     using port_id=uint32_t;
     using client_t=alpha::protort::protolink::client<node>;
     using client_ptr=boost::shared_ptr<client_t>;
+    using protocol_payload = protocol::Packet::Payload;
 
 public:
 
@@ -110,6 +111,7 @@ class Backup_manager: public boost::enable_shared_from_this<Backup_manager>
     using client_t=alpha::protort::protolink::client<node>;
     using client_ptr=boost::shared_ptr<client_t>;
     using port_id=uint32_t;
+    using protocol_payload = protocol::Packet::Payload;
 public:
     Backup_manager(boost::asio::io_service& service,
                    Node_status node_status,
@@ -148,11 +150,24 @@ public:
             std::cout<<"backup_transition\n";
         }
         else{
-            router_->start();
+            router_->activate();
             switch_status();
-            master_monitor_.reset();
+            if(!master_monitor_){
+                master_monitor_.reset();
+            }
         }
 
+    }
+    /*!
+     * \brief Метод формирует ответ на запрос keepalive
+     */
+    protocol_payload keepalive_response(){
+        protocol_payload response;
+        protocol::backup::Packet *response_packet = response.mutable_backup_packet();
+
+        response_packet->set_kind(protocol::backup::PacketType::KeepAlive);
+
+        return response;
     }
 
     //запускает процес проверки мастера на работоспособность
@@ -169,7 +184,7 @@ public:
 
 private:
     void backup_is_life(const alpha::protort::protocol::backup::Packet& packet){
-        router_->;
+        router_->deactivate();
         switch_status();
         start_keepalife();
     }
