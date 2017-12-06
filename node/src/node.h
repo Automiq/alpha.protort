@@ -287,17 +287,24 @@ private:
                 return backup_manager_->keepalive_response();
 
             case protocol::backup::PacketType::Switch:
-                backup_manager_->backup_transition();
+                if(backup_manager_){
+                    backup_manager_->backup_transition();
+                }
                 return{};
 
             case protocol::backup::PacketType::GetStatus:
-                return backup_status_response();
-
+                if(backup_manager_){
+                    return backup_manager_->backup_status_response();
+                }
+                else{
+                    return backup_status_response();
+                }
             default:
                 assert(false);
                 return protocol_payload();
         }
     }
+
 
     /*!
      * \brief Обработчик deploy пакетов
@@ -313,15 +320,18 @@ private:
                 deploy_from_packet(packet.request().deploy_config().config());
 
                 if (router_previous_state){
-             /*       if(backup_manager_){
+                   if(backup_manager_){
                         if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
                             router_->start();
                         }
                     }
                     else{
+#ifdef _DEBUG
+            std::cout << "NONE start" << std::endl;
+#endif
                         router_->start();
-                    }*/
-                    router_->start();
+                    }
+                   // router_->start();
                 }
 
                 old_router->stop();
@@ -330,13 +340,16 @@ private:
             }
 
             case protocol::deploy::PacketKind::Start:
-         /*   if(!backup_manager_){
-                router_->start();
-            }
-            else if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
-                router_->start();
-            }*/
-            router_->start();
+                if(!backup_manager_){
+                    router_->start();
+#ifdef _DEBUG
+            std::cout << "status NONE start" << std::endl;
+#endif
+                }
+                else if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
+                    router_->start();
+                }
+          //  router_->start();
                 return {};
 
             case protocol::deploy::PacketKind::Stop:
@@ -400,10 +413,11 @@ private:
         protocol::backup::Packet* backup_response_packet = backup_response.mutable_backup_packet();
 
         backup_response_packet->set_kind(protocol::backup::PacketType::GetStatus);
-        backup_response_packet->mutable_response()->mutable_status()->set_backup_status(backup_manager_->backup_status());
+        backup_response_packet->mutable_response()->mutable_status()->set_backup_status(protocol::backup::BackupStatus::None);
 
         return backup_response;
     }
+
     /*!
      * \brief Разворачивает узел, используя пакет, полученный от терминала
      * \param config Конфигурация из пакета

@@ -40,6 +40,7 @@ public:
         count_timeout_(0)
     {
         signal_=boost::make_shared<alpha::protort::protolink::request_callbacks>();
+        flag=true;
     }
 
     ~master_monitor(){
@@ -53,6 +54,7 @@ public:
     }
 
     void stop(){
+        flag=false;
         timer_.cancel();
     }
     //вызывает сигнал
@@ -76,7 +78,10 @@ private:
             //отправка пакета keepalife
             //если ответ не пришел то возвращаем false
             //реализовать
-
+        if(flag==false){
+            count_timeout_=-timeout_time;
+            return;
+        }
         if((count_timeout_*interval_)/1000>=timeout_time){
             //надо выполнить backuptransition
             signal_->on_timeout();
@@ -106,6 +111,8 @@ private:
     boost::atomic<uint32_t> count_timeout_;
     //сигнал для timeout
     boost::shared_ptr<alpha::protort::protolink::request_callbacks> signal_;
+    //флаг на работу монитора
+    bool flag;
 };
 
 
@@ -173,6 +180,17 @@ public:
         response_packet->set_kind(protocol::backup::PacketType::KeepAlive);
 
         return response;
+    }
+
+    protocol_payload backup_status_response()
+    {
+        protocol_payload backup_response;
+        protocol::backup::Packet* backup_response_packet = backup_response.mutable_backup_packet();
+
+        backup_response_packet->set_kind(protocol::backup::PacketType::GetStatus);
+        backup_response_packet->mutable_response()->mutable_status()->set_backup_status(backup_status());
+
+        return backup_response;
     }
 
     //запускает процес проверки мастера на работоспособность
