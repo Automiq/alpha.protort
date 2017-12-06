@@ -401,6 +401,13 @@ private:
         else
             response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(protocol::backup::BackupStatus::None);
 
+#ifdef _DEBUG
+        if(backup_manager_){
+            std::cout << "BACKUPSTATUS " << backup_manager_->backup_status() << std::endl;
+        }
+#endif
+
+
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
 
@@ -451,7 +458,7 @@ private:
 
         for (auto & node : config.node_infos()){
             if(node.name() == node_name_ && config.this_node_info().backup_status() != node.backup_status()){
-                std::cout << node.port() <<" "<< node.backup_status() << std::endl;
+
                 boost::asio::ip::tcp::endpoint ep(
                             boost::asio::ip::address::from_string(node.address()),
                             node.port()

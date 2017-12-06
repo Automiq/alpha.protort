@@ -103,28 +103,6 @@ void RemoteNode::init_info_node(const std::string &name_node,
     node_info.set_backup_status(backup_status);
 }
 
-void RemoteNode::init_backup_status_node_infos(const RemoteNode &pairnode,
-                                               protocol::deploy::Config &configuration)
-{
-    protocol::deploy::NodeInfo *node_info = configuration.add_node_infos();
-
-    init_info_node(pairnode.node_information_.name,
-                   pairnode.node_information_.host,
-                   pairnode.backup_status_,
-                   *node_info);
-
-    if(pairnode.backup_status_ != protocol::backup::BackupStatus::None){
-        if(auto tmp_pairnode = pairnode.pairnode_.lock()){
-            node_info = configuration.add_node_infos();
-
-            init_info_node(node_information_.name,
-                           tmp_pairnode->node_information_.host,
-                           tmp_pairnode->backup_status_,
-                           *node_info);
-        }
-    }
-}
-
 RemoteNode &RemoteNode::search_pairnode(const std::string &name_node,
                                          const QList<RemoteNodePtr> &remote_nodes) const
 {
@@ -156,7 +134,23 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
                    backup_status_,
                    *configuration->mutable_this_node_info());
 
-    init_backup_status_node_infos(*this, *configuration);
+    protocol::deploy::NodeInfo *node_info = configuration->add_node_infos();
+
+    init_info_node(current_node,
+                   this->node_information_.host,
+                   this->backup_status_,
+                   *node_info);
+
+    if(this->backup_status_ != protocol::backup::BackupStatus::None){
+        if(auto tmp_pairnode = this->pairnode_.lock()){
+            node_info = configuration->add_node_infos();
+
+            init_info_node(current_node,
+                           tmp_pairnode->node_information_.host,
+                           tmp_pairnode->backup_status_,
+                           *node_info);
+        }
+    }
 
     for (auto &component : deploy_configuration.map_node_with_components[current_node]){
         protocol::ComponentKind kind =
@@ -192,8 +186,13 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
                     RemoteNode &node_ = search_pairnode(node_name, remote_node);
 
                     if(added_nodes.find(node_.node_information_.name) == added_nodes.end()){
+                       node_info = configuration->add_node_infos();
+
                         // Добавляем информацию о ноде в конфигурацию
-                        init_backup_status_node_infos(node_, *configuration);
+                        init_info_node(node_.node_information_.name,
+                                       node_.node_information_.host,
+                                       node_.backup_status_,
+                                       *node_info);
 
                         added_nodes.insert(node_.node_information_.name);
                     }
