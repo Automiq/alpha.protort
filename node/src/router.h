@@ -150,7 +150,6 @@ public:
 
     void activate()
     {
-        started_ = true;
         for(auto & client : clients_){
             client.second->async_start();
         }
@@ -158,6 +157,7 @@ public:
             for (auto & comp : components_) {
                 comp.second.component_->start();
             }
+            started_ = true;
         }
     }
 
