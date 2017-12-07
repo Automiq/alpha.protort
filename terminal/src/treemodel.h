@@ -27,12 +27,15 @@ public:
     QVariant headerData(int section, Qt::Orientation orientation,
                         int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
+    int indexOfNode(RemoteNode* node) const;
     QModelIndex index(int row, int column,
                       const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     QModelIndex parent(const QModelIndex &index) const Q_DECL_OVERRIDE;
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
     int columnCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    int BackupTransitionColumn() const;
+    int NodeNameColumn() const;
 
 private slots:
     void onComponentsChanged();
@@ -45,8 +48,6 @@ private:
     RemoteNode *node(const QModelIndex &index) const;
     RemoteComponent *component(const QModelIndex &index) const;
 
-    int indexOfNode(RemoteNode* node) const;
-
     RemoteNode *nodeAt(int index) const;
 
     QVariant nodeData(RemoteNode* node, const QModelIndex &index, int role) const;
@@ -58,6 +59,7 @@ private:
     enum Column
     {
         Name,
+        Backup,
         Address,
         Connection,
         Uptime,

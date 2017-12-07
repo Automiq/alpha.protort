@@ -25,6 +25,13 @@ Q_DECLARE_METATYPE(boost::system::error_code)
 
 class RemoteComponent;
 
+enum class BackupStatus
+{
+    None = 0,
+    Master= 1,
+    Slave = 2
+};
+
 class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
     Q_OBJECT
@@ -60,6 +67,7 @@ public:
     RemoteNode &search_pairnode(const std::string &name_node,
                                 const QList<RemoteNodePtr> &remote_nodes) const;
 
+    void async_backup_transition(alpha::protort::protocol::Packet_Payload& backup);
     void async_deploy(deploy_configuration &deploy_configuration_, const QList<RemoteNodePtr> &remote_node);
     void async_start(protocol::Packet_Payload &packet);
     void async_stop(protocol::Packet_Payload &packet);
@@ -79,6 +87,9 @@ public:
     uint32_t downSpeed() const;
     uint32_t upSpeed() const;
 
+    BackupStatus backupStatus() const;
+
+
     RemoteComponent *componentAt(int index) const;
 
 signals:
@@ -86,6 +97,7 @@ signals:
     void statusRequestFinished(const protocol::deploy::Packet &packet);
     void startRequestFinished(const protocol::deploy::Packet &packet);
     void stopRequestFinished(const protocol::deploy::Packet &packet);
+    void backupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void connected();
     void connectionFailed(const boost::system::error_code &err);
 
@@ -118,6 +130,7 @@ private:
     void setBytesReceived(uint32_t value);
     void setBytesSent(uint32_t value);
     void setConnected(bool value);
+    void setBackupStatus(alpha::protort::protocol::backup::BackupStatus value);
 
     double calcUpSpeed(const QTime &now, uint32_t bytesSent);
     double calcDownSpeed(const QTime &now, uint32_t bytesReceived);
@@ -148,5 +161,7 @@ private:
     QList<RemoteComponent*> components_;
 
     QTime m_lastStatusTime;
+
+    BackupStatus backupStatus_;
 };
 #endif // TERMINAL_CLIENT_H

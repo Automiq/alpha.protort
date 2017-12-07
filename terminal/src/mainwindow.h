@@ -78,6 +78,11 @@ private slots:
 
     void on_status_triggered();
 
+
+    void on_backup_transition();
+
+    bool eventFilter(QObject *object, QEvent *event);
+
 public slots:
     void showLog() const;
 
@@ -86,6 +91,7 @@ private slots:
     void onStatusRequestFinished(const protocol::deploy::Packet &status);
     void onStartRequestFinished(const protocol::deploy::Packet &packet);
     void onStopRequestFinished(const protocol::deploy::Packet &packet);
+    void onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
     void onConnected();
     void onConnectionFailed(const boost::system::error_code &err);
 
@@ -124,9 +130,12 @@ private:
                                                     protocol::backup::BackupStatus backup_status);
     void createRemoteNodes();
     void connectRemoteNodeSignals(RemoteNode* node);
+    void connectRemoteNode(alpha::protort::parser::node &node);
     void save_session();
     void load_session();
     void load_file(const QString& fileName);
+
+    void deleteBackupPushButtons();
 
     Document* document(int index);
 

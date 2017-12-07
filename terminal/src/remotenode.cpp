@@ -70,6 +70,23 @@ QString RemoteNode::info() const
     return QString("%1 (%2)").arg(name()).arg(address());
 }
 
+/*!
+ * \brief Отправляет сигнал резервного перехода на ноду мастера.
+ *  Вызывается из объекта remoteNodePtr мастера.
+ * \param backup - пакет, сигнализирующий о необходиости перехода.
+ */
+void RemoteNode::async_backup_transition(alpha::protort::protocol::Packet_Payload& backup)
+{
+    auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+    callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+            emit backupTransitionRequestFinished(packet.deploy_packet());
+    });
+
+    // Отправка реквеста на ноду
+    client_->async_send_request(backup, callbacks);
+}
+
 boost::weak_ptr<RemoteNode> RemoteNode::pairnode() const
 {
     return this->pairnode_;
@@ -204,6 +221,15 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
     client_->async_send_request(payload, callbacks);
 }
 
+void RemoteNode::setBackupStatus(alpha::protort::protocol::backup::BackupStatus value)
+{
+    // Если такое поле есть в перечислении
+    if(value >= 0 && value <= 2)
+        backupStatus_ = static_cast<BackupStatus>(value);
+    else
+        assert(false);
+}
+
 void RemoteNode::async_start(protocol::Packet_Payload &packet)
 {
     auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
@@ -305,6 +331,16 @@ double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
     return calcSpeed(now, bytesSent_, bytesSent);
 }
 
+/*!
+ * \brief Функция для проверки текущего состояния ноды
+ * \return Состояние ноды в
+ * соответствии с перечислением BackupStatus
+ */
+BackupStatus RemoteNode::backupStatus() const
+{
+    return backupStatus_;
+}
+
 double RemoteNode::calcDownSpeed(const QTime &now, uint32_t bytesReceived)
 {
     return calcSpeed(now, bytesReceived_, bytesReceived);
@@ -403,6 +439,7 @@ void RemoteNode::onStatusRequestFinished(const protocol::deploy::Packet &packet)
     setPacketsSent(status.out_packets_count());
     setBytesReceived(status.in_bytes_count());
     setBytesSent(status.out_bytes_count());
+    setBackupStatus(status.node_info().backup_status());
 
     emit statusChanged();
 }

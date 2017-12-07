@@ -6,6 +6,8 @@
 #include "parser.h"
 #include "configdialog.h"
 
+#include <QPushButton>
+#include <QAbstractButton>
 #include <QComboBox>
 #include <QIcon>
 #include <QLabel>
@@ -19,6 +21,8 @@
 #include <QWidget>
 #include <QTimer>
 #include <QHBoxLayout>
+
+
 #include <QToolTip>
 #include <boost/make_shared.hpp>
 
@@ -30,9 +34,9 @@ MainWindow::MainWindow(QWidget *parent) :
     work_(new boost::asio::io_service::work(service_)),
     serviceThread_(boost::bind(&boost::asio::io_service::run, &service_))
 {
-    qRegisterMetaType<protocol::Packet_Payload>();
-    qRegisterMetaType<protocol::deploy::Packet>();
-    qRegisterMetaType<protocol::deploy::StatusResponse>();
+    qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::Packet>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
     qRegisterMetaType<boost::system::error_code>();
 
     ui->setupUi(this);
@@ -45,34 +49,34 @@ MainWindow::MainWindow(QWidget *parent) :
 
     TreeModel *model = new TreeModel(remoteNodes_);
     ui->treeStatus->setModel(model);
+
+    // Колонна с именем ноды рахворачивается полностью, по самому длинному имени
+    ui->treeStatus->header()->setSectionResizeMode(model->NodeNameColumn(), QHeaderView::ResizeToContents);
 }
 
 MainWindow::~MainWindow()
 {
-    for (int i = 0; i < ui->tabWidget->count(); ++i){
-        if (!QFile(document(i)->filePath()).exists()){
+    deleteBackupPushButtons();
+
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+        if (!QFile(document(i)->filePath()).exists())
+        {
             QMessageBox::StandardButton reply;
             reply = QMessageBox::question(this,
                                           tr("Выход"),
                                           tr("Файл %1 не сохранён. Сохранить?").arg(ui->tabWidget->tabText(i)),
                                           QMessageBox::Yes|QMessageBox::No);
 
-            if (reply == QMessageBox::Yes){
+            if (reply == QMessageBox::Yes)
+            {
                 saveDocument(i);
             }
         }
-    }
-
     save_session();
-
     work_.reset();
-
     service_.stop();
-
-    if (serviceThread_.joinable()){
+    if (serviceThread_.joinable())
         serviceThread_.join();
-    }
-
     delete ui;
 }
 
@@ -81,7 +85,8 @@ void MainWindow::save_session()
     QSettings session("terminal.conf", QSettings::IniFormat);
     session.beginWriteArray("files");
 
-    for (int i = 0; i < ui->tabWidget->count(); ++i){
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
         session.setArrayIndex(i);
         session.setValue("filePath", document(i)->filePath());
     }
@@ -93,15 +98,12 @@ void MainWindow::load_session()
 {
     QSettings session("terminal.conf", QSettings::IniFormat);
     int tabs_count = session.beginReadArray("files");
-
-    for (int i = 0; i < tabs_count; ++i){
+    for (int i = 0; i < tabs_count; ++i)
+    {
         session.setArrayIndex(i);
-
         QString fileName = session.value("filePath").toString();
-
         load_file(fileName);
     }
-
     session.endArray();
 }
 
@@ -112,30 +114,27 @@ void MainWindow::on_save_file_triggered()
 
 void MainWindow::on_save_all_triggered()
 {
-    for (int i = 0; i < ui->tabWidget->count(); ++i){
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
         saveDocument(i);
-    }
 }
 
 void MainWindow::on_exit_triggered()
 {
     ui->stop->triggered(true);
-
     close();
 }
 
 void MainWindow::load_file(const QString& fileName)
 {
-    if (fileName.isEmpty()){
+    if (fileName.isEmpty())
         return;
-    }
 
-    if (!QFile(fileName).exists()){
+    if (!QFile(fileName).exists())
         return;
-    }
 
     QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly)){
+    if (!file.open(QIODevice::ReadOnly))
+    {
         QMessageBox::warning(this,
                              tr("Ошибка"),
                              tr("Ошибка открытия файла\n%1").arg(fileName));
@@ -143,14 +142,32 @@ void MainWindow::load_file(const QString& fileName)
     }
 
     Document *doc = new Document();
-
     doc->setText(file.readAll());
     doc->setFilePath(fileName);
-
     addConfig(doc);
     addDocument(doc);
-
     setIcon(doc);
+
+}
+
+void MainWindow::deleteBackupPushButtons()
+{
+    // Удаление кнопок резервного перехода, если они имеются
+    for (size_t i(0); i < remoteNodes_.count(); ++i)
+    {
+        // Указатель на модель
+        TreeModel *model = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+        //Индекс модели, в которой могла быть установлена кнопка
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( i, model->BackupTransitionColumn());
+
+        // Указатель на кнопку из текущего индекса
+        QWidget* backupPushButton = ui->treeStatus->indexWidget(currentModelIndex);
+
+        // У ноды есть кнопка
+        if(backupPushButton)
+            delete backupPushButton;
+    }
 }
 
 void MainWindow::on_load_file_triggered()
@@ -161,7 +178,7 @@ void MainWindow::on_load_file_triggered()
     load_file(fileName);
 }
 
-void MainWindow::delDocFromComboBox(QComboBox *combobox, Document *doc)
+void MainWindow::delDocFromComboBox(QComboBox* combobox, Document* doc)
 {
     combobox->removeItem(combobox->findData(QVariant::fromValue(doc)));
 }
@@ -181,7 +198,6 @@ void MainWindow::updateConfig(Document *doc)
 void MainWindow::on_create_file_triggered()
 {
     Document *tmp = new Document();
-
     addDocument(tmp);
 }
 
@@ -211,38 +227,32 @@ void MainWindow::setComboBoxToolTip(QComboBox *combobox, Document *doc)
 void MainWindow::on_config_triggered()
 {
     ConfigDialog dlg(this);
-    for (int i = 0; i < ui->tabWidget->count(); ++i){
+    for (int i = 0; i < ui->tabWidget->count(); ++i)
+    {
         auto doc = document(i);
-
-        if (!doc){
+        if (!doc)
             continue;
-        }
 
-        if (doc->isApp()){
+        if (doc->isApp())
             dlg.loadApp(doc);
-        }
-        else if (doc->isDeploy()){
+        else if (doc->isDeploy())
             dlg.loadDeploy(doc);
-        }
     }
 
-    if (dlg.exec() && dlg.ready()){
+    if (dlg.exec() && dlg.ready())
+    {
         m_app = dlg.app();
-
         m_deploySchema = dlg.deploySchema();
-
         setCurrentDocument(m_apps, m_app);
         setCurrentDocument(m_deploys, m_deploySchema);
-
         setActiveConfig();
     }
 }
 
 void MainWindow::resetDeployActions() const
 {
-    if (!ui->start->isEnabled() && !ui->stop->isEnabled()){
+    if (!ui->start->isEnabled() && !ui->stop->isEnabled())
         ui->start->setEnabled(true);
-    }
 }
 
 void MainWindow::showLog() const
@@ -252,41 +262,111 @@ void MainWindow::showLog() const
 void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     deploying = false;
+    auto node = qobject_cast<RemoteNode *>(sender());
+    writeLog(
+                packet.has_error() ?
+                    tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
+                    tr("Конфигурация успешно развернута на узел %1").arg(node->info())
+                    );
+}
 
+/*!
+ * \brief Вызывется по окончании процесса резервного перехода.
+ * \param packet - пакет со статусом перехода.
+ */
+void MainWindow::onBackupTransitionRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
+{
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    writeLog(packet.has_error() ?
-                                tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
-                                tr("Конфигурация успешно развернута на узел %1").arg(node->info()));
+    writeLog(
+                packet.has_error() ?
+                    tr("Ошибка доставки пакета перехода на узел %1").arg(node->info()) :
+                    tr("Пакет резервного перехода успешно доставлен на узел %1").arg(node->info())
+                    );
 }
 
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    if (packet.has_error()){
-        writeLog(tr("Ошибка получения статуса узла %1").arg(node->info()));
+    // Нода приконнекчена и состоит в резервной паре
+    if(node->isConnected() && node->backupStatus() != BackupStatus::None)
+    {
+        // Указатель на модель
+        TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
+        // Через указатель на модель получаем уровень текущей ноды
+        int row = mod->indexOfNode(node);
+
+        // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
+        QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
+
+        // Нода состоит в резервной паре и ей требуется кнопка перехода
+        if (node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)) ||
+            node->backupStatus() == BackupStatus::Slave && !(ui->treeStatus->indexWidget(currentModelIndex)))
+        {
+            QPushButton *backupTransitionButton = new QPushButton;
+
+            // Уровнь, на котором находится кнопка
+            backupTransitionButton->setProperty("row", (QVariant)row);
+            backupTransitionButton->setFixedSize(40,20);
+
+            // Устанавливаем кнопку в соответстующий индекс модели
+            ui->treeStatus->setIndexWidget(currentModelIndex, backupTransitionButton);
+
+            connect(backupTransitionButton,SIGNAL(clicked()),this,SLOT(on_backup_transition()));
+
+            // Устанавливаем фильтр для событий входа и выхода мышью из кнопки
+            backupTransitionButton->installEventFilter(this);
+        }
+
+        // Кнопка резервного перехода текущего индекса модели
+        QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+
+
+
+        // 1.Нода слейв, а состояние кнопки как у мастера
+        //          (произошел переход и есть вязь с обеими нодами)
+        // 2.Нода мастер и кнопка толькочто была создана
+        if (node->backupStatus() == BackupStatus::Slave && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
+                                                       && !(backupTransitionButton->icon().isNull()) ||
+            node->backupStatus() == BackupStatus::Master && backupTransitionButton->icon().isNull())
+        {
+            backupTransitionButton->setIcon(QIcon(":/images/master.png"));
+            backupTransitionButton->setEnabled(true);
+        }
+
+        // 1.Нода мастер, а состояние кнопки как у слэйва
+        // 2.Нода слэйв и кнопка только что была создана
+        else if(node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
+                                                          && !(backupTransitionButton->icon().isNull()) ||
+                node->backupStatus() == BackupStatus::Slave && backupTransitionButton->icon().isNull())
+        {
+            backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
+            backupTransitionButton->setDisabled(true);
+        }
+    }
+
+    if (packet.has_error())
+    {
+        writeLog(tr("Ошибка получения статуса узла %1").arg(node->info()));
         return;
     }
 
     auto status = packet.response().status();
 
     writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
-
     writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
-
     writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
                    .arg(QString::number(status.in_packets_count()))
                    .arg(QString::number(status.in_bytes_count())));
-
     writeStatusLog(tr("<Количество переданных пакетов - %3 (%4 байт)>")
                    .arg(QString::number(status.out_packets_count()))
                    .arg(QString::number(status.out_bytes_count())));
 
     writeStatusLog(tr("<Информация о компонентах>"));
-
-    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i){
+    for (auto i = 0, size = status.component_statuses_size(); i < size; ++i)
+    {
         auto component = status.component_statuses(i);
 
         writeStatusLog(tr("<Название компонента - %1>")
@@ -303,27 +383,57 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
-
-    writeLog(packet.has_error() ?
-                                tr("Ошибка запуска узла %1").arg(node->info()) :
-                                tr("Узел %1 успешно запущен").arg(node->info()));
+    writeLog(
+                packet.has_error() ?
+                    tr("Ошибка запуска узла %1").arg(node->info()) :
+                    tr("Узел %1 успешно запущен").arg(node->info())
+                    );
 }
 
 void MainWindow::onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
-
-    writeLog(packet.has_error() ?
-                                tr("Ошибка останова узла %1").arg(node->info()) :
-                                tr("Узел %1 успешно остановлен").arg(node->info()));
+    writeLog(
+                packet.has_error() ?
+                    tr("Ошибка останова узла %1").arg(node->info()) :
+                    tr("Узел %1 успешно остановлен").arg(node->info())
+                    );
 }
 
 void MainWindow::onConnected()
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
-    writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
+    // Указатель на модель
+    TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
 
+    // Через указатель на модель получаем уровень текущей ноды
+    int row = mod->indexOfNode(node);
+
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
+    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());// Индекс ячейки перехода
+
+    // Кнопка резервного перехода текущего индекса модели
+    QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+
+    // Нода мастера потеряла связь и после переподключилась
+    // (если резервный переход был неуспешен по каким-то причинам)
+    if (node->backupStatus() == BackupStatus::Master && backupTransitionButton
+                                 && !(backupTransitionButton->isEnabled()))
+    {
+        // Устанавливаем кнопку в состояние мастера
+        ui->treeStatus->indexWidget(currentModelIndex)->setEnabled(true);
+    }
+
+    // Мастер когда отключился стал слейвом
+    else if (node->backupStatus() == BackupStatus::Slave &&
+                    backupTransitionButton->icon().pixmap(32, 32).toImage() ==
+                      QIcon(":/images/master.png").pixmap(32, 32).toImage())
+    {
+         backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
+    }
+
+    writeLog(tr("Успешное подключение к узлу %1").arg(node->info()));
     activateDeploy();
     activateStatus();
 }
@@ -332,6 +442,24 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
 {
     auto node = qobject_cast<RemoteNode *>(sender());
 
+    // Указатель на модель
+    TreeModel *mod = reinterpret_cast<TreeModel*>(ui->treeStatus->model());
+
+    // Через указатель на модель получаем уровень текущей ноды
+    int row = mod->indexOfNode(node);
+
+    // Получаем через тукущий уровень и бэкап колонну индекс ячейки бэкап статуса
+    QModelIndex currentModelIndex = ui->treeStatus->model()->index( row, mod->BackupTransitionColumn());
+
+    // Кнопка резервного перехода текущего индекса модели
+    QPushButton* backupTransitionButton = qobject_cast<QPushButton*>(ui->treeStatus->indexWidget(currentModelIndex));
+
+    // Дизейбл кнопки мастера при дисконнекте
+    if(node->backupStatus() == BackupStatus::Master && backupTransitionButton
+                                 && backupTransitionButton->isEnabled())
+    {
+        ui->treeStatus->indexWidget(currentModelIndex)->setDisabled(true);
+    }
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
              .arg(QString::fromStdString(err.message())));
@@ -350,7 +478,8 @@ void MainWindow::on_start_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Start);
 
-    for (auto &remoteNode: remoteNodes_){
+    for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_start(payload);
     }
 }
@@ -363,7 +492,8 @@ void MainWindow::on_stop_triggered()
     alpha::protort::protocol::Packet_Payload payload;
     payload.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Stop);
 
-    for (auto &remoteNode: remoteNodes_){
+    for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_stop(payload);
     }
 }
@@ -375,38 +505,104 @@ void MainWindow::showMessage()
                                   "Смена конфигурации",
                                   "Старая конфигурация будет остановлена и загружена новая, вы уверены?",
                                   QMessageBox::Yes|QMessageBox::No);
-
-    if (reply == QMessageBox::Yes){
+    if (reply == QMessageBox::Yes)
+    {
         deploy();
     }
 }
 
 void MainWindow::deploy()
 {
-
     resetDeployActions();
-
     ui->status->setEnabled(true);
     ui->deploy->setDisabled(true);
 
-    for (auto &remoteNode: remoteNodes_){
+    for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_deploy(deploy_config_, remoteNodes_);
     }
-
     TreeModel *model = new TreeModel(remoteNodes_);
     model->setupModelData(remoteNodes_);
 
     ui->treeStatus->show();
 }
 
+
+/*!
+ * \brief Фильтер, для обработки собыйтий входа на кнопку
+ * и выхода с нее указателем мыши
+ * \param object - объект, на к которому привязан фильтер(кнопка бэкапа)
+ * \param event -событие
+ */
+bool MainWindow::eventFilter(QObject *object, QEvent *event)
+{
+    QPushButton *pushButton = qobject_cast<QPushButton*>(object);
+
+    // Каст успешен, ивент - вход на нее курсором, кнопка активна
+    if(pushButton && event->type() == QEvent::Enter && pushButton->isEnabled())
+    {
+        pushButton->setIcon(QIcon(":/images/backupTransition.png"));
+        return true;
+    }
+    // Каст успешен, ивент - выход за пределы кнопки, и кнопка активна
+    if(pushButton && event->type() == QEvent::Leave && pushButton->isEnabled())
+    {
+        // Меняем иконку при выходе за пределы кнопки
+        pushButton->setIcon(QIcon(":/images/master.png"));
+        return true;
+    }
+//            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())
+//            {
+
+//                int row = pushButton->property("row").toInt();// У отправителя сигнала узнаем на каком уровне расположена кнопка
+//                RemoteNodePtr remoteNode = remoteNodes_.at(row);// Нода, которая расположена на том же уровне
+//                QMessageBox *mbTest = new QMessageBox;
+//                mbTest->setText(QString("%1 %2").arg(QString::number(row,16)).arg(pushButton->objectName()));// Проверка урвня и имени ноды
+//                mbTest->show();
+
+//                alpha::protort::protocol::Packet_Payload backup;// Создаем пакет
+//                backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::BackupTransition);// Устанавливаем тип пакета
+
+//                remoteNode->async_backup_transition(backup);// Вызываем функцию, которая отправит этот пакет ноде.
+//                return true;
+//            }
+
+    return QMainWindow::eventFilter(object, event);
+}
+
+/*!
+ * \brief Метод срабатыает при нажатии кнопки backupTransition
+ * Создает соответствующий пакет и отправляет его на remote node
+ */
+void MainWindow::on_backup_transition()
+{
+    QPushButton *backupPushButton = qobject_cast<QPushButton*>(sender());
+
+    // Каст успешен и кнопка активна
+    if(backupPushButton && backupPushButton->isEnabled())
+    {
+        // Уровень, на котором расположена кнопка
+        int row = sender()->property("row").toInt();
+
+        // Нода, которая расположена на том же уровне
+        RemoteNodePtr remoteNode = remoteNodes_.at(row);
+
+        alpha::protort::protocol::Packet_Payload backup;
+
+        // Устанавливаем тип пакета в резервный переход
+        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);
+
+        // Функция, отправляющая пакет ноде
+        remoteNode->async_backup_transition(backup);
+    }
+}
+
 void MainWindow::on_deploy_triggered()
 {
-    if(ui->start->isEnabled() || ui->stop->isEnabled()){
+    if(ui->start->isEnabled() || ui->stop->isEnabled())
         showMessage();
-    }
-    else{
+    else
         deploy();
-    }
 }
 
 void MainWindow::on_close_file_triggered()
@@ -417,26 +613,24 @@ void MainWindow::on_close_file_triggered()
 void MainWindow::close_tab(int index)
 {
     auto doc = document(index);
-
     delConfig(doc);
-
     ui->tabWidget->widget(index)->deleteLater();
     ui->tabWidget->removeTab(index);
 }
 
 void MainWindow::on_status_triggered()
 {
-    if (deploying){
+    if (deploying)
         return;
-    }
 
     ui->treeStatus->expandAll();
-
-    protocol::Packet_Payload status;
-    status.mutable_deploy_packet()->set_kind(protocol::deploy::GetStatus);
+    alpha::protort::protocol::Packet_Payload status;
+    status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
 
     for (auto &remoteNode: remoteNodes_)
+    {
         remoteNode->async_status(status);
+    }
 }
 
 QString MainWindow::fixedWindowTitle(const Document *doc) const
@@ -445,61 +639,39 @@ QString MainWindow::fixedWindowTitle(const Document *doc) const
 
     switch(doc->kind())
     {
-        case Document::Kind::App:
-            return result;
-
-        case Document::Kind::Deploy:
-            return result;
-
-        default:
-            result = tr("Безымянный");
-            break;
+    case Document::Kind::App:
+        return result;
+    case Document::Kind::Deploy:
+        return result;
+    default:
+        result = tr("Безымянный");
+        break;
     }
 
     for (int i = 0; ; ++i)
     {
-        if (i > 1){
+        if (i > 1)
             result.chop(1);
-        }
-
-        if (i > 0){
+        if (i > 0)
             result += QString::number(i);
-        }
 
         bool unique = true;
-
-        for (int j = 0; j < ui->tabWidget->count(); ++j){
+        for (int j = 0; j < ui->tabWidget->count(); ++j)
+        {
             const QWidget *widget = ui->tabWidget->widget(j);
-
-            if (widget == doc){
+            if (widget == doc)
                 continue;
-            }
-
-            if (result == ui->tabWidget->tabText(j)){
+            if (result == ui->tabWidget->tabText(j))
+            {
                 unique = false;
                 break;
             }
         }
 
-        if (unique){
+        if (unique)
             break;
-        }
     }
-
     return result;
-}
-
-boost::shared_ptr<RemoteNode> MainWindow::connectRemoteNode(const parser::node &node,
-                                                protocol::backup::BackupStatus backup_status)
-{
-    boost::shared_ptr<RemoteNode> remoteNode = boost::make_shared<RemoteNode>(node, backup_status);
-
-    remoteNodes_.append(remoteNode);
-
-    connectRemoteNodeSignals(remoteNode.get());
-    remoteNode->init(service_);
-
-    return remoteNode;
 }
 
 void MainWindow::createRemoteNodes()
@@ -548,6 +720,19 @@ void MainWindow::createRemoteNodes()
     m_statusTimer->start(500);
 }
 
+boost::shared_ptr<RemoteNode> MainWindow::connectRemoteNode(const parser::node &node,
+                                   protocol::backup::BackupStatus backup_status)
+{
+    boost::shared_ptr<RemoteNode> remoteNode = boost::make_shared<RemoteNode>(node, backup_status);
+
+    remoteNodes_.append(remoteNode);
+
+    connectRemoteNodeSignals(remoteNode.get());
+    remoteNode->init(service_);
+
+    return remoteNode;
+}
+
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
 {
     connect(node, &RemoteNode::connected, this, &MainWindow::onConnected);
@@ -556,49 +741,40 @@ void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
     connect(node, &RemoteNode::statusRequestFinished, this, &MainWindow::onStatusRequestFinished);
     connect(node, &RemoteNode::startRequestFinished, this, &MainWindow::onStartRequestFinished);
     connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
+    connect(node, &RemoteNode::backupTransitionRequestFinished, this, &MainWindow::onBackupTransitionRequestFinished);
 }
 
 void MainWindow::saveDocument(int index)
 {
-    if(index == -1){
+    if(index == -1)
         return;
-    }
 
     auto doc = document(index);
 
-    if(!doc){
+    if(!doc)
         return;
-    }
 
-    if(!doc->save()){
+    if(!doc->save())
         return;
-    }
 
     updateConfig(doc);
 
     QString nfname = doc->filePath();
 
-    if(nfname != ui->tabWidget->tabText(index)){
+    if(nfname != ui->tabWidget->tabText(index))
         setTabName(index, nfname);
-    }
-
     setIcon(doc);
 }
 
 void MainWindow::addDocument(Document *doc)
 {
     int index = ui->tabWidget->indexOf(doc);
-
-    if (index != -1){
+    if (index != -1)
         return;
-    }
-
     ui->tabWidget->addTab(doc, fixedWindowTitle(doc));
     ui->tabWidget->setTabEnabled(index, true);
     ui->tabWidget->setCurrentWidget(doc);
-
     setIcon(doc);
-
     ui->tabWidget->setTabToolTip(ui->tabWidget->currentIndex(), doc->filePath());
 }
 
@@ -611,17 +787,15 @@ void MainWindow::setIcon(Document *doc)
 {
     switch(doc->kind())
     {
-        case Document::Kind::App:
-            setTabIco(doc, ":/images/pen.png");
-            break;
-
-        case Document::Kind::Deploy:
-            setTabIco(doc,":/images/cog.png");
-            break;
-
-        default:
-            setTabIco(doc,":/images/file.png");
-            break;
+    case Document::Kind::App:
+        setTabIco(doc, ":/images/pen.png");
+        break;
+    case Document::Kind::Deploy:
+        setTabIco(doc,":/images/cog.png");
+        break;
+    default:
+        setTabIco(doc,":/images/file.png");
+        break;
     }
 }
 
@@ -645,14 +819,12 @@ void MainWindow::createConfigurationToolBar()
 
     QWidget *w = new QWidget;
     QHBoxLayout *l = new QHBoxLayout;
-
     l->addWidget(app);
     l->addWidget(m_apps);
     l->addWidget(schema);
     l->addWidget(m_deploys);
     l->addWidget(m_setupConfig);
     l->setContentsMargins(0, 0, 0, 0);
-
     w->setLayout(l);
 
     addWidgetOnBar(w);
@@ -668,17 +840,19 @@ void MainWindow::setupConfigMembers()
 
 void MainWindow::activateDeploy() const
 {
-    if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count()){
+    if(!ui->deploy->isEnabled() && m_deploys->count() && m_apps->count())
         ui->deploy->setEnabled(true);
-    }
 }
+
 void MainWindow::activateStatus() const
 {
-    ui->status->setEnabled(true);
+        ui->status->setEnabled(true);
 }
 
 void MainWindow::button_clickedSetup()
 {
+    deleteBackupPushButtons();
+
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
         setupConfigMembers();
         setActiveConfig();
@@ -688,10 +862,8 @@ void MainWindow::button_clickedSetup()
 
 void MainWindow::setActiveConfig()
 {
-    for (int i = 0; i != ui->tabWidget->count(); ++i){
+    for (int i = 0; i != ui->tabWidget->count(); ++i)
         setIcon(document(i));
-    }
-
     setTabIco(m_app,":/images/greenPen.png");
     setTabIco(m_deploySchema,":/images/greenCog.png");
 }
@@ -708,7 +880,7 @@ void MainWindow::writeLog(const QString &message)
 
 void MainWindow::writeStatusLog(const QString &message)
 {
-    //ui->StatusLog->append(message);
+    //    ui->statusLog->append(message);
 }
 
 Document *MainWindow::currentDocument(QComboBox *combobox)

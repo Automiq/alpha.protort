@@ -17,6 +17,16 @@ int TreeModel::columnCount(const QModelIndex &) const
     return Column::ColumnCount;
 }
 
+int TreeModel::BackupTransitionColumn() const
+{
+    return Column::Backup;
+}
+
+int TreeModel::NodeNameColumn() const
+{
+    return Column::Name;
+}
+
 QObject* TreeModel::object(const QModelIndex &index) const
 {
     return static_cast<QObject *>(index.internalPointer());
@@ -132,6 +142,8 @@ QVariant TreeModel::headerData(int section, Qt::Orientation orientation,
     {
     case Column::Name:
         return tr("Имя узла");
+    case Column::Backup:
+           return tr("Состояние");
     case Column::Address:
         return tr("Адрес");
     case Column::Connection:
