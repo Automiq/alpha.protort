@@ -9,7 +9,7 @@
 
 
 //время тайм аута для keepalife в секундах
-const uint32_t timeout_time=5;
+const uint32_t timeout_time=1;
 
 namespace alpha {
 namespace protort {
@@ -196,7 +196,7 @@ public:
     //запускает процес проверки мастера на работоспособность
     void start_keepalife(){
         if(node_status_==Node_status::slave){
-            master_monitor_=boost::make_shared<master_monitor>(service__ , 1000 , client_);
+            master_monitor_=boost::make_shared<master_monitor>(service__ , 500 , client_);
             master_monitor_->get_signal()->on_timeout.connect([&](){
                 backup_transition();
             });

@@ -234,6 +234,39 @@ public:
                                     router<node>::remote_route{conn.dest_in, conn.dest, client_ptr});
 
                         router_->clients_[dest_node_name] = client_ptr;
+
+                        bool havepair=false;
+                        std::string ip;
+                        port_id port;
+                        for (auto const &node : conf.nodes)
+                        {
+                            std::string pnname = "pairnode.";
+                            pnname.append(dest_node_name);
+                            if(node.name==pnname)
+                            {
+                                havepair=true;
+                                ip=node.host.ip_address;
+                                port=node.host.port;
+                            }
+                        }
+                        if(havepair)
+                        {
+                            boost::asio::ip::address_v4 addr2(boost::asio::ip::address_v4::from_string(ip));
+                            boost::asio::ip::tcp::endpoint ep2(addr2, port);
+                            auto client_ptr2 = boost::make_shared<protolink::client<node>>(this->shared_from_this(), service_ , ep2);
+                            client_ptr2->async_connect(ep2);
+                            router_->clients_["pairnode." + dest_node_name] = client_ptr2;
+
+                            alpha::protort::node::router<alpha::protort::node::node>::remote_pair rp(dest_node_name, router_->clients_[dest_node_name], "pairnode."+dest_node_name, router_->clients_["pairnode."+dest_node_name]);
+                            auto sp_rp = boost::make_shared<alpha::protort::node::router<alpha::protort::node::node>::remote_pair>(rp);
+                            router_->remote_hosts[conn.dest] = boost::dynamic_pointer_cast<alpha::protort::node::router<alpha::protort::node::node>::remote_host>(sp_rp);
+                        }
+                        else
+                        {
+                            alpha::protort::node::router<alpha::protort::node::node>::remote_solo rh(dest_node_name, router_->clients_[dest_node_name]);
+                            auto sp_rh = boost::make_shared<alpha::protort::node::router<alpha::protort::node::node>::remote_solo>(rh);
+                            router_->remote_hosts[conn.dest] = boost::dynamic_pointer_cast<alpha::protort::node::router<alpha::protort::node::node>::remote_host>(sp_rh);
+                        }
                     }
                     else {
                         comp_inst.port_to_routes[conn.source_out].remote_routes.push_back(

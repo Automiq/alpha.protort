@@ -38,9 +38,147 @@ class router : public boost::enable_shared_from_this<router<app>>
     friend class node;
     friend class alpha::protort::components::component;
     friend void alpha::protort::node::tests::test_node_router();
+
+        class remote_host {
+        public:
+            virtual void send_message(alpha::protort::protocol::Packet::Payload const &payload){}
+            virtual void request_backup_status(){}
+            virtual ~remote_host(){}
+        };
+
+        class remote_solo : public remote_host
+        {
+        public:
+            remote_solo(std::string name, boost::shared_ptr<protolink::client<app>> client)
+            {
+                host_name=name;
+                this->client=client;
+            }
+
+            ~remote_solo()
+            {
+
+            }
+
+            void send_message(alpha::protort::protocol::Packet::Payload const &payload)
+            {
+                client->async_send_message(payload);
+            }
+
+            void request_backup_status(){}
+        private:
+            std::string host_name;
+            boost::shared_ptr<protolink::client<app>> client;
+        };
+
+        class remote_pair : public remote_host
+        {
+        public:
+            remote_pair(std::string name, boost::shared_ptr<protolink::client<app>> client, std::string name2,
+                        boost::shared_ptr<protolink::client<app>> client2)
+            {
+                host_name=name;
+                this->client=client;
+                host2_name=name2;
+                this->client2=client2;
+            }
+
+            ~remote_pair()
+            {
+
+            }
+
+            //отправляет сообщение мастер ноде
+            void send_message(alpha::protort::protocol::Packet::Payload const &payload)
+            {
+                if(is_master_valid)
+                {
+                    std::cout << "Sending to " << host_name << " message" << std::endl;
+                    client->async_send_message(payload);
+                    if(!client) return;
+                }
+                else
+                {
+                    std::cout << "Sending to " << host2_name << " message" << std::endl;
+                    if(!client2) return;
+                    client2->async_send_message(payload);
+                }
+            }
+
+            //формираует запрос бэкап статуса и отправляет мастер ноде
+            void request_backup_status()
+            {
+                alpha::protort::protocol::Packet_Payload status;
+                status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+                auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+                callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+                    on_backup_status_finished(packet.deploy_packet());
+                });
+
+                ++timeout;
+                if(timeout>3)
+                {
+                    switch_nodes();
+                }
+
+                std::cout << "is_master_valid:|" << is_master_valid << "|" << "timeout:| " << timeout << "|" << std::endl;
+
+                if(is_master_valid)
+                {
+                    std::cout << "Sending to " << host_name << " Backupstatus request" << std::endl;
+                    if(client)
+                    {
+                        client->async_send_request(status, callbacks);
+                    }
+                }
+                else
+                {
+                    std::cout << "Sending to " << host2_name << " Backupstatus request" << std::endl;
+                    if(client2)
+                    {
+                        client2->async_send_request(status, callbacks);
+                    }
+                }
+            }
+
+        private:
+            bool is_master_valid = true;
+            int timeout = 0;
+            std::string host_name;
+            boost::shared_ptr<protolink::client<app>> client;
+            std::string host2_name;
+            boost::shared_ptr<protolink::client<app>> client2;
+
+            //Должел ли он быть public?
+            void switch_nodes()
+            {
+                timeout=0;
+                is_master_valid = !is_master_valid;
+            }
+
+            //Колбек по завершению запроса статуса
+            void on_backup_status_finished(const alpha::protort::protocol::deploy::Packet& packet)
+            {
+                timeout=0;
+                if(packet.has_error() || !packet.has_response())
+                {
+                    return;
+                }
+                auto resp = packet.response().status();
+                std::cout << "|||BackUpStatus: " << resp.node_info().backup_status() << " of nodename: " << resp.node_name() << "|||" << std::endl;
+                if(resp.node_info().backup_status()!=alpha::protort::protocol::backup::BackupStatus::Master)
+                {
+                    switch_nodes();
+                }
+            }
+        };
+
+
+
 private:
     class component_instance;
-
+    std::map<std::string, boost::shared_ptr<remote_host>> remote_hosts;
     /*!
      * \brief Класс локального маршрута
      * Используется для адресации локального компонента.
@@ -263,7 +401,11 @@ public:
                     // payload
                     packet->set_payload(output.payload);
 
-                    remote_route.client->async_send_message(payload);
+                    remote_hosts[remote_route.name]->send_message(payload);
+
+                    //запрос о статусе. Если ответил не мастер то отправка произойдет на другую ноду.
+                    remote_hosts[remote_route.name]->request_backup_status();
+
                     out_bytes_ += payload.ByteSize();
                     out_packets_++;
 #ifdef _DEBUG
