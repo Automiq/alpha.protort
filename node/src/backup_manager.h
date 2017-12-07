@@ -142,7 +142,7 @@ public:
 
     //возвращает текущий статус узла
     alpha::protort::protocol::backup::BackupStatus backup_status(){
-        return (alpha::protort::protocol::backup::BackupStatus)node_status_;
+        return static_cast<protocol::backup::BackupStatus>(node_status_);
     }
 
     //выполняется резервный переход

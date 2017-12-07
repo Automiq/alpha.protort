@@ -396,10 +396,12 @@ private:
         response_packet->mutable_response()->mutable_status()->set_out_bytes_count(router_->out_bytes_);
         response_packet->mutable_response()->mutable_status()->set_in_packets_count(router_->in_packets_);
         response_packet->mutable_response()->mutable_status()->set_out_packets_count(router_->out_packets_);
-        if(backup_manager_)
+        if(backup_manager_){
             response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(backup_manager_->backup_status());
-        else
+        }
+        else{
             response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(protocol::backup::BackupStatus::None);
+        }
 
 #ifdef _DEBUG
         if(backup_manager_){
