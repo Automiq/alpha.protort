@@ -158,6 +158,6 @@ private:
     QList<RemoteComponent*> components_;
 
     QTime m_lastStatusTime;
-    protocol::backup::BackupStatus backupStatus_;
+ //   protocol::backup::BackupStatus backupStatus_;
 };
 #endif // TERMINAL_CLIENT_H

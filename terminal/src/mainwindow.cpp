@@ -427,6 +427,7 @@ void MainWindow::onConnected()
 
     // Мастер когда отключился стал слейвом
     else if (node->backupStatus() == BackupStatus::Slave &&
+                    backupTransitionButton &&
                     backupTransitionButton->icon().pixmap(32, 32).toImage() ==
                       QIcon(":/images/master.png").pixmap(32, 32).toImage())
     {
