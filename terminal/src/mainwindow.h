@@ -38,6 +38,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     using RemoteNodePtr = boost::shared_ptr<RemoteNode>;
+    using BackupStatus = protocol::backup::BackupStatus;
 
 public:
     explicit MainWindow(QWidget *parent = 0);

@@ -25,12 +25,12 @@ Q_DECLARE_METATYPE(boost::system::error_code)
 
 class RemoteComponent;
 
-enum class BackupStatus
-{
-    None = 0,
-    Master= 1,
-    Slave = 2
-};
+//enum class BackupStatus
+//{
+//    None = 0,
+//    Master= 1,
+//    Slave = 2
+//};
 
 class RemoteNode : public QObject, public boost::enable_shared_from_this<RemoteNode>
 {
@@ -84,7 +84,7 @@ public:
     uint32_t downSpeed() const;
     uint32_t upSpeed() const;
 
-    BackupStatus backupStatus() const;
+    protocol::backup::BackupStatus backupStatus() const;
 
 
     RemoteComponent *componentAt(int index) const;
@@ -127,7 +127,7 @@ private:
     void setBytesReceived(uint32_t value);
     void setBytesSent(uint32_t value);
     void setConnected(bool value);
-    void setBackupStatus(alpha::protort::protocol::backup::BackupStatus value);
+    void setBackupStatus(protocol::backup::BackupStatus value);
 
     double calcUpSpeed(const QTime &now, uint32_t bytesSent);
     double calcDownSpeed(const QTime &now, uint32_t bytesReceived);
@@ -158,7 +158,6 @@ private:
     QList<RemoteComponent*> components_;
 
     QTime m_lastStatusTime;
-
-    BackupStatus backupStatus_;
+    protocol::backup::BackupStatus backupStatus_;
 };
 #endif // TERMINAL_CLIENT_H
