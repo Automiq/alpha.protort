@@ -103,7 +103,10 @@ void RemoteNode::init_info_node(const std::string &name_node,
     node_info.set_backup_status(backup_status);
 }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bcf530b13fe2fc96884443ff77670c0d8849dda9
 RemoteNode &RemoteNode::search_pairnode(const std::string &name_node,
                                          const QList<RemoteNodePtr> &remote_nodes) const
 {
@@ -187,6 +190,8 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
                     RemoteNode &node_ = search_pairnode(node_name, remote_node);
 
                     if(added_nodes.find(node_.node_information_.name) == added_nodes.end()){
+                       node_info = configuration->add_node_infos();
+
                         // Добавляем информацию о ноде в конфигурацию
                         init_info_node(node_.node_information_.name,
                                        node_.node_information_.host,
