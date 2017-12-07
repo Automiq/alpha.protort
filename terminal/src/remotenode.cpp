@@ -220,13 +220,13 @@ void RemoteNode::async_deploy(deploy_configuration &deploy_configuration, const 
     client_->async_send_request(payload, callbacks);
 }
 
-void RemoteNode::setBackupStatus(alpha::protort::protocol::backup::BackupStatus value)
+void RemoteNode::setBackupStatus(protocol::backup::BackupStatus value)
 {
     // Если такое поле есть в перечислении
-    if(value >= 0 && value <= 2)
-        backupStatus_ = static_cast<BackupStatus>(value);
-    else
-        assert(false);
+//    if(value >= 0 && value <= 2)
+        backup_status_ = value;
+//    else
+//        assert(false);
 }
 
 void RemoteNode::async_start(protocol::Packet_Payload &packet)
@@ -335,9 +335,9 @@ double RemoteNode::calcUpSpeed(const QTime &now, uint32_t bytesSent)
  * \return Состояние ноды в
  * соответствии с перечислением BackupStatus
  */
-BackupStatus RemoteNode::backupStatus() const
+protocol::backup::BackupStatus RemoteNode::backupStatus() const
 {
-    return backupStatus_;
+    return backup_status_;
 }
 
 double RemoteNode::calcDownSpeed(const QTime &now, uint32_t bytesReceived)

@@ -275,11 +275,12 @@ public:
 
     void deactivate()
     {
-        started_ = false;
-        for (auto & comp : components_) {
-            comp.second.component_->stop();
+        if(started_==true){
+            started_ = false;
+            for (auto & comp : components_) {
+                comp.second.component_->stop();
+            }
         }
-
         for(auto & client : clients_){
             client.second->stop();
         }
@@ -287,13 +288,14 @@ public:
 
     void activate()
     {
-        started_ = true;
         for(auto & client : clients_){
             client.second->async_start();
         }
-
-        for (auto & comp : components_) {
-            comp.second.component_->start();
+        if(started_==false){
+            for (auto & comp : components_) {
+                comp.second.component_->start();
+            }
+            started_ = true;
         }
     }
 
@@ -301,6 +303,7 @@ public:
     //! Удаляет компоненты и клиентов
     void clear()
     {
+        started_=false;
         components_.clear();
         clients_.clear();
     }

@@ -355,13 +355,14 @@ private:
                 if (router_previous_state){
                    if(backup_manager_){
                         if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
-                            router_->start();
+                             router_->start();
+                        }
+                        else{
+                             backup_manager_->start_keepalife();
                         }
                     }
                     else{
-#ifdef _DEBUG
-            std::cout << "NONE start" << std::endl;
-#endif
+
                         router_->start();
                     }
                    // router_->start();
@@ -373,14 +374,16 @@ private:
             }
 
             case protocol::deploy::PacketKind::Start:
-                if(!backup_manager_){
-                    router_->start();
-#ifdef _DEBUG
-            std::cout << "status NONE start" << std::endl;
-#endif
+                if(backup_manager_){
+                    if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
+                         router_->start();
+                    }
+                    else{
+                         backup_manager_->start_keepalife();
+                    }
                 }
-                else if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Master){
-                    router_->start();
+                else{
+                        router_->start();
                 }
           //  router_->start();
                 return {};
@@ -396,7 +399,9 @@ private:
 
 
             case protocol::deploy::PacketKind::Switch:
-                backup_manager_->backup_transition();
+                if(backup_manager_){
+                    backup_manager_->backup_transition();
+                }
                 return{};
 
             default:
@@ -498,8 +503,6 @@ private:
                                                                     client_,
                                                                     router_
                                                                     );
-
-                backup_manager_->start_keepalife();
             }
             else{
                 pconf.nodes.push_back({node.name(), node.address(), node.port()});

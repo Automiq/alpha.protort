@@ -427,6 +427,7 @@ void MainWindow::onConnected()
 
     // Мастер когда отключился стал слейвом
     else if (node->backupStatus() == BackupStatus::Slave &&
+                    backupTransitionButton &&
                     backupTransitionButton->icon().pixmap(32, 32).toImage() ==
                       QIcon(":/images/master.png").pixmap(32, 32).toImage())
     {
@@ -587,13 +588,14 @@ void MainWindow::on_backup_transition()
         // Нода, которая расположена на том же уровне
         RemoteNodePtr remoteNode = remoteNodes_.at(row);
 
-        alpha::protort::protocol::Packet_Payload backup;
 
-        // Устанавливаем тип пакета в резервный переход
-        backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);
+            alpha::protort::protocol::Packet_Payload backup;
 
-        // Функция, отправляющая пакет ноде
-        remoteNode->async_backup_transition(backup);
+            // Устанавливаем тип пакета в резервный переход
+            backup.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::Switch);
+
+            // Функция, отправляющая пакет ноде
+            remoteNode->async_backup_transition(backup);
     }
 }
 
