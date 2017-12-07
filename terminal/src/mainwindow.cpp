@@ -330,20 +330,20 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
         // 2.Нода мастер и кнопка толькочто была создана
         if (node->backupStatus() == BackupStatus::Slave && ui->treeStatus->indexWidget(currentModelIndex)->isEnabled()
                                                        && !(backupTransitionButton->icon().isNull()) ||
-            node->backupStatus() == BackupStatus::Master && backupTransitionButton->icon().isNull())
+            node->backupStatus() == BackupStatus::Slave && backupTransitionButton->icon().isNull())
         {
-            backupTransitionButton->setIcon(QIcon(":/images/master.png"));
-            backupTransitionButton->setEnabled(true);
+            backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
+            backupTransitionButton->setDisabled(true);
         }
 
         // 1.Нода мастер, а состояние кнопки как у слэйва
         // 2.Нода слэйв и кнопка только что была создана
         else if(node->backupStatus() == BackupStatus::Master && !(ui->treeStatus->indexWidget(currentModelIndex)->isEnabled())
                                                           && !(backupTransitionButton->icon().isNull()) ||
-                node->backupStatus() == BackupStatus::Slave && backupTransitionButton->icon().isNull())
+                node->backupStatus() == BackupStatus::Master && backupTransitionButton->icon().isNull())
         {
-            backupTransitionButton->setIcon(QIcon(":/images/slave.png"));
-            backupTransitionButton->setDisabled(true);
+            backupTransitionButton->setIcon(QIcon(":/images/master.png"));
+            backupTransitionButton->setEnabled(true);
         }
     }
 
@@ -548,7 +548,7 @@ bool MainWindow::eventFilter(QObject *object, QEvent *event)
     if(pushButton && event->type() == QEvent::Leave && pushButton->isEnabled())
     {
         // Меняем иконку при выходе за пределы кнопки
-        pushButton->setIcon(QIcon(":/images/master.png"));
+         pushButton->setIcon(QIcon(":/images/master.png"));
         return true;
     }
 //            if(event->type() == QEvent::MouseButtonPress && pushButton->isEnabled())

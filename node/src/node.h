@@ -396,6 +396,13 @@ private:
         else
             response_packet->mutable_response()->mutable_status()->mutable_node_info()->set_backup_status(protocol::backup::BackupStatus::None);
 
+#ifdef _DEBUG
+        if(backup_manager_){
+            std::cout << "BACKUPSTATUS " << backup_manager_->backup_status() << std::endl;
+        }
+#endif
+
+
         for (auto & component : router_->components_) {
             auto comp_status = response_packet->mutable_response()->mutable_status()->mutable_component_statuses()->Add();
 
