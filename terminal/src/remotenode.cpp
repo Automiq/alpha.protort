@@ -103,10 +103,6 @@ void RemoteNode::init_info_node(const std::string &name_node,
     node_info.set_backup_status(backup_status);
 }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> bcf530b13fe2fc96884443ff77670c0d8849dda9
 RemoteNode &RemoteNode::search_pairnode(const std::string &name_node,
                                          const QList<RemoteNodePtr> &remote_nodes) const
 {
