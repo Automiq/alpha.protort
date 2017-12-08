@@ -81,6 +81,7 @@ class router : public boost::enable_shared_from_this<router<app>>
                 this->client=client;
                 host2_name=name2;
                 this->client2=client2;
+                target_status=alpha::protort::protocol::backup::BackupStatus::Master;
             }
 
             ~remote_pair()
