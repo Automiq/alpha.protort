@@ -135,6 +135,18 @@ public:
      */
     void on_new_message(const protocol_payload& payload)
     {
+        if(backup_manager_)
+        {
+            if(backup_manager_->backup_status()==protocol::backup::BackupStatus::Slave)
+            {
+#ifdef _DEBUG
+        std::cout << "REDIRECTING PACKET TO MASTER" << payload.communication_packet().destination().name() << std::endl;
+#endif
+                client_->async_send_message(payload);
+                return;
+            }
+
+        }
 #ifdef _DEBUG
         std::cout << "node::on_new_message for comp  " << payload.communication_packet().destination().name() << std::endl;
 #endif
