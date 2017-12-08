@@ -117,9 +117,12 @@ class router : public boost::enable_shared_from_this<router<app>>
                 });
 
                 ++timeout;
-                if(timeout>3)
+                if(timeout>20)
                 {
                     switch_nodes();
+                    target_status = alpha::protort::protocol::backup::BackupStatus::Master==target_status ?
+                                alpha::protort::protocol::backup::BackupStatus::Slave :
+                                alpha::protort::protocol::backup::BackupStatus::Master;
                 }
 
                 std::cout << "is_master_valid:|" << is_master_valid << "|" << "timeout:| " << timeout << "|" << std::endl;
@@ -149,6 +152,7 @@ class router : public boost::enable_shared_from_this<router<app>>
             boost::shared_ptr<protolink::client<app>> client;
             std::string host2_name;
             boost::shared_ptr<protolink::client<app>> client2;
+            alpha::protort::protocol::backup::BackupStatus target_status;
 
             //Должел ли он быть public?
             void switch_nodes()
@@ -167,7 +171,7 @@ class router : public boost::enable_shared_from_this<router<app>>
                 }
                 auto resp = packet.response().status();
                 std::cout << "|||BackUpStatus: " << resp.node_info().backup_status() << " of nodename: " << resp.node_name() << "|||" << std::endl;
-                if(resp.node_info().backup_status()!=alpha::protort::protocol::backup::BackupStatus::Master)
+                if(resp.node_info().backup_status()!=target_status)
                 {
                     switch_nodes();
                 }
