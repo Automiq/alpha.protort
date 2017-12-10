@@ -6,6 +6,9 @@
 #include "parser.h"
 #include "configdialog.h"
 
+//#include <QFile>
+//#include <QTextStream>
+
 #include <QComboBox>
 #include <QIcon>
 #include <QLabel>
@@ -22,6 +25,7 @@
 
 #include <QToolTip>
 #include <boost/make_shared.hpp>
+Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::GetConfigResponse)
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -34,6 +38,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::Packet>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::GetConfigResponse>();
     qRegisterMetaType<boost::system::error_code>();
 
     ui->setupUi(this);
@@ -254,6 +259,8 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 
     auto status = packet.response().status();
 
+
+
     writeStatusLog(tr("<Название узла - %1>").arg(QString::fromStdString(status.node_name())));
     writeStatusLog(tr("<Время работы - %2 сек.>").arg(QString::number(status.uptime())));
     writeStatusLog(tr("<Количество принятых пакетов - %3 (%4 байт)>")
@@ -278,6 +285,26 @@ void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy:
 
     writeStatusLog("\r\n");
 }
+
+ void MainWindow::onGetConfigFinished(const alpha::protort::protocol::deploy::Packet& config)
+ {
+      auto status = config.response().get_config();
+//      if (config.has_error())
+//      {
+//          writeLog(tr("error get config").arg(node->info()));
+//          return;
+//      }
+      getconfig.parserResponce(config);
+      for (auto & node : status.config().node_infos())
+      {
+        if(QString::fromStdString(status.config().this_node_info().name()) == QString::fromStdString(node.name()))
+              continue;
+         getconfig.createNode(node.address(),node.port(),node.port());
+         getconfig.connectionNode(service_);
+         connectRemoteNodeSignals(getconfig.Node.get());
+         getconfig.configurationRequest();
+      }
+ }
 
 void MainWindow::onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
 {
@@ -407,6 +434,13 @@ void MainWindow::on_status_triggered()
         remoteNode->async_status(status);
 }
 
+void MainWindow::on_actiontest_triggered()
+{
+
+     getconfig.outConfigSystem();
+
+}
+
 QString MainWindow::fixedWindowTitle(const Document *doc) const
 {
     QString result = doc->fileName();
@@ -480,37 +514,14 @@ void MainWindow::createRemoteNodes()
 }
 void MainWindow::connetNoda()
 {
+        GetConfiguration getconfigtmp("127.0.0.1",41337,31337);
 
+        //getconfigtmp.createNode("127.0.0.1",41337,31337);
 
-        //auto Node = boost::make_shared<RemoteNode>();
+        getconfig = getconfigtmp;
+        connectRemoteNodeSignals(getconfig.Node.get());
 
-//  connectRemoteNodeSignals(remoteNode.get());
-
-//        remoteNode->connectNoda(service_);
-       // RemoteNode::connectNoda(service_);
-    //boost::asio::ip::tcp::endpoint ep( boost::asio::ip::address::from_string("127.0.0.1"), 41337);
-     boost::asio::ip::tcp::socket sock(service_);
-   // sock.async_connect(ep);
-    //client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
-
-      std::string address = "127.0.0.1";
-//    boost::asio::ip::tcp::endpoint ep(
-//                boost::asio::ip::address::from_string(address),
-//                41337);
-
-//    client_->async_connect(ep);
-        boost::asio::ip::tcp::endpoint ep(
-                    boost::asio::ip::address::from_string(address),
-                    41337);
-
-        //boost::asio::ip::tcp::socket sock(service);
-        sock.connect(ep);
-        //client_->async_connect(ep);
-
-
-
-        //RemoteNode::connectNoda(service_);
-
+        getconfig.connectionNode(service_);
 
 }
 void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
@@ -521,6 +532,7 @@ void MainWindow::connectRemoteNodeSignals(RemoteNode *node)
     connect(node, &RemoteNode::statusRequestFinished, this, &MainWindow::onStatusRequestFinished);
     connect(node, &RemoteNode::startRequestFinished, this, &MainWindow::onStartRequestFinished);
     connect(node, &RemoteNode::stopRequestFinished, this, &MainWindow::onStopRequestFinished);
+    connect(node, &RemoteNode::ConfigurationRequestFinished, this, &MainWindow::onGetConfigFinished);
 }
 
 void MainWindow::saveDocument(int index)
@@ -646,8 +658,13 @@ void MainWindow::button_clickedSetup()
 void MainWindow::button_getConfig()
 {
     if (m_apps->count()> 0 && m_deploys->count() > 0) {
-        //setupConfigMembers();
         connetNoda();
+        alpha::protort::protocol::Packet_Payload config;
+
+        config.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetConfig);
+        getconfig.Node->async_config(config);
+
+
     }
 }
 
@@ -694,3 +711,5 @@ void MainWindow::on_get_status_changed()
 {
 
 }
+
+

@@ -18,11 +18,12 @@
 
 #include "document.h"
 #include "deploy.pb.h"
-#include "configdialog.h"
+
 #include "configdialog.h"
 #include "remotenode.h"
 #include "deployconfiguration.h"
 #include "treemodel.h"
+#include "getconfiguration.h"
 
 class QTextEdit;
 
@@ -85,12 +86,15 @@ private slots:
     void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& status);
     void onStartRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
     void onStopRequestFinished(const alpha::protort::protocol::deploy::Packet& packet);
+    void onGetConfigFinished(const alpha::protort::protocol::deploy::Packet& config);
     void onConnected();
     void onConnectionFailed(const boost::system::error_code&);
 
     void on_get_status_triggered();
 
     void on_get_status_changed();
+
+    void on_actiontest_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -141,10 +145,10 @@ private:
     boost::scoped_ptr<boost::asio::io_service::work> work_;
 
     QList<RemoteNodePtr> remoteNodes_;
-
     deploy_configuration deploy_config_;
 
     boost::thread serviceThread_;
+    GetConfiguration getconfig;
 };
 
 #endif // MAINWINDOW_H

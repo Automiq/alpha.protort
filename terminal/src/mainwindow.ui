@@ -102,6 +102,7 @@
    <addaction name="deploy"/>
    <addaction name="start"/>
    <addaction name="stop"/>
+   <addaction name="actiontest"/>
    <addaction name="status"/>
    <addaction name="separator"/>
   </widget>
@@ -278,6 +279,15 @@
    </property>
    <property name="text">
     <string>&amp;Статус</string>
+   </property>
+  </action>
+  <action name="actiontest">
+   <property name="icon">
+    <iconset resource="images.qrc">
+     <normaloff>:/images/configure.ico</normaloff>:/images/configure.ico</iconset>
+   </property>
+   <property name="text">
+    <string>test</string>
    </property>
   </action>
  </widget>

@@ -49,6 +49,7 @@ public:
     void async_start(alpha::protort::protocol::Packet_Payload& packet);
     void async_stop(alpha::protort::protocol::Packet_Payload& packet);
     void async_status(alpha::protort::protocol::Packet_Payload& status);
+    void async_config(alpha::protort::protocol::Packet_Payload& config);
 
 
 
@@ -69,6 +70,7 @@ public:
 signals:
     void deployConfigRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void statusRequestFinished(const alpha::protort::protocol::deploy::Packet&);
+    void ConfigurationRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void startRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void stopRequestFinished(const alpha::protort::protocol::deploy::Packet&);
     void connected();
@@ -78,6 +80,7 @@ signals:
     void statusChanged();
 
 private slots:
+    void onConfigurationRequestFinished(const alpha::protort::protocol::deploy::Packet &packet);
     void onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet&packet);
     void onConnected();
     void onConnectionFailed(const boost::system::error_code&);

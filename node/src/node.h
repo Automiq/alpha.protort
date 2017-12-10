@@ -1,11 +1,16 @@
 #ifndef NODE_H
 #define NODE_H
 
+
+
 #include <iostream>
 #include <boost/asio.hpp>
 #include <boost/bind.hpp>
 #include <boost/chrono.hpp>
 #include <boost/make_shared.hpp>
+
+
+
 
 #include "server.h"
 #include "client.h"
@@ -169,6 +174,7 @@ public:
             std::string name;
             std::string address;
             uint32_t port;
+            uint32_t config_port;
         };
 
         // узнать
@@ -179,7 +185,7 @@ public:
             std::map<std::string, node_info> nodes;
 
             for (const auto& node : conf.nodes)
-                nodes.emplace(node.name, node_info{node.name, node.host.ip_address, node.host.port});
+                nodes.emplace(node.name, node_info{node.name, node.host.ip_address, node.host.port, node.host.config_port});
 
             for (const auto& mapp : conf.mappings)
                 comp_to_node.emplace(mapp.comp_name, nodes[mapp.node_name]);
@@ -257,13 +263,15 @@ private:
 
     protocol_payload process_deploy_request(const protocol::deploy::Packet& packet)
     {
+        std::cout << "packet_type:  " <<packet.kind() << std::endl;
         switch (packet.kind()) {
 
         case protocol::deploy::PacketKind::DeployConfig:
         {
             bool router_previous_state = router_->started_;
             boost::shared_ptr<router<node>> new_router = boost::make_shared<router<node>>(service_);
-            auto old_router = boost::atomic_exchange(&router_, new_router);
+            auto old_router = boost::atomic_exchange(&router_, new_router);            
+            std::cout << "deploy" << std::endl;
             deploy_from_packet(packet.request().deploy_config().config());
             if (router_previous_state)
                 router_->start();
@@ -278,6 +286,9 @@ private:
             return {};
         case protocol::deploy::PacketKind::GetStatus:
             return status_response();
+        case protocol::deploy::PacketKind::GetConfig:
+            std::cout << "get_config" << std::endl;
+            return config_response();
         default:
             assert(false);
         }
@@ -309,13 +320,70 @@ private:
 
         return response;
     }
+    //возврощает конфигурацию узла
+    protocol_payload config_response()
+    {
+        std::cout<< "return config  " << node_name_ << std::endl;
+
+        //! Порт, прослушиваемый сервером узла
+       // port_id port_;
+
+        protocol_payload response;
+        protocol::deploy::Packet* response_packet = response.mutable_deploy_packet();
+        response_packet->set_kind(protocol::deploy::PacketKind::GetConfig);
+        response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_this_node_info()->set_name(node_name_);
+        response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_this_node_info()->set_port(port_);
+        response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_this_node_info()->set_backup_status(back_status_);
+           std::cout << addres_ << " " << node_name_ << " " << port_ << " " << config_port_ << "  " << back_status_ << std::endl;
+        for (auto & node : pconf_.nodes)
+        {
+            auto node_inf = response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_node_infos()->Add();
+            node_inf->set_address(node.host.ip_address);
+            node_inf->set_name(node.name);
+            node_inf->set_port(node.host.port);
+            node_inf->set_config_port(node.host.config_port);
+            addres_ = node.host.ip_address;
+        }
+        response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_this_node_info()->set_address(addres_);
+
+        for (auto & inst : pconf_.components)
+        {
+            auto inst_info = response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_instances()->Add();
+            inst_info->set_name(inst.name);
+            inst_info->set_kind(components::get_component_kind(inst.kind));
+        }
+
+        for (auto & maps : pconf_.mappings)
+        {
+            auto maps_info = response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_maps()->Add();
+            maps_info->set_node_name(maps.node_name);
+            maps_info->set_instance_name(maps.comp_name);
+        }
+
+        for (auto & conn : pconf_.connections)
+            std::cout << conn.dest << " " << conn.dest_in<< " " << conn.source<< " " << conn.source_out << " " << std::endl;
+
+
+        for(auto & conn : pconf_.connections)
+        {
+            auto conn_info = response_packet->mutable_response()->mutable_get_config()->mutable_config()->mutable_connections()->Add();
+            conn_info->mutable_destination()->set_name(conn.dest);
+            conn_info->mutable_destination()->set_port(conn.dest_in);            
+
+            conn_info->mutable_source()->set_name(conn.source);
+            conn_info->mutable_source()->set_port(conn.source_out);
+
+        }
+         std::cout << "ip addres node "<<response.deploy_packet().response().get_config().config().this_node_info().address() << std::endl;
+        return response;
+    }
 
     /*!
      * \brief Разворачивает узел, используя пакет, полученный от терминала
      * \param config Конфигурация из пакета
      * \return Ответный пакет
      * Присваивает узлу имя и прослушиваемый порт в соответсвии с данными,
-     * содержащимися в пакете.
+     * со0держащимися в пакете.
      * Разворачивает узел путем преобразования конфигурации из пакета в
      * конфигурацию парсера xml и используя функцию deploy_from_config.
      *
@@ -323,10 +391,14 @@ private:
     void deploy_from_packet(const protocol::deploy::Config& config)
     {
         node_name_ = config.this_node_info().name();
+        addres_ = config.this_node_info().address();
         port_ = config.this_node_info().port();
-
+        back_status_ = config.this_node_info().backup_status();
+        config_port_ = config.this_node_info().config_port();
+        //backup_s = config.this_node_info().backup_status();
+        std::cout << config.this_node_info().name() << config_port_ << std::endl;
+        //сохраняем информацию о конфигурации
         parser::configuration pconf;
-
         for (auto & inst : config.instances())
             pconf.components.push_back({inst.name(), components::get_component_kind(inst.kind())});
 
@@ -340,6 +412,7 @@ private:
         for (auto & map : config.maps())
             pconf.mappings.push_back({map.instance_name(), map.node_name()});
 
+            pconf_ = pconf;
         deploy_from_config(pconf);
     }
 
@@ -355,17 +428,28 @@ private:
 
     //! Подписанные сигналы
     boost::asio::signal_set signals_;
-
     //! Имя узла
     std::string node_name_;
+    std::string addres_;
 
     //! Порт, прослушиваемый сервером узла
     port_id port_;
+    port_id config_port_;
+
+    //prot_id config_port_;
+
+   // auto backup_s;
 
     //! Время запуска узла
     boost::chrono::steady_clock::time_point start_time_;
 
     boost::thread_group workers_;
+
+    //хранит конфигурацию узла полученную от терминала
+    protocol::deploy::Config configuration_node_;
+    parser::configuration pconf_;
+    alpha::protort::protocol::backup::BackupStatus back_status_;
+
 
 public:
     //! Роутер пакетов

@@ -2,7 +2,11 @@
 #include "convert.h"
 #include "remotecomponent.h"
 
+#include <QFile>
+#include <QTextStream>
 #include "deploy.pb.h"
+
+Q_DECLARE_METATYPE(alpha::protort::protocol::deploy::GetConfigResponse)
 
 RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
     : node_information_(node_information),
@@ -17,11 +21,13 @@ RemoteNode::RemoteNode(alpha::protort::parser::node const& node_information)
 {
     qRegisterMetaType<alpha::protort::protocol::Packet_Payload>();
     qRegisterMetaType<alpha::protort::protocol::deploy::StatusResponse>();
+    qRegisterMetaType<alpha::protort::protocol::deploy::GetConfigResponse>();
     qRegisterMetaType<boost::system::error_code>();
 
     connect(this, &RemoteNode::connected, this, &RemoteNode::onConnected);
     connect(this, &RemoteNode::connectionFailed, this, &RemoteNode::onConnectionFailed);
     connect(this, &RemoteNode::statusRequestFinished, this, &RemoteNode::onStatusRequestFinished);
+    connect(this, &RemoteNode::ConfigurationRequestFinished, this, &RemoteNode::onConfigurationRequestFinished);
 
     name_ = QString::fromStdString(node_information_.name);
 }
@@ -45,21 +51,25 @@ void RemoteNode::init(boost::asio::io_service &service)
 
 void RemoteNode::connectNoda(boost::asio::io_service &service)
 {
-    client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
+        client_ = boost::make_shared<client_t>(this->shared_from_this(), service);
 
-       std::string address = "127.0.0.1";
-//    boost::asio::ip::tcp::endpoint ep(
-//                boost::asio::ip::address::from_string(address),
-//                41337);
-
-//    client_->async_connect(ep);
+        std::string address = "127.0.0.1";
         boost::asio::ip::tcp::endpoint ep(
                     boost::asio::ip::address::from_string(address),
                     41337);
-
-        //boost::asio::ip::tcp::socket sock(service);
-        //sock.connect(ep);
         client_->async_connect(ep);
+
+
+//        alpha::protort::protocol::Packet_Payload status;
+//        status.mutable_deploy_packet()->set_kind(alpha::protort::protocol::deploy::GetStatus);
+
+//        auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+//        callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+//            emit statusRequestFinished(packet.deploy_packet());
+//        });
+
+//        client_->async_send_request(status, callbacks);
 
 }
 
@@ -206,6 +216,17 @@ void RemoteNode::async_status(alpha::protort::protocol::Packet_Payload& status)
     client_->async_send_request(status, callbacks);
 }
 
+void RemoteNode::async_config(alpha::protort::protocol::Packet_Payload& config)
+{
+    auto callbacks = boost::make_shared<alpha::protort::protolink::request_callbacks>();
+
+    callbacks->on_finished.connect([&](const alpha::protort::protocol::Packet_Payload& packet) {
+        emit ConfigurationRequestFinished(packet.deploy_packet());
+    });
+
+    client_->async_send_request(config, callbacks);
+}
+
 void RemoteNode::on_connected(const boost::system::error_code& err)
 {
     if (!err)
@@ -325,11 +346,29 @@ RemoteComponent *RemoteNode::componentAt(int index) const
     return components_[index];
 }
 
+
+void RemoteNode::onConfigurationRequestFinished(const alpha::protort::protocol::deploy::Packet &packet)
+{
+    auto config = packet.response().get_config().config().this_node_info().address();
+
+    QFile file("file.txt");
+    if(file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QTextStream write(&file);
+        write << QString::fromStdString(config) << "work";
+        file.close();
+    }
+
+
+}
+
 void RemoteNode::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet &packet)
 {
     auto status = packet.response().status();
 
     auto cSize = status.component_statuses_size();
+
+
 
     if (cSize > 0 && components_.size() == 0)
     {

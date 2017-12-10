@@ -15,8 +15,10 @@ message NodeInfo
     string address = 2;
     // Порт
     uint32 port = 3;
+    //конфиг порт
+    uint32 config_port = 4;
     // Информация о статусе ноды
-    backup.BackupStatus backup_status = 4;
+    backup.BackupStatus backup_status = 5;
 }
 
 message NodeInfoList
