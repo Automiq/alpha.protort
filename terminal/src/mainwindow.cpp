@@ -235,11 +235,9 @@ void MainWindow::onDeployConfigRequestFinished(const alpha::protort::protocol::d
 {
     deploying = false;
     auto node = qobject_cast<RemoteNode *>(sender());
-    writeLog(
-                packet.has_error() ?
-                    tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
-                    tr("Конфигурация успешно развернута на узел %1").arg(node->info())
-                    );
+    writeLog(packet.has_error() ?
+             tr("Ошибка развертывания конфигурации на узел %1").arg(node->info()) :
+             tr("Конфигурация успешно развернута на узел %1").arg(node->info()));
 }
 
 void MainWindow::onStatusRequestFinished(const alpha::protort::protocol::deploy::Packet& packet)
@@ -312,7 +310,7 @@ void MainWindow::onConnectionFailed(const boost::system::error_code& err)
     auto node = qobject_cast<RemoteNode *>(sender());
     writeLog(tr("Невозможно подключиться к %1: %2")
              .arg(node->info())
-             .arg(QString::fromStdString(err.message())));
+             .arg(QString::fromLocal8Bit(err.message().data(), err.message().size())));
 }
 
 void MainWindow::setTabName(int index, const QString &name)
